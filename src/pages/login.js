@@ -23,6 +23,7 @@ const Login = () => {
     password: ''
   });
 
+  
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -70,20 +71,26 @@ const Login = () => {
         password: formData.password
       });
 
-      if (response.status === 200) {
-        // Store tokens and user data
-        localStorage.setItem('access_token', response.data.tokens.access.token);
-        localStorage.setItem('refresh_token', response.data.tokens.refresh.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        if (rememberMe) {
-          localStorage.setItem('rememberedEmail', formData.email);
-        } else {
-          localStorage.removeItem('rememberedEmail');
-        }
-        
-        navigate('/home');
-      }
+     console.log('Full login response:', response.data); // Debug log
+
+if (response.data?.tokens?.access?.token && response.data?.tokens?.refresh?.token) {
+  localStorage.setItem('accessToken', response.data.tokens.access.token);
+  localStorage.setItem('refreshToken', response.data.tokens.refresh.token);
+  localStorage.setItem('tokenType', response.data.tokens.access.tokenType || 'Bearer'); // <-- add this
+  localStorage.setItem('user', JSON.stringify(response.data.user));
+  localStorage.setItem('userId', response.data.user.id);
+
+  if (rememberMe) {
+    localStorage.setItem('rememberedEmail', formData.email);
+  } else {
+    localStorage.removeItem('rememberedEmail');
+  }
+
+  navigate('/home');
+}
+ else {
+  throw new Error('Invalid response structure from server');
+}
     } catch (error) {
       console.error('Login error:', error);
       if (error.response) {

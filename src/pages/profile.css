@@ -1,15 +1,17 @@
-/* General layout */
+
+
 .user-profile-page {
-  background-color: #f9fafb;
+  background-color: white;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
-  padding: 0; /* Remove unintended padding */
+  padding: 0;
   margin: 0;
+  overflow-y: hidden;
 }
 
 .user-profile-container {
   max-width: 960px;
-  margin: 2rem auto;
+  margin: 4rem auto 2rem; /* Increased top margin to create space below header */
   padding: 0 1rem;
 }
 
@@ -47,18 +49,20 @@
 .profile-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
-  padding: 2rem;
+  box-shadow: 0 6px 24px #97B469 ;
+  padding: 1.5rem;
   overflow: hidden;
+   margin-top: 6rem;
 }
 
 .profile-header {
   border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem; /* More padding at bottom */
+  margin-bottom: 1.5rem; /* More space below header */
 }
 
 .profile-header h2 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
   color: #111827;
@@ -85,8 +89,8 @@
 }
 
 .user-avatar {
-  width: 180px;
-  height: 180px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #e5e7eb;
@@ -191,21 +195,24 @@
 }
 
 .btn-primary {
-  background-color: #3b82f6;
+  background-color: #97B469;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
+  background-color: #7d994e;
 }
 
 .btn-secondary {
   background-color: #6b7280;
-  color: white;
+  color: #97B469;
+  border: 2px solid #97B469;
 }
 
 .btn-secondary:hover {
   background-color: #4b5563;
+  color: #97B469;
+   border: 1px solid #97B469;
 }
 
 .btn-outline {
@@ -219,12 +226,12 @@
 }
 
 .btn-warning {
-  background-color: #f59e0b;
+  background-color: #4d4d4d;
   color: white;
 }
 
 .btn-warning:hover {
-  background-color: #d97706;
+  background-color: #3d3d3d;
 }
 
 .btn-danger {

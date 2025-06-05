@@ -1,20 +1,186 @@
-import React from 'react';
-import Header from '../components/header'; // Adjust path as needed
- // Your dashboard specific styles
+// src/pages/feedback.js
 
-const Feedback = () => {
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Header from '../components/header';
+import './feedback.css';
+
+const FeedbackPage = () => {
+  const [feedbackType, setFeedbackType] = useState('');
+  const [feedbackText, setFeedbackText] = useState('');
+  const [rating, setRating] = useState(0);
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const token = localStorage.getItem('token'); // Make sure token is stored after login
+
+  // Submit feedback to backend
+  const submitFeedback = async (feedbackData) => {
+  try {
+    const response = 
+    await axios.post('http://localhost:5000/feedback', feedbackData,
+
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    setMessage(response.data.message);
+  } catch (error) {
+    console.error('Error submitting feedback:', error?.response?.data?.error);
+    setMessage('Submission failed');
+  }
+};
+
+
+  // Fetch all feedbacks from backend
+  const fetchFeedback = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5000/api/feedback');
+      setFeedbackList(response.data);
+    } catch (error) {
+      console.error('Error fetching feedback:', error?.response?.data?.error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Form submission
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!feedbackType || !feedbackText.trim()) return;
+
+    const newFeedback = {
+      type: feedbackType,
+      text: feedbackText,
+      rating,
+    };
+
+    try {
+      await submitFeedback(newFeedback);
+      await fetchFeedback(); // Refresh feedback list
+      setFeedbackType('');
+      setFeedbackText('');
+      setRating(0);
+    } catch (err) {
+      console.error('Submission error:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedback();
+  }, []);
+
   return (
     <div className="feedback-container">
-     
       <Header />
-      
-      {/* Your dashboard content */}
-      <main className="feedback-content">
-        <h1>Feedback</h1>
-      
+
+      <main className="main-content">
+        <p className="intro-text">
+          Please select the type of feedback you'd like to share from the dropdown below, and then describe your feedback in the text box. Once done, click 'Submit Feedback' to send it to us.
+        </p>
+
+        <div className="feedback-blocks">
+          {/* Feedback Form Block */}
+          <section className="feedback-section block">
+            <div className="block-header">Feedback</div>
+
+            {message && <div className="message">{message}</div>}
+
+            <form onSubmit={handleFeedbackSubmit} className="feedback-form">
+              <select
+                value={feedbackType}
+                onChange={(e) => setFeedbackType(e.target.value)}
+                required
+                className="feedback-select"
+              >
+                <option value="" disabled>Select Feedback Type</option>
+                <option>Feature Enhancement</option>
+                <option>New Feature</option>
+                <option>Bug Report</option>
+                <option>General Comment</option>
+              </select>
+
+              <div className="feedback-input-group">
+                <input
+                  type="text"
+                  placeholder="Enter your feedback"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  required
+                  className="feedback-text"
+                />
+                <button type="submit" className="submit-button">
+                  Submit
+                </button>
+              </div>
+
+              <div className="rating-section">
+                <h3 className="rating-heading">Rating</h3>
+                <div className="star-container">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <i
+                      key={star}
+                      className={`fa-star ${rating >= star ? 'fas' : 'far'}`}
+                      onClick={() => setRating(star)}
+                      style={{ cursor: 'pointer' }}
+                    ></i>
+                  ))}
+                </div>
+              </div>
+            </form>
+          </section>
+
+          {/* Recent Feedback Block */}
+          <section className="recent-feedback-section block">
+            <div className="block-header">
+              <span>Recent Feedback</span>
+              {/* Optional Search */}
+              {/* <input type="search" placeholder="Search..." className="search-input" /> */}
+            </div>
+
+            <div className="feedback-list">
+              {loading ? (
+                <p>Loading feedback...</p>
+              ) : feedbackList.length === 0 ? (
+                <p>No feedback yet.</p>
+              ) : (
+                feedbackList.map((item, index) => (
+                  <article key={index} className="feedback-item">
+                    <div className="feedback-item-header">
+                      <h3>{item.type}</h3>
+                      <span className="feedback-user">
+                        <img
+                          src={item.user?.avatar || '/default-avatar.png'}
+                          alt="avatar"
+                          className="avatar"
+                        />
+                        {item.user?.name || 'Anonymous'}
+                      </span>
+                    </div>
+                    <div className="stars-display">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <i
+                          key={star}
+                          className={`fa-star ${item.rating >= star ? 'fas' : 'far'}`}
+                        ></i>
+                      ))}
+                      <span className="rating-score">{item.rating}/5</span>
+                    </div>
+                    <p>{item.text}</p>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );
 };
 
-export default Feedback;
+export default FeedbackPage;

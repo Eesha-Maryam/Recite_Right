@@ -28,6 +28,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard/>} /> 
           <Route path="/feedback" element={<Feedback />} />  
           <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/email-verified-success" element={<EmailVerificationPage />} />
+          <Route path="/email-verification-failed" element={<EmailVerificationPage />} />
           <Route path="/quran" element={<Quran/>} /> 
           <Route path="/mutashabihat" element={<Mutashabihat/>} /> 
           <Route path="/help" element={<Help/>} /> 
