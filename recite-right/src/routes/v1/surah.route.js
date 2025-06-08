@@ -4,7 +4,7 @@ const { dashboardSurah, SurahById } = require('../../controllers/surah.controlle
 const router = express.Router();
 
 router.get('/dashboard', dashboardSurah);
-router.post('/get-surah/:surahId', SurahById);
+router.get('/get-surah/:surahId', SurahById);
 
 module.exports = router;
 

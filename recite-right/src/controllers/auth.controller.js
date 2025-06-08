@@ -16,7 +16,7 @@ const verifyEmailByGet = catchAsync(async (req, res) => {
   try {
     const payload = jwt.verify(token, config.jwt.secret);
     const user = await User.findById(payload.sub);
-    
+
     if (!user) {
       return res.redirect(`${config.clientUrl}/email-verification-failed?reason=user-not-found`);
     }
@@ -100,7 +100,7 @@ const register = catchAsync(async (req, res) => {
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
   const normalizedEmail = email.trim().toLowerCase();
-  
+
   const user = await userService.getUserByEmail(normalizedEmail);
   if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
@@ -116,7 +116,7 @@ const login = catchAsync(async (req, res) => {
   }
 
   const tokens = await tokenService.generateAuthTokens(user);
-  
+
   res.send({
     user: {
       id: user.id,
@@ -148,10 +148,10 @@ const logout = catchAsync(async (req, res) => {
 
 const refreshTokens = catchAsync(async (req, res) => {
   const { refreshToken } = req.body;
-  
+
   // Verify refresh token
   const refreshTokenDoc = await tokenService.verifyToken(refreshToken, tokenTypes.REFRESH);
-  
+
   // Check if user still exists
   const user = await userService.getUserById(refreshTokenDoc.user);
   if (!user) {
@@ -163,7 +163,7 @@ const refreshTokens = catchAsync(async (req, res) => {
 
   // Generate new tokens
   const tokens = await tokenService.generateAuthTokens(user);
-  
+
   res.send({
     access: {
       token: tokens.access.token,
@@ -179,7 +179,7 @@ const refreshTokens = catchAsync(async (req, res) => {
 
 
 const forgotPassword = catchAsync(async (req, res) => {
-  
+
   const resetPasswordToken = await tokenService.generateResetPasswordToken(req.body.email);
   await emailService.sendResetPasswordEmail(req.body.email, resetPasswordToken);
   res.status(httpStatus.NO_CONTENT).send();
@@ -201,7 +201,7 @@ const resetPassword = catchAsync(async (req, res) => {
   try {
     // Changed this line only - added tokenTypes.RESET_PASSWORD
     const resetPasswordTokenDoc = await tokenService.verifyToken(token, 'resetPassword'); // or tokenTypes.RESET_PASSWORD
-    
+
     const user = await userService.getUserById(resetPasswordTokenDoc.user);
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
@@ -231,7 +231,7 @@ const verifyEmail = catchAsync(async (req, res) => {
   try {
     const payload = jwt.verify(token, config.jwt.secret);
     const user = await User.findById(payload.sub);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -257,7 +257,7 @@ const verifyEmail = catchAsync(async (req, res) => {
 // Add this to your auth.controller.js
 const verifyResetToken = catchAsync(async (req, res) => {
   const { token } = req.query;
-  
+
   if (!token) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Token is required');
   }
@@ -267,9 +267,9 @@ const verifyResetToken = catchAsync(async (req, res) => {
     await tokenService.verifyToken(token, tokenTypes.RESET_PASSWORD);
     res.status(httpStatus.OK).send({ valid: true });
   } catch (error) {
-    res.status(httpStatus.BAD_REQUEST).send({ 
-      valid: false, 
-      message: error.message 
+    res.status(httpStatus.BAD_REQUEST).send({
+      valid: false,
+      message: error.message
     });
   }
 });

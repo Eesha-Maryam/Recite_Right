@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
+
+function useQuery() {
+  const location = useLocation();
+  return new URLSearchParams(location.search);
+}
 
 const Quran = () => {
   // State management
@@ -20,6 +26,9 @@ const Quran = () => {
   const [audioChunks, setAudioChunks] = useState([]);
   const [highlightedAyah, setHighlightedAyah] = useState(null);
   const [recordingData, setRecordingData] = useState([]);
+  const [surahList, setSurahList] = useState([]);
+
+  const baseUrl = process.env.REACT_APP_BASE_URL;
 
   // Refs
   const ayahRefs = useRef({});
@@ -46,10 +55,40 @@ const Quran = () => {
     ]
   };
 
-  const surahList = [
-    { number: 78, name: 'An-Naba' },
-    { number: 114, name: 'An-Nas' }
-  ];
+  useEffect(() => {
+    const fetchSurahList = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/v1/surah/dashboard`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const formattedList = Object.entries(result.data).map(([number, details]) => ({
+            number: parseInt(number),
+            name: `${details.latin} (${details.english})`
+          }));
+
+          setSurahList(formattedList);
+
+          if (formattedList.length > 0 && !selectedSurah) {
+            const query = new URLSearchParams(window.location.search);
+            const surahParam = query.get('surahId');
+            const surahNumber = surahParam ? parseInt(surahParam) : null;
+            const surahToSelect = formattedList.find(s => s.number === surahNumber) || formattedList[0];
+
+            setSelectedSurah(surahToSelect);
+          }
+
+        } else {
+          console.error('Unexpected API response format:', result);
+        }
+      } catch (error) {
+        console.error('Failed to fetch surah list:', error);
+      }
+    };
+
+    fetchSurahList();
+  }, []);
+
 
   // Initialize audio context and beep sound
   useEffect(() => {
@@ -84,13 +123,49 @@ const Quran = () => {
 
   // Load ayahs when surah is selected
   useEffect(() => {
-    if (selectedSurah && dummyQuranData[selectedSurah.number]) {
-      setAyahs(dummyQuranData[selectedSurah.number]);
-      scrollToAyah(startAyah || 1);
-    } else {
-      setAyahs([]);
-    }
+    const fetchSurah = async () => {
+      if (!selectedSurah) {
+        setAyahs([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${baseUrl}/v1/surah/get-surah/${selectedSurah.number}`);
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.ayahs) {
+          const ayahList = [];
+
+          result.data.ayahs.forEach(ayah => {
+            if (ayah.bismillah) {
+              ayahList.push({
+                number: 0,
+                text: ayah.bismillah,
+              });
+            }
+
+            ayahList.push({
+              number: parseInt(ayah.num),
+              text: ayah.text,
+            });
+          });
+
+          setAyahs(ayahList);
+          scrollToAyah(startAyah || 1);
+        } else {
+          console.error('Invalid surah data format:', result);
+          setAyahs([]);
+        }
+      } catch (err) {
+        console.error(`{baseUrl}/v1/surah/get-surah/${selectedSurah.number}`)
+        console.error('Error fetching surah:', err);
+        setAyahs([]);
+      }
+    };
+
+    fetchSurah();
   }, [selectedSurah, startAyah]);
+
 
   const scrollToAyah = (ayahNumber) => {
     setTimeout(() => {

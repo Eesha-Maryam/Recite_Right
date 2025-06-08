@@ -1,15 +1,39 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import './homepage.css';
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
   const [, setHoveredTiles] = useState(new Set()); // Removed unused hoveredTiles
   const [activeTab, setActiveTab] = useState('Surah');
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  const baseUrl = process.env.REACT_APP_BASE_URL;
+  const [surahTiles, setSurahTiles] = useState([]);
+
+    // Fetch API on mount
+    useEffect(() => {
+      fetch(`${baseUrl}/v1/surah/dashboard`)
+        .then((res) => res.json())
+        .then((data) => {
+          const response = data.data || {};
+          const tiles = Object.entries(response).map(([key, value]) => ({
+            id: key,
+            title: value.latin,
+            subtitle: `(${value.english})`
+          }));
+          setSurahTiles(tiles);
+        })
+        .catch((err) => {
+          console.error('Error fetching Surahs:', err);
+        });
+    }, []);
   
   useEffect(() => {
     document.body.classList.add('homepage');
@@ -26,8 +50,6 @@ const HomePage = () => {
         height: window.innerHeight,
       });
     };
-
-
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -46,6 +68,10 @@ const HomePage = () => {
       return newSet;
     });
   };
+
+  const handleTileClick = (surahId) => {
+      navigate(`/quran?surahId=${surahId}`);
+    };
 
   return (
     <div className="home-page">
@@ -212,23 +238,12 @@ const HomePage = () => {
           }}
         >
           <div className="tile-grid">
-            {[
-              { title: "Al-Fatihah", subtitle: "(The Opening)" },
-              { title: "Al-Baqarah", subtitle: "(The Cow)" },
-              { title: "Al-Imran", subtitle: "(The Family of Imran)" },
-              { title: "An-Nisa", subtitle: "(The Women)" },
-              { title: "Al-Maidah", subtitle: "(The Table Spread)" },
-              { title: "Al-An'am", subtitle: "(The Cattle)" },
-              { title: "Al-A'raf", subtitle: "(The Heights)" },
-              { title: "Al-Anfal", subtitle: "(The Spoils of War)" },
-              { title: "At-Tawbah", subtitle: "(The Repentance)" },
-              { title: "Yunus", subtitle: "(Jonah)" },
-              { title: "Hud", subtitle: "(Hud)" },
-              { title: "Yusuf", subtitle: "(Joseph)" }
-            ].map((tile, index) => (
-              <div 
+            {(surahTiles.length > 0 ? surahTiles : []).map((tile, index) => (
+              <div
                 key={index}
                 className="tile"
+                data-surah-id={tile.id}
+                onClick={() => handleTileClick(tile.id)}
                 onMouseEnter={() => handleTileHover(tile.title, true)}
                 onMouseLeave={() => handleTileHover(tile.title, false)}
                 style={{
