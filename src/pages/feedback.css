@@ -22,9 +22,9 @@
 /* Block Styling */
 .block {
   background: white;
-  border-radius: 8px;
+  border-radius: 7px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(19, 19, 19, 0.1);
   overflow: hidden;
   padding: 0;
 }
@@ -160,4 +160,79 @@
   margin-left: 10px;
   font-weight: bold;
   color: #333;
+}
+
+/* DARK MODE OVERRIDES */
+.dark-mode .feedback-container {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+.dark-mode .intro-text {
+  color: #cccccc;
+}
+
+.dark-mode .block {
+  background: #1f1f1f;
+  border: 1px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .block-header {
+  background-color: #8aa05a;
+  color: #ffffff;
+}
+
+.dark-mode .search-input {
+  background-color: #2e2e2e;
+  color: #ffffff;
+  border: 1px solid #888;
+}
+
+.dark-mode .feedback-select,
+.dark-mode .feedback-text {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #888;
+}
+
+.dark-mode .feedback-select option {
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+.dark-mode .submit-button {
+  background-color: #8aa05a;
+  color: white;
+}
+
+.dark-mode .submit-button:hover {
+  background-color: #5a6e2b;
+}
+
+.dark-mode .rating-heading {
+  color: #ffffff;
+}
+
+.dark-mode .star-container i {
+  color: #777777;
+}
+
+.dark-mode .star-container i.fas {
+  color: goldenrod;
+}
+
+.dark-mode .feedback-item {
+  background-color: #292929;
+  color: #eeeeee;
+  border-left: 5px solid #8aa05a;
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .feedback-user {
+  color: #aaaaaa;
+}
+
+.dark-mode .rating-score {
+  color: #f0f0f0;
 }
