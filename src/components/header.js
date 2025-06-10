@@ -96,7 +96,10 @@ const MenuDrawer = ({ isOpen, onClose }) => {
 };
 
 const SettingsDrawer = ({ isOpen, onClose }) => {
-  const [isLightMode, setIsLightMode] = useState(true);
+const [isLightMode, setIsLightMode] = useState(() => {
+  return localStorage.getItem('theme') !== 'dark'; // true if no dark theme set
+});
+
   const [isVoiceOn, setIsVoiceOn] = useState(false);
   const [fontSize, setFontSize] = useState(20);
 
@@ -115,7 +118,20 @@ const SettingsDrawer = ({ isOpen, onClose }) => {
           <ToggleWithDescription
             description="Choose Light or Dark modes using the theme selector."
             isOn={isLightMode}
-            onToggle={() => setIsLightMode(!isLightMode)}
+          onToggle={() => {
+  const newMode = !isLightMode;
+  setIsLightMode(newMode);
+  const body = document.body;
+
+  if (newMode) {
+    body.classList.remove('dark-mode');
+    localStorage.setItem('theme', 'light');
+  } else {
+    body.classList.add('dark-mode');
+    localStorage.setItem('theme', 'dark');
+  }
+}}
+
             option1="Light"
             option2="Dark"
           />
