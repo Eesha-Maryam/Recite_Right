@@ -509,8 +509,14 @@ body.dark-mode .adjuster-controls {
 }
 
 
-.app-header.transparent ~ .drawer .drawer-header,
-.app-header.transparent ~ .settings-drawer .drawer-header {
+body.dark-mode.app-header.transparent ~ .drawer .drawer-header,
+body.dark-mode.app-header.transparent ~ .settings-drawer .drawer-header {
   border-bottom: 1px solid var(--white) !important;
+}
+
+
+body.dark-mode.app-header:not(.transparent) ~ .drawer .drawer-header,
+body.dark-mode.app-header:not(.transparent) ~ .settings-drawer .drawer-header {
+  border-bottom: 1px solid var(--white) !important; /* or a brighter olive you prefer */
 }
 
