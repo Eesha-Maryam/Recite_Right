@@ -1,9 +1,89 @@
-.mutashabihat-container {
-    padding-top: 60px; /* Matches header height */
-  }
-  
-  .mutashabihat-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
+:root {
+  --olive-green: #97B469;
+  --charcoal: #333333;
+  --white: #ffffff;
+}
+
+.muta-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--white);
+}
+
+.muta-content {
+  padding: 4rem 5rem 5rem 5rem; /* Push content below fixed header + add horizontal padding */
+}
+
+.muta-heading {
+  color: var(--olive-green);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.muta-description {
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  color: var(--charcoal);
+}
+
+.muta-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+
+.muta-tile {
+  background-color: var(--white);
+  border: 2px solid var(--olive-green);
+  padding: 1.2rem;
+  text-align: center;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.muta-tile:hover {
+  background-color: #e6eddc;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(151, 180, 105, 0.3);
+}
+
+.muta-tile h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--charcoal);
+}
+
+.muta-tile p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.95rem;
+  color: var(--charcoal);
+}
+
+
+/* Dark Mode for Mutashabihat Page */
+.dark-mode .muta-container {
+  background-color: #121212;
+}
+
+.dark-mode .muta-heading {
+  color: #b5cc8e; /* A softer olive or accent for headings */
+}
+
+.dark-mode .muta-description {
+  color: #ddd;
+}
+
+.dark-mode .muta-tile {
+  background-color: #1e1e1e;
+  border: 2px solid #b5cc8e;
+}
+
+.dark-mode .muta-tile:hover {
+  background-color: #2a2a2a;
+  box-shadow: 0 4px 10px rgba(181, 204, 142, 0.2);
+}
+
+.dark-mode .muta-tile h3,
+.dark-mode .muta-tile p {
+  color: #ddd;
+}

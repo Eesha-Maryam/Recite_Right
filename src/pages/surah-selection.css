@@ -203,7 +203,7 @@
   }
   
   .save-range-btn {
-    background-color: #739738;
+    background-color: #8ca55a;
     color: white;
     transform: translateY(-1px); 
     border: none;
@@ -415,4 +415,131 @@
 .surah-list::-webkit-scrollbar-thumb:hover,
 .selected-list::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+
+/* Dark Mode */
+
+.dark-mode {
+  --white: #ffffff;
+  --olive-primary: #a7c957;
+  --olive-dark: #89b140;
+  --olive-light: #1e1e1e;
+  --olive-accent: #b5cc8e;
+  --gray-100: #1e1e1e;
+  --gray-200: #333;
+  --gray-500: #aaa;
+  --gray-700: #ddd;
+  background-color: var(--white);
+  color: var(--gray-700);
+}
+
+.dark-mode .surah-selection {
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.dark-mode .full-quran-block,
+.dark-mode .surah-list-block,
+.dark-mode .selected-surahs-block {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-700); /* ← Set border to white */
+  box-shadow: none;
+}
+
+
+.dark-mode .surah-checkbox,
+.dark-mode .range-input button,
+.dark-mode .selected-item {
+  background-color: var(--olive-dark);
+  color: var(--gray-700);
+}
+
+.dark-mode .range-selection {
+  background-color: #1d1d1d;
+  border-top: 1px solid var(--gray-200);
+}
+
+.dark-mode .range-field label,
+.dark-mode .range-selection h4,
+.dark-mode .setup-title,
+.dark-mode .setup-description,
+.dark-mode .selected-title {
+  color: var(--gray-700);
+}
+
+
+.dark-mode .search-header input {
+  color: var(--gray-700);
+  background-color: #2a2a2a;
+}
+
+.dark-mode .surah-name,
+.dark-mode .ayah-range{
+    color: var(--gray-100);
+}
+
+.dark-mode .surah-checkbox input,
+.dark-mode .range-input input {
+  color: var(--gray-100);
+  border: none;
+}
+
+
+.dark-mode .search-header {
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.dark-mode .save-range-btn,
+.dark-mode .start-quiz-btn {
+  background-color: var(--olive-primary);
+  color: var(--white);
+}
+
+.dark-mode .start-quiz-btn:hover {
+  background-color: var(--olive-dark);
+}
+
+.dark-mode .clear-btn {
+  background-color: #444;
+  color: #eee;
+}
+
+.dark-mode .clear-btn:hover {
+  background-color: transparent;
+  color: #bbb;
+  border: 1px solid #777;
+}
+
+.dark-mode .edit-btn,
+.dark-mode .delete-btn {
+  color: #bbb;
+}
+
+.dark-mode .edit-btn:hover {
+  color: #4da8da;
+}
+
+.dark-mode .delete-btn:hover {
+  color: #ff6b6b;
+}
+
+.dark-mode .empty-state {
+  color: #888;
+}
+
+/* Scrollbar in dark mode */
+.dark-mode .surah-list::-webkit-scrollbar-track,
+.dark-mode .selected-list::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.dark-mode .surah-list::-webkit-scrollbar-thumb,
+.dark-mode .selected-list::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.dark-mode .surah-list::-webkit-scrollbar-thumb:hover,
+.dark-mode .selected-list::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }
