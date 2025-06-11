@@ -8,6 +8,7 @@ import ForgotPassword from './pages/forgot-password';
 import Dashboard from './pages/dashboard';
 import Feedback from './pages/feedback';
 import Quran from './pages/quran';
+import QuizPage from './pages/QuizPage';
 import Mutashabihat from './pages/mutashabihat';
 import Help from './pages/help';
 import Memorization_test from './pages/memorization-test';
@@ -45,8 +46,9 @@ function App({ authenticated, setAuthenticated }) {
           <Route path="/quran" element={<Quran/>} /> 
           <Route path="/mutashabihat" element={<Mutashabihat/>} /> 
           <Route path="/help" element={<Help/>} /> 
-          <Route path="/memorization-test" element={<Memorization_test/>} /> 
-          <Route path="/surah-selection" element={<SurahSelection/>} />
+          <Route path="/memorization-test" element={authenticated ? <Memorization_test /> : <Navigate to="/login" />} />
+          <Route path="/surah-selection" element={authenticated ? <SurahSelection /> : <Navigate to="/login" />} />
+          <Route path="/quiz" element={authenticated ? <QuizPage /> : <Navigate to="/login" />} />
           <Route
             path="/user-profile"
             element={<UserProfile setAuthenticated={setAuthenticated} />}

@@ -14,13 +14,35 @@ const SurahSelection = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [rangeValues, setRangeValues] = useState({});
   const [fullQuranChecked, setFullQuranChecked] = useState(false);
+  const [surahs, setSurahs] = useState([]);
 
-  const surahs = [
-    { id: 1, name: 'Al-Fatiha', ayahs: 7 },
-    { id: 2, name: 'Al-Baqarah', ayahs: 286 },
-    { id: 3, name: 'Aal-E-Imran', ayahs: 200 },
-    // Add all 114 Surahs here
-  ];
+  const baseUrl = process.env.REACT_APP_BASE_URL;
+
+   useEffect(() => {
+    const fetchSurahList = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/v1/surah/dashboard`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const formattedList = Object.entries(result.data).map(([number, details]) => ({
+            id: parseInt(number),
+            name: `${details.arabic}`,
+            ayahs: details.ayah
+          }));
+
+          setSurahs(formattedList);
+
+        } else {
+          console.error('Unexpected API response format:', result);
+        }
+      } catch (error) {
+        console.error('Failed to fetch surah list:', error);
+      }
+    };
+
+    fetchSurahList();
+  }, []);
 
   useEffect(() => {
     if (fullQuranChecked) {
@@ -136,26 +158,11 @@ const SurahSelection = () => {
   };
 
   try {
-    const response = await fetch('http://localhost:5000/api/quiz/setup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(quizData)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to setup quiz');
-    }
-
-    const result = await response.json();
-
     // Pass the backend response if needed
-    navigate('/QuizPage', {
+    navigate('/quiz', {
       state: {
         selectedSurahs: quizData.selectedSurahs,
         testMode: quizData.testMode,
-        quizId: result.quizId || null // Optional: if backend returns a quiz ID
       }
     });
   } catch (error) {

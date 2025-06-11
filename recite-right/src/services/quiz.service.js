@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
-const { Quiz } = require('../models');
+const Quiz = require('../models/quiz.model');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -16,7 +16,7 @@ if (!process.env.GEMINI_API_KEY) {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL_NAME = 'gemini-2.0-flash-001';
 
-const QUIZ_PROMPT_TEMPLATE = `Generate a quiz about {topic} with {numQuestions} multiple choice questions.
+const QUIZ_PROMPT_TEMPLATE = `Generate a quiz about {topic} with {numQuestions} multiple choice questions only related to memorization.
 Each question should be formatted exactly as follows:
 
 1. [Question text]
@@ -83,7 +83,7 @@ function parseQuiz(text) {
   return validQuestions;
 }
 
-const generateQuiz = async (topic, numQuestions = 10, userId) => {
+const generateQuiz = async (topic, numQuestions = 5, userId) => {
   const prompt = QUIZ_PROMPT_TEMPLATE.replace('{topic}', topic).replace('{numQuestions}', numQuestions);
 
   const result = await ai.models.generateContent({

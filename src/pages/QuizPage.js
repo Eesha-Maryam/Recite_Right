@@ -9,6 +9,8 @@ const QuizPage = () => {
   const navigate = useNavigate();
   const { selectedSurahs, testMode } = location.state || {};
 
+  const baseUrl = process.env.REACT_APP_BASE_URL;
+
   // Core quiz states
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -64,15 +66,23 @@ const QuizPage = () => {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/generate-quiz', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ selectedSurahs, testMode }),
+
+        const token = localStorage.getItem('accessToken');
+        const surahNames = selectedSurahs.map(s => s.name).join(',');
+        const numQuestions = selectedSurahs.length === 1 ? 5 : selectedSurahs.length * 3;
+        const response = await fetch(`${baseUrl}/v1/quiz?topic=${encodeURIComponent(surahNames)}&numQuestions=${numQuestions}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
 
         if (!response.ok) throw new Error('Failed to fetch questions');
 
-        const data = await response.json();
+        const responseData  = await response.json();
+        const data = responseData.data;
+
         setQuestions(data.questions);
         setAvailableWords(data.questions[0]?.words || []);
         setLoading(false);
@@ -93,7 +103,7 @@ const QuizPage = () => {
     // Check correctness based on question type
     switch (currentQuestion.type) {
       case 'multiple_choice':
-        isCorrect = answer === currentQuestion.correctAnswer;
+        isCorrect = answer === currentQuestion.options[currentQuestion.correctAnswer];
         break;
       case 'word_arrangement':
         isCorrect = JSON.stringify(answer) === JSON.stringify(currentQuestion.correctOrder);
@@ -106,7 +116,8 @@ const QuizPage = () => {
         isCorrect = answer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
         break;
       default:
-        isCorrect = false;
+        // Currently, MCQ is default behavior
+        isCorrect = answer === currentQuestion.options[currentQuestion.correctAnswer];
     }
 
     // Store user's answer and update score
@@ -240,7 +251,7 @@ const QuizPage = () => {
             {answer.question.reference && <p><strong>Reference:</strong> {answer.question.reference}</p>}
             <p><strong>Your answer:</strong> {Array.isArray(answer.userAnswer) ? answer.userAnswer.join(' ') : answer.userAnswer}</p>
             {!answer.isCorrect && (
-              <p><strong>Correct answer:</strong> {Array.isArray(answer.question.correctAnswer) ? answer.question.correctAnswer.join(' ') : answer.question.correctAnswer}</p>
+              <p><strong>Correct answer:</strong> {Array.isArray(answer.question.correctAnswer) ? answer.question.correctAnswer.join(' ') : answer.question.options[answer.question.correctAnswer]}</p>
             )}
           </div>
         ))}
@@ -269,14 +280,15 @@ const QuizPage = () => {
       case 'identification':
         return renderIdentification(question);
       default:
-        return null;
+        // For now, backend is only generating MCQ's questions
+        return renderMultipleChoice(question);
     }
   };
 
   // Quit button logic
   const handleQuit = () => {
     if (window.confirm("Are you sure you want to quit the quiz?")) {
-      navigate('/');
+      navigate('/memorization-test');
     }
   };
 

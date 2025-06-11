@@ -168,6 +168,4 @@ quizSchema.pre('save', function () {
   cache.delete(cacheKey);
 });
 
-const Quiz = mongoose.model('Quiz', quizSchema);
-
-module.exports = Quiz;
+module.exports = mongoose.model('Quiz', quizSchema);

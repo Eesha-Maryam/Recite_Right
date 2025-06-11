@@ -15,6 +15,8 @@ const dashboard = () => {
       surahData[surahKey] = {
         latin: surahs[surahKey].latin,
         english: surahs[surahKey].english,
+        ayah: surahs[surahKey].ayah,
+        arabic: surahs[surahKey].arabic,
       };
     }
   }
