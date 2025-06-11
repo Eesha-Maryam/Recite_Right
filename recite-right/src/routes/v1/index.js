@@ -32,10 +32,6 @@ if (config.env === 'development') {
 
 module.exports = router;
 
-
-
-
-
 const defaultRoutes = [
   {
     path: '/auth',

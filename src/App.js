@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/homepage';
 import LoginPage from './pages/login';  // Import the LoginPage component
 import SignUpPage from './pages/signup';  // Import the LoginPage component
@@ -15,17 +15,29 @@ import SurahSelection from './pages/surah-selection';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import UserProfile from './pages/user-profile';
 
-function App() {
+function App({ authenticated, setAuthenticated }) {
   return (
-    <Router>
       <div className="app">
         <Routes>
-          <Route path="/home" element={<HomePage />} />  
-          <Route path="/login" element={<LoginPage />} />  
-          <Route path="/signup" element={<SignUpPage />} />  
+          <Route
+            path="/"
+            element={<Navigate to={authenticated ? "/home" : "/login"} replace />}
+          />
+          <Route path="/home" element={authenticated ? <HomePage /> : <Navigate to="/login" />} />
+          <Route
+            path="/login"
+            element={
+              !authenticated ? (
+                <LoginPage setAuthenticated={setAuthenticated} />
+              ) : (
+                <Navigate to="/home" />
+              )
+            }
+          />
+          <Route path="/signup" element={<SignUpPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />  
-          <Route path="/dashboard" element={<Dashboard/>} /> 
+          <Route path="/dashboard" element={authenticated ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/feedback" element={<Feedback />} />  
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/email-verified-success" element={<EmailVerificationPage />} />
@@ -34,11 +46,13 @@ function App() {
           <Route path="/mutashabihat" element={<Mutashabihat/>} /> 
           <Route path="/help" element={<Help/>} /> 
           <Route path="/memorization-test" element={<Memorization_test/>} /> 
-         <Route path="/surah-selection" element={<SurahSelection/>} /> 
-         <Route path="/user-profile" element={<UserProfile/>} /> 
+          <Route path="/surah-selection" element={<SurahSelection/>} />
+          <Route
+            path="/user-profile"
+            element={<UserProfile setAuthenticated={setAuthenticated} />}
+          />
         </Routes>
       </div>
-    </Router>
   );
 }
 

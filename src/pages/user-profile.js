@@ -4,7 +4,7 @@ import axios from 'axios';
 import Header from '../components/header';
 import './profile.css';
 
-const UserProfile = () => {
+const UserProfile = ({ setAuthenticated }) => {
   const [userData, setUserData] = useState({
     firstName: '',
     lastName: '',
@@ -62,6 +62,7 @@ const UserProfile = () => {
 
       setApiError('Session expired. Please login again.');
       localStorage.clear();
+      setAuthenticated(false);
       setTimeout(() => navigate('/login'), 1500);
     } else {
       setApiError(err.response?.data?.message || 'Request failed');
@@ -102,6 +103,7 @@ const UserProfile = () => {
       } catch (error) {
         console.error('Initialization error:', error);
         localStorage.clear();
+        setAuthenticated(false);
         navigate('/login');
       }
     };
@@ -210,6 +212,7 @@ const handleUploadAvatar = async () => {
       console.error('Logout error:', err);
     } finally {
       localStorage.clear();
+      setAuthenticated(false);
       navigate('/login');
     }
   };
@@ -224,6 +227,7 @@ const handleUploadAvatar = async () => {
       });
 
       localStorage.clear();
+      setAuthenticated(false);
       navigate('/signup');
     } catch (err) {
       handleApiError(err);

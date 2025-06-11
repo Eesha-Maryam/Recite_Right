@@ -17,13 +17,13 @@ const EyeSlashIcon = () => (
   </svg>
 );
 
-const Login = () => {
+const Login = ({ setAuthenticated }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
-  
+
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +85,7 @@ if (response.data?.tokens?.access?.token && response.data?.tokens?.refresh?.toke
   } else {
     localStorage.removeItem('rememberedEmail');
   }
-
+  setAuthenticated(true);
   navigate('/home');
 }
  else {
