@@ -12,7 +12,7 @@ cd recite-right
 Install the dependencies:
 
 ```bash
-npm update
+npm install
 npm run prepare
 ```
 
@@ -50,7 +50,7 @@ copy .env.example to .env
 - **Error handling**: centralized error handling mechanism
 - **API documentation**: with [swagger-jsdoc](https://github.com/Surnet/swagger-jsdoc) and [swagger-ui-express](https://github.com/scottie1984/swagger-ui-express)
 - **Process management**: advanced production process management using [PM2](https://pm2.keymetrics.io)
-- **Dependency management**: with [Yarn](https://yarnpkg.com)
+- **Dependency management**: with [npm](https://www.npmjs.com)
 - **Environment variables**: using [dotenv](https://github.com/motdotla/dotenv) and [cross-env](https://github.com/kentcdodds/cross-env#readme)
 - **Security**: set security HTTP headers using [helmet](https://helmetjs.github.io)
 - **Santizing**: sanitize request data against xss and query injection
@@ -69,55 +69,55 @@ copy .env.example to .env
 Running locally:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 Running in production:
 
 ```bash
-yarn start
+npm start
 ```
 
 Testing:
 
 ```bash
 # run all tests
-yarn test
+npm test
 
 # run all tests in watch mode
-yarn test:watch
+npm run test:watch
 
 # run test coverage
-yarn coverage
+npm run coverage
 ```
 
 Docker:
 
 ```bash
 # run docker container in development mode
-yarn docker:dev
+npm run docker:dev
 
 # run docker container in production mode
-yarn docker:prod
+npm run docker:prod
 
 # run all tests in a docker container
-yarn docker:test
+npm run docker:test
 ```
 
 Linting:
 
 ```bash
 # run ESLint
-yarn lint
+npm run lint
 
 # fix ESLint errors
-yarn lint:fix
+npm run lint:fix
 
 # run prettier
-yarn prettier
+npm run prettier
 
 # fix prettier errors
-yarn prettier:fix
+npm run prettier:fix
 ```
 
 ## Environment Variables

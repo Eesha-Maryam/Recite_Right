@@ -4,16 +4,15 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const surahRoute = require('./surah.route');
 const config = require('../../config/config');
+const searchRoute = require('./search.route');
+const quizRoute = require('./quiz.route');
 const userController = require('../../controllers/user.controller');
 const auth = require('../../middlewares/auth');
 const upload = require('../../middlewares/upload');
-
 const router = express.Router();
 
 // Public routes (no auth required)
 router.use('/auth', authRoute);  // Auth routes don't need global auth middleware
-
-
 
 // User profile routes (protected)
 router.get('/me', userController.getMe);
@@ -30,12 +29,6 @@ if (config.env === 'development') {
   router.use('/docs', docsRoute);
 }
 
-module.exports = router;
-
-
-
-
-
 const defaultRoutes = [
   {
     path: '/auth',
@@ -48,6 +41,14 @@ const defaultRoutes = [
   {
     path: '/surah',
     route: surahRoute,
+  },
+  {
+    path: '/search',
+    route: searchRoute,
+  },
+  {
+    path: '/quiz',
+    route: quizRoute,
   },
 ];
 

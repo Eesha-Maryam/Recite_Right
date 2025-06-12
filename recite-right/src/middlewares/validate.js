@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const httpStatus = require('http-status');
-const pick = require('../utils/pick'); // utility to pick specific fields from object
-const ApiError = require('../utils/ApiError'); // custom error handler
+const pick = require('../utils/pick');
+const ApiError = require('../utils/ApiError');
 
 const validate = (schema) => (req, res, next) => {
   const validSchema = pick(schema, ['params', 'query', 'body']);
@@ -11,14 +11,11 @@ const validate = (schema) => (req, res, next) => {
     .validate(object);
 
   if (error) {
-    return next(new ApiError(httpStatus.BAD_REQUEST, error.message));
+    const errorMessage = error.details.map((details) => details.message).join(', ');
+    return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
   }
   Object.assign(req, value);
   return next();
 };
-
-const logoutSchema = Joi.object({
-  refreshToken: Joi.string().required(),
-});
 
 module.exports = validate;

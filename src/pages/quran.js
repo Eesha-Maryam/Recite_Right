@@ -1,7 +1,55 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars } from 'react-icons/fa';
+import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
+
+const SettingsItem = ({ icon, text }) => {
+  const getIcon = () => {
+    switch (icon) {
+      case 'eye':
+        return <FaEye />;
+      case 'mic':
+        return <FaMicrophone />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="settings-item">
+      <div className="settings-icon">{getIcon()}</div>
+      <div className="settings-text">{text}</div>
+    </div>
+  );
+};
+
+const ToggleWithDescription = ({ description, isOn, onToggle, option1, option2 }) => {
+  return (
+    <div className="toggle-component-quran">
+      <div className="toggle-container-quran" onClick={onToggle}>
+        <div className={`toggle-option-quran ${isOn ? 'selected' : ''}`}>
+          {option1}
+        </div>
+        <div className={`toggle-option-quran ${!isOn ? 'selected' : ''}`}>
+          {option2}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HideUnhideToggle = ({ isHidden, onToggle }) => {
+  return (
+    <div>
+      <ToggleWithDescription
+        isOn={!isHidden}
+        onToggle={onToggle}
+        option1="SHOW"
+        option2="HIDE"
+      />
+    </div>
+  );
+};
 
 const Quran = () => {
   // State management
@@ -51,6 +99,14 @@ const Quran = () => {
     { number: 114, name: 'An-Nas' }
   ];
 
+  // Initialize with first surah loaded
+  useEffect(() => {
+    if (surahList.length > 0 && !selectedSurah) {
+      setSelectedSurah(surahList[0]);
+      setAyahs(dummyQuranData[surahList[0].number]);
+    }
+  }, []);
+
   // Initialize audio context and beep sound
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -86,13 +142,11 @@ const Quran = () => {
   useEffect(() => {
     if (selectedSurah && dummyQuranData[selectedSurah.number]) {
       setAyahs(dummyQuranData[selectedSurah.number]);
-      scrollToAyah(startAyah || 1);
-    } else {
-      setAyahs([]);
     }
-  }, [selectedSurah, startAyah]);
+  }, [selectedSurah]);
 
   const scrollToAyah = (ayahNumber) => {
+    if (!ayahNumber) return;
     setTimeout(() => {
       const element = ayahRefs.current[ayahNumber];
       if (element) {
@@ -190,6 +244,7 @@ const Quran = () => {
     simulateRecitation();
   };
 
+  
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
       setAudioChunks(prev => [...prev, event.data]);
@@ -252,8 +307,13 @@ const Quran = () => {
         <aside className={`quran-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-header">
             <h3>Quran Recitation</h3>
+            <button 
+              className="close-sidebar-x"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FaTimes />
+            </button>
           </div>
-
           <div className="sidebar-content">
             <div className="form-group">
               <label>Surah Selection</label>
@@ -297,7 +357,7 @@ const Quran = () => {
               />
               <button 
                 className="go-to-ayah-btn"
-                onClick={() => scrollToAyah(startAyah || 1)}
+                onClick={() => scrollToAyah(startAyah)}
                 disabled={!selectedSurah}
               >
                 Go to Ayah
@@ -335,32 +395,22 @@ const Quran = () => {
 
         {/* Main Content */}
         <main className={`quran-main ${sidebarOpen ? '' : 'centered'}`}>
-          {/* Quran Block Controls */}
-          <div className="quran-controls">
-            <button 
-              className="open-sidebar-btn"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <FaBars /> {sidebarOpen ? 'Hide Sidebar' : 'Select Surah'}
-            </button>
-            
-            <div className="visibility-toggle-container">
-              <button
-                className={`visibility-toggle ${textHidden ? 'hidden' : ''}`}
-                onClick={() => setTextHidden(!textHidden)}
-              >
-                {textHidden ? (
-                  <>
-                    <FaEye /> Show Text
-                  </>
-                ) : (
-                  <>
-                    <FaEyeSlash /> Hide Text
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+      <div className="quran-controls">
+  {!sidebarOpen && (
+    <button 
+      className="select-surah-btn"
+      onClick={() => setSidebarOpen(true)}
+    >
+      Select Surah
+    </button>
+  )}
+  <div className="visibility-toggle-container">
+    <HideUnhideToggle 
+      isHidden={textHidden}
+      onToggle={() => setTextHidden(!textHidden)}
+    />
+  </div>
+</div>
 
           {/* Quran Text Block */}
           <div 
@@ -395,21 +445,22 @@ const Quran = () => {
               ))
             ) : (
               <div className="no-surah-selected">
-                <p>Please select a Surah to begin</p>
+                <p>Loading Quran text...</p>
               </div>
             )}
           </div>
 
-          {/* Recitation Button */}
           <div className="recitation-control">
             <button
-              className={`recite-btn ${recording ? 'recording' : ''} ${recordingPaused ? 'paused' : ''}`}
+              className={`recite-btn ${recording ? (recordingPaused ? 'paused' : 'recording') : ''} ${
+                !selectedSurah ? 'disabled' : ''
+              }`}
               onClick={toggleRecording}
               disabled={!selectedSurah}
             >
               <FaMicrophone className="mic-icon" />
               {!recording && !recordingPaused && 'Start Recitation'}
-              {recording && !recordingPaused && 'Pause Recitation'}
+              {recording && !recordingPaused && 'Stop Recitation'}
               {recordingPaused && 'Resume Recitation'}
               {(recording || recordingPaused) && <span className="pulse-ring"></span>}
             </button>

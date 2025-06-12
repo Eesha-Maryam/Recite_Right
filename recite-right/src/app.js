@@ -14,61 +14,77 @@ const { authLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
-const feedbackRoutes = require('./routes/v1/feedback.route');
-
 
 const app = express();
 
-// Initialize logging
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
   app.use(morgan.errorHandler);
 }
 
-app.use('/feedback', feedbackRoutes);
+// set security HTTP headers
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https:'],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'self'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
 
-// Security middleware
-app.use(helmet());
+// parse json request body
+app.use(express.json({ limit: '1mb' }));
+
+// parse urlencoded request body
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// sanitize request data
 app.use(xss());
 app.use(mongoSanitize());
+
+// gzip compression
 app.use(compression());
 
-// Enable CORS
+// enable cors
 app.use(cors());
 app.options('*', cors());
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// JWT authentication
+// jwt authentication
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
 
-// Rate limiting in production
+// limit repeated failed requests to auth endpoints
 if (config.env === 'production') {
   app.use('/v1/auth', authLimiter);
+  app.use(globalLimiter);
 }
 
-// API routes - organized by version
-app.use('/v1', routes);             // Version 1 API routes
-app.use('/api/v1', routes);         // Alternative version 1 API routes
+// v1 api routes
+app.use('/v1', routes);
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
-});
-
-// Handle 404 - Must be after all other routes
+// send back a 404 error for any unknown api request
 app.use((req, res, next) => {
   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
 });
 
-// Error handling middleware
+// Static files
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
+// convert error to ApiError, if needed
 app.use(errorConverter);
+
+// handle error
 app.use(errorHandler);
 
 module.exports = app;

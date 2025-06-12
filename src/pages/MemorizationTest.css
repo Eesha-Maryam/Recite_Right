@@ -161,3 +161,38 @@
     transition: transform 0.2s ease;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
+  /* === DARK MODE STYLES FOR MEMORIZATION TEST === */
+.dark-mode .memorization-test {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+}
+
+.dark-mode .menu-button,
+.dark-mode .icon-button,
+.dark-mode .app-title {
+  color: #f5f5f5;
+}
+
+.dark-mode .page-title {
+  color: #ffffff; /* Bright white for "Choose your test mode" */
+}
+
+.dark-mode .test-mode-container {
+  border: 2px solid #bed698;
+  background-color: #2a2a2a;
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .mode-card {
+  background: linear-gradient(115deg, #5e7349, #6e9056); /* Deeper green gradient for dark mode */
+  color: #fff;
+}
+
+.dark-mode .card-icon-container {
+  background-color: #444;
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .mode-description {
+  color: #ddd;
+}

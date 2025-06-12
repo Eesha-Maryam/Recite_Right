@@ -1,5 +1,6 @@
 // const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
+const ApiResponse = require('../utils/response');
 const { dashboard, getSurahById } = require('../services/surah.service');
 
 // const dashboardSurah = catchAsync(async (req, res) => {
@@ -12,13 +13,13 @@ const { dashboard, getSurahById } = require('../services/surah.service');
 
 const dashboardSurah = catchAsync(async (req, res) => {
   const response = await dashboard();
-  res.send({ response });
+  return ApiResponse.success(res, response, 'Surahs retrieved successfully');
 });
 
 const SurahById = catchAsync(async (req, res) => {
   const { surahId } = req.params;
   const surah = await getSurahById(surahId);
-  res.send({ surah });
+  return ApiResponse.success(res, surah, 'Surah retrieved successfully');
 });
 
 module.exports = {

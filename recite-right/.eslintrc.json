@@ -1,12 +1,14 @@
 {
+  "root": true,
   "env": {
     "node": true,
     "jest": true
   },
-  "extends": ["airbnb-base", "plugin:jest/recommended", "plugin:security/recommended", "plugin:prettier/recommended"],
+  "extends": ["eslint:recommended", "plugin:jest/recommended", "plugin:security/recommended", "prettier"],
   "plugins": ["jest", "security", "prettier"],
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2022,
+    "sourceType": "module"
   },
   "rules": {
     "no-console": "error",
@@ -14,6 +16,7 @@
     "no-underscore-dangle": "off",
     "consistent-return": "off",
     "jest/expect-expect": "off",
-    "security/detect-object-injection": "off"
+    "security/detect-object-injection": "off",
+    "prettier/prettier": "error"
   }
 }

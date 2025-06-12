@@ -404,3 +404,119 @@ padding:15px 20px;
   border: none; /* Removes button border */
   cursor: pointer; /* Adds a pointer cursor on hover */
 }
+
+/* === DARK MODE SUPPORT === */
+
+/* Header background and border */
+body.dark-mode .app-header {
+  background-color: var(--charcoal);
+  border-bottom-color: var(--dark-gray);
+}
+
+/* Logo / Title Text */
+body.dark-mode .app-title {
+  color: var(--white);
+}
+
+/* Header buttons */
+body.dark-mode .menu-button,
+body.dark-mode .icon-button,
+body.dark-mode .close-button {
+  color: var(--white);
+}
+
+/* Material icons in header & drawer */
+body.dark-mode .material-icons {
+  color: var(--white);
+}
+
+/* Drawer background */
+body.dark-mode .drawer,
+body.dark-mode .settings-drawer,
+body.dark-mode .drawer-content,
+body.dark-mode .menu-drawer-header,
+body.dark-mode .settings-drawer-header {
+  background-color: #222;
+}
+
+/* Drawer titles */
+body.dark-mode .drawer-header h2,
+body.dark-mode .sub-heading,
+body.dark-mode .menu-item,
+body.dark-mode .settings-item {
+  color: var(--white);
+}
+
+/* Divider lines */
+body.dark-mode .separator {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Hover effect in dark mode */
+body.dark-mode .menu-item:hover {
+  color: var(--olive-green);
+}
+
+/* Toggle container background */
+body.dark-mode .toggle-container {
+  background-color: #444;
+}
+
+/* Toggle option */
+body.dark-mode .toggle-option {
+  color: var(--white);
+}
+
+/* Quran font preview background */
+body.dark-mode .quran-font-display {
+  background-color: #333;
+  color: var(--white);
+}
+
+/* Toggle description */
+body.dark-mode .toggle-description {
+  color: #ccc;
+}
+
+/* Font adjuster display */
+body.dark-mode .font-size-display {
+  background-color: #333;
+  color: var(--white);
+}
+
+/* Reset button in dark mode */
+body.dark-mode .reset-button-slider {
+  background-color: var(--white);
+  color: var(--charcoal);
+}
+
+body.dark-mode .reset-button-slider:hover {
+  background-color: transparent;
+  border: 1px solid var(--white);
+  color: var(--white);
+}
+
+/* Adjuster controls background */
+body.dark-mode .adjuster-controls {
+  background-color: #333;
+}
+
+/* Ensure header title and icons remain charcoal on transparent header */
+.app-header.transparent .app-title,
+.app-header.transparent .menu-button,
+.app-header.transparent .icon-button,
+.app-header.transparent .material-icons {
+  color: var(--charcoal) !important;
+}
+
+
+body.dark-mode.app-header.transparent ~ .drawer .drawer-header,
+body.dark-mode.app-header.transparent ~ .settings-drawer .drawer-header {
+  border-bottom: 1px solid var(--white) !important;
+}
+
+
+body.dark-mode.app-header:not(.transparent) ~ .drawer .drawer-header,
+body.dark-mode.app-header:not(.transparent) ~ .settings-drawer .drawer-header {
+  border-bottom: 1px solid var(--white) !important; /* or a brighter olive you prefer */
+}

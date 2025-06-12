@@ -1,25 +1,84 @@
-import React, { useState } from 'react';
+ import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/header';
 import { FaSearch, FaPlus, FaMinus, FaEdit, FaTrash } from 'react-icons/fa';
 import './surah-selection.css';
 
 const SurahSelection = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const testMode = location.state?.testMode || 'easy';
+
   const [selectedSurahs, setSelectedSurahs] = useState([]);
   const [expandedSurah, setExpandedSurah] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [rangeValues, setRangeValues] = useState({});
+  const [fullQuranChecked, setFullQuranChecked] = useState(false);
 
-  // Sample Surah data with ayah counts
   const surahs = [
     { id: 1, name: 'Al-Fatiha', ayahs: 7 },
     { id: 2, name: 'Al-Baqarah', ayahs: 286 },
     { id: 3, name: 'Aal-E-Imran', ayahs: 200 },
-    // Add all 114 surahs here
+    // Add all 114 Surahs here
   ];
+
+  useEffect(() => {
+    if (fullQuranChecked) {
+      const allSurahs = surahs.map(surah => ({
+        ...surah,
+        startAyah: 1,
+        endAyah: surah.ayahs
+      }));
+      setSelectedSurahs(allSurahs);
+
+      const allRanges = {};
+      surahs.forEach(surah => {
+        allRanges[surah.id] = { start: 1, end: surah.ayahs };
+      });
+      setRangeValues(allRanges);
+    } else {
+      setSelectedSurahs([]);
+      setRangeValues({});
+    }
+    setExpandedSurah(null);
+  }, [fullQuranChecked]);
 
   const filteredSurahs = surahs.filter(surah =>
     surah.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const toggleSurahSelection = (surah) => {
+    if (fullQuranChecked) return;
+
+    if (selectedSurahs.some(s => s.id === surah.id)) {
+      setSelectedSurahs(selectedSurahs.filter(s => s.id !== surah.id));
+      setExpandedSurah(null);
+    } else {
+      setSelectedSurahs([...selectedSurahs, {
+        ...surah,
+        startAyah: 1,
+        endAyah: surah.ayahs
+      }]);
+      setRangeValues(prev => ({
+        ...prev,
+        [surah.id]: { start: 1, end: surah.ayahs }
+      }));
+      setExpandedSurah(surah.id);
+    }
+  };
+
+  const saveRange = (surahId) => {
+    setSelectedSurahs(selectedSurahs.map(surah =>
+      surah.id === surahId
+        ? {
+            ...surah,
+            startAyah: rangeValues[surahId]?.start || 1,
+            endAyah: rangeValues[surahId]?.end || surah.ayahs
+          }
+        : surah
+    ));
+    setExpandedSurah(null);
+  };
 
   const handleRangeChange = (surahId, field, value) => {
     setRangeValues(prev => ({
@@ -31,81 +90,96 @@ const SurahSelection = () => {
     }));
   };
 
-  const toggleSurahSelection = (surah) => {
-    if (selectedSurahs.some(s => s.id === surah.id)) {
-      setSelectedSurahs(selectedSurahs.filter(s => s.id !== surah.id));
-      setExpandedSurah(null);
-    } else {
-      setSelectedSurahs([...selectedSurahs, { 
-        ...surah, 
-        startAyah: 1, 
-        endAyah: surah.ayahs 
-      }]);
-      setRangeValues(prev => ({
-        ...prev,
-        [surah.id]: { start: 1, end: surah.ayahs }
-      }));
-      setExpandedSurah(surah.id);
-    }
-  };
-
-  const saveRange = (surahId) => {
-    setSelectedSurahs(selectedSurahs.map(surah => 
-      surah.id === surahId 
-        ? { 
-            ...surah, 
-            startAyah: rangeValues[surahId]?.start || 1,
-            endAyah: rangeValues[surahId]?.end || surah.ayahs
-          }
-        : surah
-    ));
-    setExpandedSurah(null);
-  };
-
   const updateRange = (surahId, field, delta) => {
     const surah = surahs.find(s => s.id === surahId);
-    const currentValue = rangeValues[surahId]?.[field] || 
-                        (field === 'start' ? 1 : surah.ayahs);
-    
+    const currentValue = rangeValues[surahId]?.[field] ||
+      (field === 'start' ? 1 : surah.ayahs);
+
     const newValue = currentValue + delta;
-    const maxValue = field === 'start' 
+    const maxValue = field === 'start'
       ? Math.min(rangeValues[surahId]?.end || surah.ayahs, surah.ayahs)
       : surah.ayahs;
-    
-    const minValue = field === 'end' 
+
+    const minValue = field === 'end'
       ? Math.max(rangeValues[surahId]?.start || 1, 1)
       : 1;
 
     const clampedValue = Math.max(minValue, Math.min(newValue, maxValue));
-
     handleRangeChange(surahId, field, clampedValue);
   };
 
   const removeSurah = (surahId) => {
     setSelectedSurahs(selectedSurahs.filter(s => s.id !== surahId));
+    const updatedRanges = { ...rangeValues };
+    delete updatedRanges[surahId];
+    setRangeValues(updatedRanges);
   };
 
   const clearAll = () => {
     setSelectedSurahs([]);
+    setRangeValues({});
     setExpandedSurah(null);
+    setFullQuranChecked(false);
   };
+
+  const handleStartQuiz = async () => {
+  const quizData = {
+    testMode: fullQuranChecked ? 'full' : testMode,
+    selectedSurahs: fullQuranChecked
+      ? surahs.map(s => ({
+          id: s.id,
+          name: s.name,
+          startAyah: 1,
+          endAyah: s.ayahs
+        }))
+      : selectedSurahs
+  };
+
+  try {
+    const response = await fetch('http://localhost:5000/api/quiz/setup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(quizData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to setup quiz');
+    }
+
+    const result = await response.json();
+
+    // Pass the backend response if needed
+    navigate('/QuizPage', {
+      state: {
+        selectedSurahs: quizData.selectedSurahs,
+        testMode: quizData.testMode,
+        quizId: result.quizId || null // Optional: if backend returns a quiz ID
+      }
+    });
+  } catch (error) {
+    console.error('Error starting quiz:', error);
+    alert('There was an error setting up your quiz. Please try again.');
+  }
+};
+
 
   return (
     <div className="surah-selection">
       <Header />
-      
-      <div className="selection-container">
 
-                {/* Right Half */}
-                <div className="right-half">
+      <div className="selection-container">
+        {/* Right Half */}
+        <div className="right-half">
           <h2 className="setup-title">Quran Test Setup</h2>
           <p className="setup-description">
-            Easily select a Surah and define the Ayah range to create your personalized test.
+            Test Mode: <strong>{testMode.charAt(0).toUpperCase() + testMode.slice(1)}</strong>
           </p>
-          
+
           <div className="selected-surahs-block">
             <h3 className="selected-title">Selected Surahs & Ayah Range</h3>
-            
+
             {selectedSurahs.length === 0 ? (
               <div className="empty-state">No Surah Selected</div>
             ) : (
@@ -118,37 +192,26 @@ const SurahSelection = () => {
                         Ayah {surah.startAyah} to {surah.endAyah}
                       </span>
                     </div>
-                    <div className="action-buttons">
-                      <button 
-                        className="edit-btn"
-                        onClick={() => setExpandedSurah(surah.id)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => removeSurah(surah.id)}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
+                    {!fullQuranChecked && (
+                      <div className="action-buttons">
+                        <button className="edit-btn" onClick={() => setExpandedSurah(surah.id)}>
+                          <FaEdit />
+                        </button>
+                        <button className="delete-btn" onClick={() => removeSurah(surah.id)}>
+                          <FaTrash />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
-            
+
             <div className="action-buttons-row">
-              <button 
-                className="clear-btn"
-                onClick={clearAll}
-                disabled={selectedSurahs.length === 0}
-              >
+              <button className="clear-btn" onClick={clearAll} disabled={selectedSurahs.length === 0}>
                 Clear All
               </button>
-              <button 
-                className="start-quiz-btn"
-                disabled={selectedSurahs.length === 0}
-              >
+              <button className="start-quiz-btn" disabled={selectedSurahs.length === 0} onClick={handleStartQuiz}>
                 Start Quiz
               </button>
             </div>
@@ -157,15 +220,17 @@ const SurahSelection = () => {
 
         {/* Left Half */}
         <div className="left-half">
-          {/* Full Quran Test Block */}
-          <div className="full-quran-block">
-            <button className="full-quran-btn">
-              Full Quran Test
-            </button>
-            <p className="full-quran-text">Click to take a test of the entire Quran</p>
+          <div className="full-quran-checkbox">
+            <input
+              type="checkbox"
+              id="fullQuran"
+              checked={fullQuranChecked}
+              onChange={() => setFullQuranChecked(prev => !prev)}
+            />
+            <label htmlFor="fullQuran"><strong>Full Quran Test</strong></label>
+            <p className="full-quran-text">Check to take a test of the entire Quran</p>
           </div>
-          
-          {/* Surah List Block */}
+
           <div className="surah-list-block">
             <div className="search-header">
               <FaSearch className="search-icon" />
@@ -174,9 +239,10 @@ const SurahSelection = () => {
                 placeholder="Search Surah..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={fullQuranChecked}
               />
             </div>
-            
+
             <div className="surah-list">
               {filteredSurahs.map(surah => (
                 <div key={surah.id} className="surah-item">
@@ -184,71 +250,54 @@ const SurahSelection = () => {
                     <input
                       type="checkbox"
                       checked={selectedSurahs.some(s => s.id === surah.id)}
+                      disabled={fullQuranChecked}
                       onChange={() => toggleSurahSelection(surah)}
                     />
-                    <span 
-                      className="surah-name"
-                      onClick={() => toggleSurahSelection(surah)}
-                    >
+                    <span className="surah-name" onClick={() => toggleSurahSelection(surah)}>
                       {surah.name}
                     </span>
                   </div>
-                  
-                  {expandedSurah === surah.id && (
+
+                  {!fullQuranChecked && expandedSurah === surah.id && (
                     <div className="range-selection">
                       <h4>Select Surah Range</h4>
                       <div className="range-controls">
                         <div className="range-field">
                           <label>Start Ayah</label>
                           <div className="range-input">
-                            <button onClick={() => updateRange(surah.id, 'start', -1)}>
-                              <FaMinus />
-                            </button>
+                            <button onClick={() => updateRange(surah.id, 'start', -1)}><FaMinus /></button>
                             <input
                               type="number"
                               value={rangeValues[surah.id]?.start || 1}
-                              onChange={(e) => handleRangeChange(
-                                surah.id, 
-                                'start', 
-                                parseInt(e.target.value) || 1
-                              )}
+                              onChange={(e) =>
+                                handleRangeChange(surah.id, 'start', parseInt(e.target.value) || 1)
+                              }
                               min="1"
                               max={rangeValues[surah.id]?.end || surah.ayahs}
                             />
-                            <button onClick={() => updateRange(surah.id, 'start', 1)}>
-                              <FaPlus />
-                            </button>
+                            <button onClick={() => updateRange(surah.id, 'start', 1)}><FaPlus /></button>
                           </div>
                         </div>
-                        
+
                         <div className="range-field">
                           <label>End Ayah</label>
                           <div className="range-input">
-                            <button onClick={() => updateRange(surah.id, 'end', -1)}>
-                              <FaMinus />
-                            </button>
+                            <button onClick={() => updateRange(surah.id, 'end', -1)}><FaMinus /></button>
                             <input
                               type="number"
                               value={rangeValues[surah.id]?.end || surah.ayahs}
-                              onChange={(e) => handleRangeChange(
-                                surah.id, 
-                                'end', 
-                                parseInt(e.target.value) || surah.ayahs
-                              )}
+                              onChange={(e) =>
+                                handleRangeChange(surah.id, 'end', parseInt(e.target.value) || surah.ayahs)
+                              }
                               min={rangeValues[surah.id]?.start || 1}
                               max={surah.ayahs}
                             />
-                            <button onClick={() => updateRange(surah.id, 'end', 1)}>
-                              <FaPlus />
-                            </button>
+                            <button onClick={() => updateRange(surah.id, 'end', 1)}><FaPlus /></button>
                           </div>
                         </div>
                       </div>
-                      
-                      <button
-                        className="save-range-btn"
-                        onClick={() => saveRange(surah.id)}
-                      >
+
+                      <button className="save-range-btn" onClick={() => saveRange(surah.id)}>
                         Save Range
                       </button>
                     </div>
@@ -258,8 +307,6 @@ const SurahSelection = () => {
             </div>
           </div>
         </div>
-        
-
       </div>
     </div>
   );

@@ -1,10 +1,42 @@
 const mongoose = require('mongoose');
+const { toJSON, paginate } = require('./plugins');
 
-const feedbackSchema = new mongoose.Schema({
-  type: { type: String, required: true },
-  text: { type: String, required: true },
-  rating: { type: Number, default: 0 },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Link to user
-}, { timestamps: true });
+const surahSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    englishName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    englishNameTranslation: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    numberOfAyahs: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    revelationType: {
+      type: String,
+      required: true,
+      enum: ['Meccan', 'Medinan'],
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
 
-module.exports = mongoose.model('Feedback', feedbackSchema);
+surahSchema.plugin(toJSON);
+surahSchema.plugin(paginate);
+
+const Surah = mongoose.model('Surah', surahSchema);
+
+module.exports = Surah;

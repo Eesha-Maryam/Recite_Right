@@ -1,3 +1,4 @@
+
 .dashboard-container {
   font-family: 'Montserrat', sans-serif;
   background-color: #ffffff;
@@ -34,7 +35,7 @@
 }
 
 .dashboard-card {
-  background-color: white;
+  background-color: #ffffff;
   border-radius: 1.25rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 15px -3px #739738;
@@ -61,7 +62,7 @@
 
 .month-dropdown {
   appearance: none;
-  background-color: white;
+  background-color: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
   padding: 0.75rem 2.5rem 0.75rem 1rem;
@@ -144,4 +145,60 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 3rem;
   }
+}
+
+/* DARK MODE OVERRIDES FOR DASHBOARD */
+.dark-mode .dashboard-container {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.dark-mode .dashboard-title {
+  color: #f8fafc;
+}
+
+.dark-mode .dashboard-subtitle {
+  color: #94a3b8;
+}
+
+.dark-mode .dashboard-card {
+  background-color: #1e1e1e;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 15px -3px rgba(115, 151, 56, 0.3);
+}
+
+.dark-mode .card-title {
+  color: #e2e8f0;
+}
+
+.dark-mode .month-dropdown {
+  background-color: #2b2b2b;
+  color: #cbd5e1;
+  border: 1px solid #475569;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.dark-mode .month-dropdown:focus {
+  border-color: #8fb45f;
+  box-shadow: 0 0 0 2px rgba(151, 180, 105, 0.4);
+}
+
+.dark-mode .axis {
+  stroke: #475569;
+}
+
+.dark-mode .label {
+  fill: #cbd5e1;
+}
+
+.dark-mode .score-orange {
+  fill: #facc15;
+}
+
+.dark-mode .score-red {
+  fill: #ef4444;
+}
+
+.dark-mode .score-green {
+  fill: #22c55e;
 }

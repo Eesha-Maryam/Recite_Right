@@ -33,14 +33,19 @@ describe('User routes', () => {
 
       expect(res.body).not.toHaveProperty('password');
       expect(res.body).toEqual({
-        id: expect.anything(),
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        isEmailVerified: false,
+        success: true,
+        message: expect.stringContaining('User'),
+        data: {
+          id: expect.anything(),
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          isEmailVerified: false,
+        },
+        error: null,
       });
 
-      const dbUser = await User.findById(res.body.id);
+      const dbUser = await User.findById(res.body.data.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
       expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: newUser.role, isEmailVerified: false });
@@ -56,9 +61,9 @@ describe('User routes', () => {
         .send(newUser)
         .expect(httpStatus.CREATED);
 
-      expect(res.body.role).toBe('admin');
+      expect(res.body.data.role).toBe('admin');
 
-      const dbUser = await User.findById(res.body.id);
+      const dbUser = await User.findById(res.body.data.id);
       expect(dbUser.role).toBe('admin');
     });
 
@@ -151,14 +156,19 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalResults: 3,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+          totalResults: 3,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(3);
-      expect(res.body.results[0]).toEqual({
+      expect(res.body.data.results).toHaveLength(3);
+      expect(res.body.data.results[0]).toEqual({
         id: userOne._id.toHexString(),
         name: userOne.name,
         email: userOne.email,
@@ -194,14 +204,19 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalResults: 1,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+          totalResults: 1,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(1);
-      expect(res.body.results[0].id).toBe(userOne._id.toHexString());
+      expect(res.body.data.results).toHaveLength(1);
+      expect(res.body.data.results[0].id).toBe(userOne._id.toHexString());
     });
 
     test('should correctly apply filter on role field', async () => {
@@ -215,15 +230,20 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalResults: 2,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+          totalResults: 2,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(2);
-      expect(res.body.results[0].id).toBe(userOne._id.toHexString());
-      expect(res.body.results[1].id).toBe(userTwo._id.toHexString());
+      expect(res.body.data.results).toHaveLength(2);
+      expect(res.body.data.results[0].id).toBe(userOne._id.toHexString());
+      expect(res.body.data.results[1].id).toBe(userTwo._id.toHexString());
     });
 
     test('should correctly sort the returned array if descending sort param is specified', async () => {
@@ -237,16 +257,21 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalResults: 3,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+          totalResults: 3,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(3);
-      expect(res.body.results[0].id).toBe(userOne._id.toHexString());
-      expect(res.body.results[1].id).toBe(userTwo._id.toHexString());
-      expect(res.body.results[2].id).toBe(admin._id.toHexString());
+      expect(res.body.data.results).toHaveLength(3);
+      expect(res.body.data.results[0].id).toBe(userOne._id.toHexString());
+      expect(res.body.data.results[1].id).toBe(userTwo._id.toHexString());
+      expect(res.body.data.results[2].id).toBe(admin._id.toHexString());
     });
 
     test('should correctly sort the returned array if ascending sort param is specified', async () => {
@@ -260,16 +285,21 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalResults: 3,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+          totalResults: 3,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(3);
-      expect(res.body.results[0].id).toBe(admin._id.toHexString());
-      expect(res.body.results[1].id).toBe(userOne._id.toHexString());
-      expect(res.body.results[2].id).toBe(userTwo._id.toHexString());
+      expect(res.body.data.results).toHaveLength(3);
+      expect(res.body.data.results[0].id).toBe(admin._id.toHexString());
+      expect(res.body.data.results[1].id).toBe(userOne._id.toHexString());
+      expect(res.body.data.results[2].id).toBe(userTwo._id.toHexString());
     });
 
     test('should correctly sort the returned array if multiple sorting criteria are specified', async () => {
@@ -283,13 +313,18 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        totalResults: 3,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+          totalResults: 3,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(3);
+      expect(res.body.data.results).toHaveLength(3);
 
       const expectedOrder = [userOne, userTwo, admin].sort((a, b) => {
         if (a.role < b.role) {
@@ -302,7 +337,7 @@ describe('User routes', () => {
       });
 
       expectedOrder.forEach((user, index) => {
-        expect(res.body.results[index].id).toBe(user._id.toHexString());
+        expect(res.body.data.results[index].id).toBe(user._id.toHexString());
       });
     });
 
@@ -317,15 +352,20 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 1,
-        limit: 2,
-        totalPages: 2,
-        totalResults: 3,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 1,
+          limit: 2,
+          totalPages: 2,
+          totalResults: 3,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(2);
-      expect(res.body.results[0].id).toBe(userOne._id.toHexString());
-      expect(res.body.results[1].id).toBe(userTwo._id.toHexString());
+      expect(res.body.data.results).toHaveLength(2);
+      expect(res.body.data.results[0].id).toBe(userOne._id.toHexString());
+      expect(res.body.data.results[1].id).toBe(userTwo._id.toHexString());
     });
 
     test('should return the correct page if page and limit params are specified', async () => {
@@ -339,14 +379,19 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        results: expect.any(Array),
-        page: 2,
-        limit: 2,
-        totalPages: 2,
-        totalResults: 3,
+        success: true,
+        message: expect.stringContaining('Users'),
+        data: {
+          results: expect.any(Array),
+          page: 2,
+          limit: 2,
+          totalPages: 2,
+          totalResults: 3,
+        },
+        error: null,
       });
-      expect(res.body.results).toHaveLength(1);
-      expect(res.body.results[0].id).toBe(admin._id.toHexString());
+      expect(res.body.data.results).toHaveLength(1);
+      expect(res.body.data.results[0].id).toBe(admin._id.toHexString());
     });
   });
 
@@ -362,11 +407,16 @@ describe('User routes', () => {
 
       expect(res.body).not.toHaveProperty('password');
       expect(res.body).toEqual({
-        id: userOne._id.toHexString(),
-        email: userOne.email,
-        name: userOne.name,
-        role: userOne.role,
-        isEmailVerified: userOne.isEmailVerified,
+        success: true,
+        message: expect.stringContaining('User'),
+        data: {
+          id: userOne._id.toHexString(),
+          email: userOne.email,
+          name: userOne.name,
+          role: userOne.role,
+          isEmailVerified: userOne.isEmailVerified,
+        },
+        error: null,
       });
     });
 
@@ -455,6 +505,9 @@ describe('User routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.NO_CONTENT);
+
+      const dbUser = await User.findById(userOne._id);
+      expect(dbUser).toBeNull();
     });
 
     test('should return 400 error if userId is not a valid mongo id', async () => {
@@ -495,11 +548,16 @@ describe('User routes', () => {
 
       expect(res.body).not.toHaveProperty('password');
       expect(res.body).toEqual({
-        id: userOne._id.toHexString(),
-        name: updateBody.name,
-        email: updateBody.email,
-        role: 'user',
-        isEmailVerified: false,
+        success: true,
+        message: expect.stringContaining('User'),
+        data: {
+          id: userOne._id.toHexString(),
+          name: updateBody.name,
+          email: updateBody.email,
+          role: 'user',
+          isEmailVerified: false,
+        },
+        error: null,
       });
 
       const dbUser = await User.findById(userOne._id);

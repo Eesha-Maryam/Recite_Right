@@ -16,11 +16,12 @@ const UserProfile = () => {
   });
 
   const [loading, setLoading] = useState(true);
-  const [editable, setEditable] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [apiError, setApiError] = useState('');
-  const [apiSuccess, setApiSuccess] = useState('');
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const navigate = useNavigate();
 
   const isTokenValid = (token) => {
@@ -108,34 +109,9 @@ const UserProfile = () => {
     initializeProfile();
   }, [navigate]);
 
-  const handleEditToggle = () => {
-    setEditable(!editable);
-    setApiError('');
-    setApiSuccess('');
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const { firstName, lastName, email } = userData;
-
-      await axios.patch(
-        'http://localhost:5000/v1/users/me',
-        { name: `${firstName} ${lastName}`.trim(), email },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setEditable(false);
-      setApiSuccess('Profile updated successfully!');
-      setTimeout(() => setApiSuccess(''), 3000);
-    } catch (err) {
-      handleApiError(err);
-    }
   };
 
   const handleAvatarChange = (e) => {
@@ -146,51 +122,34 @@ const UserProfile = () => {
     }
   };
 
-// UserProfile.js
-const handleUploadAvatar = async () => {
-  if (!avatarFile) return setApiError('Please select an image file');
+  const handleUploadAvatar = async () => {
+    if (!avatarFile) return setApiError('Please select an image file');
 
-  try {
-    const token = localStorage.getItem('accessToken');
-    const formData = new FormData();
-    formData.append('avatar', avatarFile);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const formData = new FormData();
+      formData.append('avatar', avatarFile);
 
-    const response = await axios.post(
-      'http://localhost:5000/v1/users/me/avatar',
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+      const response = await axios.post(
+        'http://localhost:5000/v1/users/me/avatar',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         }
-      }
-    );
+      );
 
-    setUserData(prev => ({
-      ...prev,
-      avatar: response.data.avatarUrl || response.data.avatar
-    }));
-    setApiSuccess('Avatar updated successfully!');
-  } catch (err) {
-    setApiError(err.response?.data?.message || 'Failed to upload avatar');
-  }
-};
-
-
-// In your file input element
-<input
-  type="file"
-  id="avatar-upload"
-  accept="image/*"
-  onChange={(e) => {
-    if (e.target.files && e.target.files[0]) {
-      setAvatarFile(e.target.files[0]);
-      setAvatarPreview(URL.createObjectURL(e.target.files[0]));
+      setUserData(prev => ({
+        ...prev,
+        avatar: response.data.avatarUrl || response.data.avatar
+      }));
+      setShowSuccessDialog(true);
+    } catch (err) {
+      setApiError(err.response?.data?.message || 'Failed to upload avatar');
     }
-  }}
-  style={{ display: 'none' }}
-/>
-
+  };
 
   const handleLogout = async () => {
     try {
@@ -215,8 +174,6 @@ const handleUploadAvatar = async () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure you want to permanently delete your account?')) return;
-
     try {
       const token = localStorage.getItem('accessToken');
       await axios.delete('http://localhost:5000/v1/users/me', {
@@ -247,12 +204,6 @@ const handleUploadAvatar = async () => {
           <div className="alert alert-error">
             {apiError}
             <button className="alert-close" onClick={() => setApiError('')}>×</button>
-          </div>
-        )}
-        {apiSuccess && (
-          <div className="alert alert-success">
-            {apiSuccess}
-            <button className="alert-close" onClick={() => setApiSuccess('')}>×</button>
           </div>
         )}
 
@@ -301,8 +252,8 @@ const handleUploadAvatar = async () => {
                       name="firstName"
                       value={userData.firstName}
                       onChange={handleChange}
-                      readOnly={!editable}
-                      className={editable ? 'editable' : 'read-only'}
+                      readOnly
+                      className="read-only"
                     />
                   </div>
                   <div className="form-field">
@@ -312,8 +263,8 @@ const handleUploadAvatar = async () => {
                       name="lastName"
                       value={userData.lastName}
                       onChange={handleChange}
-                      readOnly={!editable}
-                      className={editable ? 'editable' : 'read-only'}
+                      readOnly
+                      className="read-only"
                     />
                   </div>
                 </div>
@@ -325,22 +276,21 @@ const handleUploadAvatar = async () => {
                     name="email"
                     value={userData.email}
                     onChange={handleChange}
-                    readOnly={!editable}
-                    className={editable ? 'editable' : 'read-only'}
+                    readOnly
+                    className="read-only"
                   />
                 </div>
 
                 <div className="form-row">
-                 <div className="form-field">
-
-  <label>Member Since</label>
-  <input
-    type="text"
-    value={userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}
-    readOnly
-    className="read-only"
-  />
-</div>
+                  <div className="form-field">
+                    <label>Member Since</label>
+                    <input
+                      type="text"
+                      value={userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'}
+                      readOnly
+                      className="read-only"
+                    />
+                  </div>
                   <div className="form-field">
                     <label>Current Streak</label>
                     <input
@@ -357,18 +307,26 @@ const handleUploadAvatar = async () => {
         </div>
 
         <div className="action-btn">
-         {!editable ? (
-            <button onClick={handleEditToggle} className="btn btn-primary">Edit Profile</button>
-          ) : (
-            <>
-              <button onClick={handleSave} className="btn btn-primary">Save Changes</button>
-              <button onClick={handleEditToggle} className="btn btn-outline">Cancel</button>
-            </>
-          )} 
           <button onClick={handleLogout} className="btn btn-warning">Logout</button>
           <button onClick={handleDeleteAccount} className="btn btn-danger">Delete Account</button>
         </div>
       </main>
+
+      {/* Success Dialog */}
+      {showSuccessDialog && (
+        <div className="dialog-overlay">
+          <div className="dialog-box">
+            <h3>Success</h3>
+            <p>Avatar uploaded successfully!</p>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setShowSuccessDialog(false)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

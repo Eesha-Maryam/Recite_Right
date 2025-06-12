@@ -137,26 +137,29 @@ if (response.data?.tokens?.access?.token && response.data?.tokens?.refresh?.toke
 
            
             <div className="login-input-group">
-  <input
-    type={showPassword ? "text" : "password"}
-    name="password"
-    placeholder="Password"
-    className="form-input"
-    value={formData.password}
-    onChange={handleChange}
-  />
-  {formData.password && (
-    <button
-      type="button"
-      className="password-toggle"
-      onClick={() => setShowPassword(!showPassword)}
-      aria-label={showPassword ? "Hide password" : "Show password"}
-    >
-      {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
-    </button>
-  )}
+  <div className="input-with-toggle">
+    <input
+      type={showPassword ? "text" : "password"}
+      name="password"
+      placeholder="Password"
+      className="form-input"
+      value={formData.password}
+      onChange={handleChange}
+    />
+    {formData.password && (
+      <button
+        type="button"
+        className="password-toggle"
+        onClick={() => setShowPassword(!showPassword)}
+        aria-label={showPassword ? "Hide password" : "Show password"}
+      >
+        {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
+      </button>
+    )}
+  </div>
   {errors.password && <span className="error-message">{errors.password}</span>}
 </div>
+
 
 
             <div className="remember-forgot-row">
