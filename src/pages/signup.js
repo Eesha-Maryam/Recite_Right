@@ -201,7 +201,8 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
 
-            <div className="input-group">
+            <div className="login-input-group">
+                <div className="input-with-toggle">
   <input
     type={showPassword ? "text" : "password"}
     name="password"
@@ -220,10 +221,13 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
       {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
     </button>
   )}
+  </div>
   {errors.password && <span className="error-message">{errors.password}</span>}
 </div>
 
-<div className="input-group">
+
+<div className="login-input-group">
+    <div className="input-with-toggle">
   <input
     type={showConfirmPassword ? "text" : "password"}
     name="confirmPassword"
@@ -242,6 +246,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
       {showConfirmPassword ? <EyeSlashIcon /> : <EyeIcon />}
     </button>
   )}
+  </div>
   {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
 </div>
 

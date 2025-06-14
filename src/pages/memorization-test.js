@@ -8,7 +8,8 @@ const MemorizationTest = () => {
   const navigate = useNavigate();
 
   const handleCardClick = (mode) => {
-    navigate('/surah-selection', { state: { testMode: mode } });
+  navigate('/surah-selection', { state: { testMode: mode } });
+
   };
 
   return (

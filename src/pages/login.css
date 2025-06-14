@@ -158,6 +158,10 @@ input[type="password"]::-ms-reveal {
 
 
 .login-input-group {
+  margin-bottom: 25px !important;
+}
+
+.input-with-toggle {
   position: relative;
 }
 
@@ -170,4 +174,8 @@ input[type="password"]::-ms-reveal {
   border: none;
   cursor: pointer;
   padding: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
+

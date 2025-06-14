@@ -1,0 +1,23 @@
+module.exports = {
+  root: true,
+  env: {
+    node: true,
+    jest: true,
+    es2020: true,
+  },
+  extends: ['eslint:recommended', 'plugin:jest/recommended', 'prettier'],
+  plugins: ['jest', 'security', 'prettier'],
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: 'module',
+  },
+  rules: {
+    'no-console': 'error',
+    'func-names': 'off',
+    'no-underscore-dangle': 'off',
+    'consistent-return': 'off',
+    'jest/expect-expect': 'off',
+    'security/detect-object-injection': 'off',
+    'prettier/prettier': 'error',
+  },
+};

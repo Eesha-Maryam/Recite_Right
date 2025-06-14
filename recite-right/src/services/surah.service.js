@@ -1,9 +1,9 @@
 const axios = require('axios');
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
-const surahs = require('../components/surahs'); // Import the surah.json file
+const surahs = require('../components/surahs');
 
-// const dashboardAPI = 'https://raw.githubusercontent.com/fardanahmed/recite-ml/refs/heads/master/data/data-uthmani.json'; // Predefined API URL
+const API_URL = 'https://raw.githubusercontent.com/fardanahmed/recite-ml/refs/heads/master/data/data-uthmani.json';
 
 const dashboard = () => {
   const surahData = {};
@@ -21,25 +21,62 @@ const dashboard = () => {
     }
   }
 
-  if (Object.keys(surahData).length === 0) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Error fetching Surah data');
+    if (Object.keys(surahData).length === 0) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'No surah data found');
+    }
+    return surahData;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Error processing surah data');
   }
-  return surahData;
 };
-
-const API_URL = 'https://raw.githubusercontent.com/fardanahmed/recite-ml/refs/heads/master/data/data-uthmani.json';
 
 const getSurahById = async (surahId) => {
   try {
+    // Get basic surah info from local data
+    const localSurah = surahs[surahId];
+    if (!localSurah) {
+      throw new ApiError(httpStatus.NOT_FOUND, `Surah with ID ${surahId} not found`);
+    }
+
+    // Get detailed surah info from API
     const response = await axios.get(API_URL);
     const { data } = response;
-    const surah = data.quran.surahs.find((s) => s.num === surahId);
-    if (!surah) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Surah not found');
+
+    if (!data || !data.quran || !data.quran.surahs) {
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Invalid data format received from API');
     }
-    return surah;
+
+    // Find the surah in the API data - compare with string since API returns string numbers
+    const apiSurah = data.quran.surahs.find((s) => s.num === surahId.toString());
+    if (!apiSurah) {
+      throw new ApiError(httpStatus.NOT_FOUND, `Surah with ID ${surahId} not found in API`);
+    }
+
+    // Map the ayahs from API data
+    const ayahs = apiSurah.ayahs.map((ayah) => ({
+      number: parseInt(ayah.num, 10),
+      text: ayah.text,
+    }));
+
+    return {
+      id: surahId.toString(),
+      name: localSurah.arabic,
+      nameTranslation: localSurah.english,
+      numberOfAyahs: localSurah.ayah,
+      revelationType: localSurah.location === 1 ? 'Meccan' : 'Medinan',
+      ayahs,
+    };
   } catch (error) {
-    throw new Error('Error fetching Surah data');
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    if (error.response) {
+      throw new ApiError(httpStatus.BAD_GATEWAY, 'Error fetching data from external API');
+    }
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Error processing surah data');
   }
 };
 

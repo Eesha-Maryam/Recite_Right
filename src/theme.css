@@ -1,0 +1,11 @@
+/* Default (Day Mode) */
+body {
+  background-color: #ffffff;
+  color: #333333;
+}
+
+/* Night Mode */
+body.dark-mode {
+  background-color: #333333; /* charcoal */
+  color: #ffffff;
+}
