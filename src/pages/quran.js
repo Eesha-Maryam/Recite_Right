@@ -193,7 +193,7 @@ const Quran = () => {
             }
 
             ayahList.push({
-              number: parseInt(ayah.num),
+              number: parseInt(ayah.number),
               text: ayah.text,
             });
           });

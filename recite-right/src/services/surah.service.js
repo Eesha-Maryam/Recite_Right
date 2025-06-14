@@ -6,24 +6,25 @@ const surahs = require('../components/surahs');
 const API_URL = 'https://raw.githubusercontent.com/fardanahmed/recite-ml/refs/heads/master/data/data-uthmani.json';
 
 const dashboard = () => {
-  const surahData = {};
-  // console.log('Surahs:', surahs['default']['1']);
+  try {
+    const surahData = {};
 
-  for (let surah = 78; surah <= 114; surah += 1) {
-    const surahKey = surah.toString();
-    if (surahs[surahKey]) {
-      surahData[surahKey] = {
-        latin: surahs[surahKey].latin,
-        english: surahs[surahKey].english,
-        ayah: surahs[surahKey].ayah,
-        arabic: surahs[surahKey].arabic,
-      };
+    for (let surah = 78; surah <= 114; surah += 1) {
+      const surahKey = surah.toString();
+      if (surahs[surahKey]) {
+        surahData[surahKey] = {
+          latin: surahs[surahKey].latin,
+          english: surahs[surahKey].english,
+          ayah: surahs[surahKey].ayah,
+          arabic: surahs[surahKey].arabic,
+        };
+      }
     }
-  }
 
     if (Object.keys(surahData).length === 0) {
       throw new ApiError(httpStatus.NOT_FOUND, 'No surah data found');
     }
+
     return surahData;
   } catch (error) {
     if (error instanceof ApiError) {
@@ -32,6 +33,7 @@ const dashboard = () => {
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Error processing surah data');
   }
 };
+
 
 const getSurahById = async (surahId) => {
   try {

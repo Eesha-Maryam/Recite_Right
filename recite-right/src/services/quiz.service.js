@@ -17,6 +17,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL_NAME = 'gemini-2.0-flash-001';
 
 const QUIZ_PROMPT_TEMPLATE = `Generate a quiz about {topic} with {numQuestions} multiple choice questions only related to memorization.
+Each question text and options must be written in English, except for any Quranic words, phrases, or verses, which should be in Arabic script (no romanization).
+Do not translate numbers or generic English text into Arabic. Only Quranic text should appear in Arabic script.
 Each question should be formatted exactly as follows:
 
 1. [Question text]
