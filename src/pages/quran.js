@@ -132,6 +132,8 @@ const recordingIntervalRef = useRef(null);
             const surahToSelect = formattedList.find(s => s.number === surahNumber) || formattedList[0];
 
             setSelectedSurah(surahToSelect);
+            setStartAyah('1');
+
           }
 
         } else {
@@ -246,8 +248,11 @@ const recordingIntervalRef = useRef(null);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const startRecitation = () => {
-    if (!selectedSurah || !startAyah) return;
+ const startRecitation = () => {
+  if (!selectedSurah) return;
+
+  let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
+  setStartAyah(ayahToStart);
     
     scrollToAyah(startAyah);
     setReadyToRecite(false);
@@ -297,18 +302,21 @@ const stopRecitation = () => {
         mediaRecorderRef.current.ondataavailable = handleDataAvailable;
         mediaRecorderRef.current.start(1);
 
-        recordingIntervalRef.current = setInterval(() => {
-          if (audioChunks.length > 0) {
-            const timestamp = new Date().toISOString();
-            const newData = {
-              timestamp,
-              chunks: [...audioChunks],
-              ayah: currentAyah
-            };
-            setRecordingData(prev => [...prev, newData]);
-            setAudioChunks([]);
-          }
-        }, 1000);
+       recordingIntervalRef.current = setInterval(() => {
+  if (audioChunks.length > 0) {
+    const timestamp = new Date().toISOString();
+    const newData = {
+      timestamp,
+      chunks: [...audioChunks],
+      ayah: currentAyah
+    };
+
+    setRecordingData(prev => [...prev, newData]);
+    sendAudioToBackend(newData); // 👈 Upload audio
+    setAudioChunks([]);
+  }
+}, 1000);
+
       })
       .catch(err => {
         console.error('Microphone error:', err);
@@ -321,6 +329,30 @@ const stopRecitation = () => {
   simulateRecitation();
 };
 
+const speakWord = (word) => {
+  if ('speechSynthesis' in window) {
+    const utter = new SpeechSynthesisUtterance(word);
+    utter.lang = 'ar-SA'; // Arabic voice
+    window.speechSynthesis.speak(utter);
+  }
+};
+
+const sendAudioToBackend = async (data) => {
+  const formData = new FormData();
+  const blob = new Blob(data.chunks, { type: 'audio/webm' });
+  formData.append('file', blob);
+  formData.append('ayah', data.ayah);
+  formData.append('timestamp', data.timestamp);
+
+  try {
+    await fetch(`${baseUrl}/v1/recitation/audio-upload`, {
+      method: 'POST',
+      body: formData,
+    });
+  } catch (error) {
+    console.error('Error sending audio to backend:', error);
+  }
+};
 
 
   const pauseRecording = () => {
@@ -370,18 +402,19 @@ const stopRecitation = () => {
       }
 
       // Simulate occasional mistakes (20% chance)
-      if (Math.random() < 0.2 && i > 0) {
-        const mistakeWord = `Mistake_${Math.floor(Math.random() * 100)}`;
-        setMistakes(prev => [...prev, { 
-          ayah: currentAyahNum, 
-          correct: 'CorrectWord', 
-          user: mistakeWord 
-        }]);
-        // Play beep sound for mistake
-        if (beepSoundRef.current) {
-          beepSoundRef.current();
-        }
-      }
+    if (Math.random() < 0.2 && i > 0) {
+  const mistakeWord = `Mistake_${Math.floor(Math.random() * 100)}`;
+  setMistakes(prev => [...prev, { 
+    ayah: currentAyahNum, 
+    correct: 'CorrectWord', 
+    user: mistakeWord 
+  }]);
+  
+  // 🔊 Beep + Speak
+  if (beepSoundRef.current) beepSoundRef.current();
+  speakWord('الكلمة الخاطئة'); // Replace with actual Arabic word if needed
+}
+
 
       setProgress(Math.floor((i / ayahNumbers.length) * 100));
       i++;
@@ -505,12 +538,15 @@ const stopRecitation = () => {
             {ayahs.length > 0 ? (
   <p className="quran-text">
     {ayahs.map(ayah => (
-      <span
-        key={ayah.number}
-        ref={el => ayahRefs.current[ayah.number] = el}
-        className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${
-          mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''
-        } ${currentAyah === ayah.number ? 'current' : ''}`}
+     <span
+  key={ayah.number}
+  ref={el => ayahRefs.current[ayah.number] = el}
+  className={`ayah 
+    ${readAyahs.includes(ayah.number) ? 'read' : ''} 
+    ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''}
+    ${currentAyah === ayah.number ? 'current' : ''}
+    ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
+
         style={{
           filter: textHidden && !readAyahs.includes(ayah.number) ? 'blur(5px)' : 'none',
           transition: 'filter 0.3s ease'
