@@ -1,12 +1,13 @@
 const express = require('express');
 const validate = require('../../middlewares/validate');
-const { dashboardSurah, SurahById } = require('../../controllers/surah.controller');
+const { dashboardSurah, mutashabihat, SurahById } = require('../../controllers/surah.controller');
 const { getSurahById } = require('../../validations/surah.validation');
 
 const router = express.Router();
 
 router.get('/dashboard', dashboardSurah);
 router.get('/get-surah/:surahId', validate(getSurahById), SurahById);
+router.get('/mutashabihat', mutashabihat);
 
 module.exports = router;
 
