@@ -6,6 +6,7 @@ const surahRoute = require('./surah.route');
 const config = require('../../config/config');
 const searchRoute = require('./search.route');
 const quizRoute = require('./quiz.route');
+const feedbackRoute = require('./feedback.route');
 const router = express.Router();
 
 const defaultRoutes = [
@@ -29,6 +30,10 @@ const defaultRoutes = [
     path: '/quiz',
     route: quizRoute,
   },
+  {
+      path: '/feedback',
+      route: feedbackRoute,
+    },
 ];
 
 const devRoutes = [
