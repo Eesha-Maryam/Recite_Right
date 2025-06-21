@@ -13,13 +13,13 @@ const FeedbackPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const token = localStorage.getItem('token'); // Make sure token is stored after login
+  const token = localStorage.getItem('accessToken');
 
   // Submit feedback to backend
   const submitFeedback = async (feedbackData) => {
   try {
     const response = 
-    await axios.post('http://localhost:5000/feedback', feedbackData,
+    await axios.post('http://localhost:5000/v1/feedback', feedbackData,
 
       {
         headers: {
@@ -40,8 +40,12 @@ const FeedbackPage = () => {
   const fetchFeedback = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/feedback');
-      setFeedbackList(response.data);
+      const response = await axios.get('http://localhost:5000/v1/feedback', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setFeedbackList(response.data.data);
     } catch (error) {
       console.error('Error fetching feedback:', error?.response?.data?.error);
     } finally {
