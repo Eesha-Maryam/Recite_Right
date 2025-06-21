@@ -10,24 +10,32 @@
 
 /* Base header styles */
 .app-header {
-  position: fixed;
+  width: 100%;
+  position:absolute; /* Must stay fixed */
   top: 0;
   left: 0;
   right: 0;
   padding: 12px 0;
   z-index: 1000;
-  background-color: var(--white);
+  background-color: transparent !important; /* Default white */
   border-bottom: 3px solid var(--olive-green);
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Homepage header - transparent version */
+/* Transparent header OVERRIDE - must come after base styles */
 .app-header.transparent {
   background-color: transparent !important;
   border-bottom-color: transparent !important;
 }
 
+/* Header content styles - must be transparent when header is transparent */
 
+
+/* Homepage header - transparent version */
+.app-header:not(.transparent) {
+  background-color: transparent !important;
+  border-bottom-color: var(--olive-green);
+}
 
 /* Remove any potential background from children */
 .app-header.transparent .header-content,
@@ -89,9 +97,10 @@
   width: 300px;
   height: 100%;
   background: var(--white);
-  z-index: 1100;
+  z-index: 1001; 
   transition: transform 0.3s ease;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  overflow: auto;
 }
 
 .drawer {

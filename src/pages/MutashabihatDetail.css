@@ -1,9 +1,16 @@
-.mutashabihat-detail-header {
+.mutadetail-container {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+.mutadetail-header {
   display: flex;
   align-items: center;
-  padding: 15px 24px;
+  padding-left: 10px;
   background-color: #fff;
-  border-bottom: 2px solid olive;
+  border-bottom: 2px solid #97B469;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
@@ -11,101 +18,168 @@
 }
 
 .back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: none;
   border: none;
-  margin-right: 16px;
-  padding: 6px;
+  color: #97B469;
   cursor: pointer;
-  color: olive;
+  font-size: 18px;
+  margin-right: 16px;
 }
 
 .back-icon {
   font-size: 20px;
 }
 
-.detail-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.surah-title {
+.mutadetail-title {
   font-size: 22px;
-  margin: 20px 0 10px;
-  padding-left: 10px;
+  font-weight: 600;
+  color: #97B469;
+}
+
+.mutadetail-content {
+  padding: 24px;
+}
+
+.mutadetail-surah-title {
+  font-size: 20px;
   font-weight: bold;
-  color: #333;
+  color: #444;
+  margin-bottom: 16px;
 }
 
-.ayah-box {
-  border: 2px solid #d7e2cc;
-  border-radius: 8px;
-  background-color: #f9fdf8;
-  padding: 15px 10px;
-  margin: 0 10px;
+.mutadetail-ayah-box {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.ayah-group {
-  margin-bottom: 15px;
-  cursor: pointer;
+.mutadetail-ayah-group {
+  border: 1px solid #ddd;
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 128, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
-.ayah-source-title {
+.mutadetail-ayah-group:hover {
+  box-shadow: 0 4px 10px rgba(0, 128, 0, 0.12);
+}
+
+.mutadetail-ayah-source-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  color: #222;
-  font-weight: 500;
+  cursor: pointer;
+  gap: 16px;
+  color: #333;
 }
 
-.ayah-number-circle {
-  background-color: #dce8cf;
-  color: #333;
+.mutadetail-ayah-number-circle {
+  background-color: #97B469;
+  color: #fff;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  text-align: center;
-  font-size: 13px;
-  line-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: bold;
-}
-
-.ayah-text {
-  font-size: 18px;
-  direction: rtl;
-  flex: 1;
-  color: #000;
-}
-
-.similar-ayahs {
-  list-style: none;
-  padding-left: 30px;
-  margin-top: 10px;
-}
-
-.similar-ayahs li {
-  padding: 5px 0;
   font-size: 16px;
-  direction: rtl;
+  flex-shrink: 0;
 }
 
-.match-surah {
-  font-weight: bold;
+.mutadetail-ayah-text {
+  font-size: 18px;
   color: #333;
-  display: inline-block;
-  margin-bottom: 2px;
+  line-height: 1.7;
 }
 
-.match-text {
-  color: #000;
+.mutadetail-similar-ayahs {
+  margin-top: 16px;
+  padding-left: 12px;
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px dashed #97B469;
+  padding-top: 16px;
+}
+
+.mutadetail-similar-ayahs li {
+  background-color: #f9f9f5;
+  padding: 12px 16px;
+  border-left: 4px solid #97B469;
+  border-radius: 8px;
+}
+
+.mutadetail-match-surah {
+  font-weight: 600;
+  color: #97B469;
+  font-size: 15px;
+}
+
+.mutadetail-match-text {
+  margin-top: 6px;
+  color: #444;
+  font-size: 17px;
+  line-height: 1.6;
 }
 
 .highlight {
-  color: red;
+  color: crimson;
   font-weight: bold;
+}
+
+/* ✅ Dark Mode Overrides for MutashabihatDetail */
+
+.dark-mode .mutadetail-container {
+  background-color: #121212;
+}
+
+.dark-mode .mutadetail-header {
+  background-color: #1e1e1e;
+  border-bottom: 2px solid #b5cc8e;
+}
+
+.dark-mode .mutadetail-title {
+  color: #b5cc8e;
+}
+
+.dark-mode .mutadetail-surah-title {
+  color: #ddd;
+}
+
+.dark-mode .mutadetail-ayah-group {
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  box-shadow: 0 2px 6px rgba(181, 204, 142, 0.08);
+}
+
+.dark-mode .mutadetail-ayah-group:hover {
+  box-shadow: 0 4px 10px rgba(181, 204, 142, 0.12);
+}
+
+.dark-mode .mutadetail-ayah-source-title {
+  color: #ddd;
+}
+
+.dark-mode .mutadetail-ayah-text {
+  color: #ccc;
+}
+
+.dark-mode .mutadetail-similar-ayahs {
+  border-top: 1px dashed #b5cc8e;
+}
+
+.dark-mode .mutadetail-similar-ayahs li {
+  background-color: #2a2a2a;
+  border-left: 4px solid #b5cc8e;
+}
+
+.dark-mode .mutadetail-match-surah {
+  color: #b5cc8e;
+}
+
+.dark-mode .mutadetail-match-text {
+  color: #ddd;
 }

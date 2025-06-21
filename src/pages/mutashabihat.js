@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/header';
 import './mutashabihat.css';
 
 const Mutashabihat = () => {
   const [tilesData, setTilesData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMutashabihat = async () => {
@@ -13,24 +15,26 @@ const Mutashabihat = () => {
         const json = await response.json();
 
         if (json.success && Array.isArray(json.data)) {
-          // Map: surahName => count of occurrences
           const surahCounts = {};
+          const surahIds = {};
 
           json.data.forEach(entry => {
             const { source, matches } = entry;
             const name = source.surahName;
+            const id = source.surahId;
 
             if (!surahCounts[name]) {
               surahCounts[name] = 0;
+              surahIds[name] = id;
             }
 
             surahCounts[name] += matches.length;
           });
 
-          // Convert to array
           const result = Object.entries(surahCounts).map(([surah, count]) => ({
             surah,
             count,
+            id: surahIds[surah],
           }));
 
           setTilesData(result);
@@ -62,7 +66,11 @@ const Mutashabihat = () => {
         ) : (
           <div className="muta-tiles-grid">
             {tilesData.map((tile, index) => (
-              <div key={index} className="muta-tile">
+              <div
+                key={index}
+                className="muta-tile"
+                onClick={() => navigate(`/mutashabihat/${tile.id}`)}
+              >
                 <h3>{tile.surah}</h3>
                 <p>Mutashabihat: {tile.count}</p>
               </div>

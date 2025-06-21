@@ -87,3 +87,29 @@
 .dark-mode .muta-tile p {
   color: #ddd;
 }
+
+/* Add this for both light and dark mode */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Light Mode */
+.muta-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--white);
+  min-height: 100vh; /* Ensures full vertical fill */
+}
+
+/* Dark Mode */
+.dark-mode body,
+.dark-mode html {
+  background-color: #121212;
+}
+
+.dark-mode .muta-container {
+  background-color: #121212;
+  min-height: 100vh;
+}

@@ -10,6 +10,7 @@ import Feedback from './pages/feedback';
 import Quran from './pages/quran';
 import QuizPage from './pages/QuizPage';
 import Mutashabihat from './pages/mutashabihat';
+import MutashabihatDetail from './pages/MutashabihatDetail';
 import Help from './pages/help';
 import MemorizationTest from './pages/memorization-test';
 import SurahSelection from './pages/surah-selection';
@@ -38,7 +39,8 @@ function App({ authenticated, setAuthenticated }) {
           <Route path="/dashboard" element={<PrivateRoute authenticated={authenticated}><Dashboard /></PrivateRoute>} />
           <Route path="/feedback" element={<PrivateRoute authenticated={authenticated}><Feedback /></PrivateRoute>} />
           <Route path="/quran" element={<PrivateRoute authenticated={authenticated}><Quran /></PrivateRoute>} />
-          <Route path="/mutashabihat" element={<PrivateRoute authenticated={authenticated}><Mutashabihat /></PrivateRoute>} />
+        <Route path="/mutashabihat" element={<PrivateRoute authenticated={authenticated}><Mutashabihat /></PrivateRoute>} />
+<Route path="/mutashabihat/:id" element={<PrivateRoute authenticated={authenticated}><MutashabihatDetail /></PrivateRoute>} /> 
           <Route path="/help" element={<PrivateRoute authenticated={authenticated}><Help /></PrivateRoute>} />
           <Route path="/memorization-test" element={<PrivateRoute authenticated={authenticated}><MemorizationTest /></PrivateRoute>} />
           <Route path="/surah-selection" element={<PrivateRoute authenticated={authenticated}><SurahSelection /></PrivateRoute>} />

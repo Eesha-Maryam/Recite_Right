@@ -203,18 +203,7 @@ const HomePage = () => {
           }}
         >
           <div className="tab-container">
-            <div 
-              className={`tab ${activeTab === 'Surah' ? 'active' : ''}`}
-              onClick={() => setActiveTab('Surah')}
-            >
-              Surah
-            </div>
-            <div 
-              className={`tab ${activeTab === 'Juz' ? 'active' : ''}`}
-              onClick={() => setActiveTab('Juz')}
-            >
-              Juz
-            </div>
+          
           </div>
           <div className="sort-dropdown">
             <span style={{ fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px' }}>Sort by: </span>

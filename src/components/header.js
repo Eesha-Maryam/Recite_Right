@@ -146,15 +146,6 @@ const [isLightMode, setIsLightMode] = useState(() => {
           />
           <div className="separator"></div>
           
-          <SettingsItem icon="mic" text="VOICE CONTROL" />
-          <ToggleWithDescription
-            description="Switch between Voice and Text input modes."
-            isOn={isVoiceOn}
-            onToggle={() => setIsVoiceOn(!isVoiceOn)}
-            option1="ON"
-            option2="OFF"
-          />
-            <div className="separator"></div>
           <button className="reset-button-slider">RESET SETTINGS</button>
         </div>
       </div>
