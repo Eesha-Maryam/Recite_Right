@@ -144,24 +144,23 @@ userSchema.methods.isPasswordMatch = async function (password) {
 userSchema.methods.updateStreak = async function () {
   const now = new Date();
   const lastActive = new Date(this.lastActiveDate);
-  
-  // Check if the user was active yesterday
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
+
+  // Normalize both dates to local midnight for accurate day comparisons
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
   if (
-    lastActive.getDate() === yesterday.getDate() &&
-    lastActive.getMonth() === yesterday.getMonth() &&
-    lastActive.getFullYear() === yesterday.getFullYear()
+    lastActive >= startOfYesterday &&
+    lastActive < startOfToday
   ) {
+    // last active was yesterday — increment streak
     this.streak += 1;
-  } else if (lastActive.getDate() !== now.getDate() || 
-             lastActive.getMonth() !== now.getMonth() || 
-             lastActive.getFullYear() !== now.getFullYear()) {
-    // Reset streak if not consecutive
+  } else if (lastActive < startOfYesterday) {
+    // last active was before yesterday — reset streak
     this.streak = 1;
   }
-  
+
   this.lastActiveDate = now;
   return this.save();
 };
@@ -182,7 +181,7 @@ userSchema.methods.softDelete = async function () {
 
 // Virtual for profile URL
 userSchema.virtual('profileUrl').get(function () {
-  return this.avatar 
+  return this.avatar
     ? `${process.env.BASE_URL}/uploads/avatars/${this.avatar}`
     : `${process.env.BASE_URL}/default-avatar.png`;
 });

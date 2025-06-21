@@ -13,6 +13,10 @@ const HomePage = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
 
   const baseUrl = process.env.REACT_APP_BASE_URL;
   const [surahTiles, setSurahTiles] = useState([]);
@@ -179,13 +183,23 @@ const HomePage = () => {
               </div>
             </div>
           )}
-          {(item.content === "percentage" || item.content === "days") && (
+          {item.content === "percentage" && (
             <p style={{
               color: '#97B469',
               fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
               textAlign: 'center',
               margin: '0 auto'
-            }}>{item.content === "percentage" ? "%" : "Days"}</p>
+            }}>%</p>
+          )}
+          {item.content === "days" && (
+            <p style={{
+              color: '#97B469',
+              fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
+              textAlign: 'center',
+              margin: '0 auto'
+            }}>
+              {user?.streak ?? 0} Days
+            </p>
           )}
         </div>
       </div>

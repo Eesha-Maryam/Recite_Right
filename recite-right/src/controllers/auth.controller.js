@@ -118,6 +118,9 @@ const login = catchAsync(async (req, res) => {
 
   const tokens = await tokenService.generateAuthTokens(user);
 
+  // Add this line to update streak on login
+  await user.updateStreak();
+
   res.send({
     user: {
       id: user.id,
