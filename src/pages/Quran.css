@@ -24,6 +24,16 @@
   overflow: hidden;
 }
 
+.dropdown-item,
+.surah-name,
+.surah-number {
+  color: var(--charcoal); /* Or any visible color like #333 or #000 */
+}
+.dark-mode .dropdown-item,
+.dark-mode .surah-name,
+.dark-mode .surah-number {
+  color: var(--white) !important; /* Ensures readability in dark mode */
+}
 
 .quran-text {
   font-family: 'Scheherazade New', serif;
