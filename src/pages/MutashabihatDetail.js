@@ -16,83 +16,41 @@ const toggleExpand = (index) => {
 };
 
   useEffect(() => {
-  // 🚧 TEMP: Commenting out actual API call for dummy testing
-  /*
-  const fetchMutashabihat = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/v1/surah/mutashabihat');
-      const json = await res.json();
+    const fetchMutashabihat = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/v1/surah/mutashabihat');
+        const json = await res.json();
 
-      if (json.success && Array.isArray(json.data)) {
-        const matchedData = json.data.filter(entry => entry.source.surahId.toString() === id);
+        if (json.success && Array.isArray(json.data)) {
+          const matchedData = json.data.filter(entry => entry.source.surah.toString() === id);
 
-        const formattedGroups = matchedData.map(entry => ({
-          sourceAyah: entry.source,
-          matches: entry.matches,
-        }));
+          const formattedGroups = matchedData.map(entry => ({
+            sourceAyah: {
+              surahId: entry.source.surah,
+              surahName: entry.source.surahName,
+              ayahNumber: entry.source.ayah,
+              text: entry.source.arabic, // You can merge translation if needed
+            },
+            matches: entry.matches.map(m => ({
+              surahName: m.surahName,
+              ayahNumber: m.ayah,
+              text: m.arabic, // Likewise, you can merge translation if desired
+            })),
+          }));
 
-        setAyahGroups(formattedGroups);
-      } else {
-        console.error('Unexpected format:', json);
+          setAyahGroups(formattedGroups);
+        } else {
+          console.error('Unexpected API response:', json);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching detail:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchMutashabihat();
-  */
-
-  
-  // ✅ Using Dummy Data
-  const dummyData = [
-    {
-      sourceAyah: {
-        surahId: 2,
-        surahName: "Surah Al-Baqarah",
-        ayahNumber: 2,
-        text: "ذَٰلِكَ <span class='highlight'>ٱلۡكِتَٰبُ</span> لَا رَيۡبَ ۛ فِيهِ ۛ هُدٗى لِّلۡمُتَّقِينَ"
-      },
-      matches: [
-        {
-          surahName: "Surah Aal-e-Imran",
-          ayahNumber: 138,
-          text: "هَٰذَا بَيَانٌ لِّلنَّاسِ وَ<span class='highlight'>هُدٗى</span> وَمَوْعِظَةٞ لِّلۡمُتَّقِينَ"
-        },
-        {
-          surahName: "Surah Ash-Shu’ara",
-          ayahNumber: 2,
-          text: "تِلْكَ آيَاتُ <span class='highlight'>ٱلۡكِتَٰبِ</span> ٱلۡمُبِينِ"
-        }
-      ]
-    },
-    {
-      sourceAyah: {
-        surahId: 2,
-        surahName: "Surah Al-Baqarah",
-        ayahNumber: 13,
-        text: "وَإِذَا قِيلَ لَهُمۡ ءَامِنُواْ كَمَآ ءَامَنَ <span class='highlight'>ٱلنَّاسُ</span>"
-      },
-      matches: [
-        {
-          surahName: "Surah Az-Zukhruf",
-          ayahNumber: 2,
-          text: "إِنَّا جَعَلۡنَٰهُ قُرۡءَانٗا <span class='highlight'>عَرَبِيّٗا</span> لَّعَلَّكُمۡ تَعۡقِلُونَ"
-        },
-        {
-          surahName: "Surah Hud",
-          ayahNumber: 1,
-          text: "كِتَٰبٌ أُحۡكِمَتۡ <span class='highlight'>ءَايَاتُهُۥ</span> ثُمَّ فُصِّلَتۡ"
-        }
-      ]
-    }
-  ];
-
-  setAyahGroups(dummyData);
-  setLoading(false);
-}, []);
+    fetchMutashabihat();
+  }, [id]);
 
 
   return (

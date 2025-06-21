@@ -21,7 +21,7 @@ const Mutashabihat = () => {
           json.data.forEach(entry => {
             const { source, matches } = entry;
             const name = source.surahName;
-            const id = source.surahId;
+            const id = source.surah;
 
             if (!surahCounts[name]) {
               surahCounts[name] = 0;
