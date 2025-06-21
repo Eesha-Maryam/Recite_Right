@@ -53,7 +53,40 @@
   font-size: 1.6rem; 
   line-height: 2.8rem;
   word-spacing: 0.3rem;
+
 }
+.quran-text {
+  font-family: 'Scheherazade New', serif;
+  font-size: 28px;
+  line-height: 2.2;
+}
+
+.dropdown-item,
+.surah-name,
+.surah-number {
+  color: var(--charcoal); /* Or any visible color like #333 or #000 */
+}
+.dark-mode .dropdown-item,
+.dark-mode .surah-name,
+.dark-mode .surah-number {
+  color: var(--white) !important; /* Ensures readability in dark mode */
+}
+
+.ayah.highlighted {
+  background-color: #a1e8af; /* Light green for highlight */
+  border-radius: 5px;
+  padding: 2px 4px;
+  transition: background-color 0.3s ease;
+}
+
+.ayah.highlighted {
+  background-color: #a1e8af;
+  border-radius: 5px;
+  padding: 2px 4px;
+  box-shadow: 0 0 8px #a1e8af;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 
 .ayah {
   display: inline;

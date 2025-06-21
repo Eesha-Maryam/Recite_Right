@@ -256,7 +256,7 @@ const QuizPage = () => {
           </div>
         ))}
       </div>
-      <button className="restart-btn" onClick={() => navigate('/')}>Start New Quiz</button>
+      <button className="restart-btn" onClick={() => navigate('/memorization-test')}>Start New Quiz</button>
     </div>
   );
 

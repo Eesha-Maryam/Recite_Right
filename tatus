@@ -1,0 +1,213 @@
+[33mcommit 772d41d475147cf42ed4bf4d3b7bcb37c6f54dc5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Merge: e8225a4 21b1c79
+Author: Eesha Maryam <eshamaryam254@example.com>
+Date:   Sat Jun 21 21:35:00 2025 +0500
+
+    Resolved merge conflict in quran.js
+
+[1mdiff --cc src/pages/quran.js[m
+[1mindex c529a3e,31bbcf7..17f28bb[m
+[1m--- a/src/pages/quran.js[m
+[1m+++ b/src/pages/quran.js[m
+[36m@@@ -79,10 -76,7 +79,11 @@@[m [mconst Quran = () => [m
+    const [recordingData, setRecordingData] = useState([]);[m
+    const [surahList, setSurahList] = useState([]);[m
+    const [readyToRecite, setReadyToRecite] = useState(false);[m
+[31m -  const isReciteDisabled = !selectedSurah;[m
+[32m +  const [showRecitationControls, setShowRecitationControls] = useState(false);[m
+[32m++const recordingIntervalRef = useRef(null);[m
+[32m +[m
+[32m +  const isReciteDisabled = !selectedSurah || !startAyah;[m
+[32m +[m
+    const baseUrl = process.env.REACT_APP_BASE_URL;[m
+  [m
+    // Refs[m
+[36m@@@ -131,6 -125,6 +132,8 @@@[m
+              const surahToSelect = formattedList.find(s => s.number === surahNumber) || formattedList[0];[m
+  [m
+              setSelectedSurah(surahToSelect);[m
+[32m++            setStartAyah('1');[m
+[32m++[m
+            }[m
+  [m
+          } else {[m
+[36m@@@ -245,84 -238,79 +248,112 @@@[m
+      return () => document.removeEventListener('mousedown', handleClickOutside);[m
+    }, []);[m
+  [m
+[31m-   const startRecitation = () => {[m
+[31m-     if (!selectedSurah || !startAyah) return;[m
+[31m -  [m
+[31m - const toggleRecording = () => {[m
+[31m -  if (!recording && !recordingPaused) {[m
+[31m -    startRecording();[m
+[32m++ const startRecitation = () => {[m
+[32m++  if (!selectedSurah) return;[m
+[32m++[m
+[32m++  let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';[m
+[32m++  setStartAyah(ayahToStart);[m
+[32m +    [m
+[32m +    scrollToAyah(startAyah);[m
+      setReadyToRecite(false);[m
+      setSidebarOpen(false);[m
+[31m -  } else if (recording && !recordingPaused) {[m
+[31m -    pauseRecording();[m
+[31m -    setSidebarOpen(true);[m
+[31m -    setTimeout(() => {[m
+[31m -      const summary = document.querySelector('.recitation-summary');[m
+[31m -      if (summary) {[m
+[31m -        summary.scrollIntoView({ behavior: 'smooth' });[m
+[31m -      }[m
+[31m -    }, 100);[m
+[31m -  } else if (recordingPaused) {[m
+[31m -    resumeRecording();[m
+[31m -    setSidebarOpen(false);[m
+[32m +    setShowRecitationControls(true);[m
+[32m +    startRecording();[m
+[32m +  };[m
+[32m +[m
+[32m +  const toggleRecording = () => {[m
+[32m +    if (recording && !recordingPaused) {[m
+[32m +      pauseRecording();[m
+[32m +    } else if (recordingPaused) {[m
+[32m +      resumeRecording();[m
+[32m +    }[m
+[32m +  };[m
+[32m +[m
+[31m-   const stopRecitation = () => {[m
+[31m-     setRecording(false);[m
+[31m-     setRecordingPaused(false);[m
+[31m-     setShowRecitationControls(false);[m
+[31m-     setSidebarOpen(true);[m
+[31m-     [m
+[31m-     setTimeout(() => {[m
+[31m-       const summary = document.querySelector('.recitation-summary');[m
+[31m-       if (summary) {[m
+[31m-         summary.scrollIntoView({ behavior: 'smooth' });[m
+[31m-       }[m
+[31m-     }, 100);[m
+[31m-   };[m
+[32m++const stopRecitation = () => {[m
+[32m++  setRecording(false);[m
+[32m++  setRecordingPaused(false);[m
+[32m++  setShowRecitationControls(false);[m
+[32m++  setSidebarOpen(true);[m
+[32m +[m
+[31m-   const startRecording = () => {[m
+[31m-     setRecording(true);[m
+[31m-     setRecordingPaused(false);[m
+[31m-     setReadAyahs([]);[m
+[31m-     setMistakes([]);[m
+[31m-     setProgress(0);[m
+[31m-     setRecordingData([]);[m
+[31m-     [m
+[31m-     // Initialize audio recording (simulated)[m
+[31m-     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {[m
+[31m-       navigator.mediaDevices.getUserMedia({ audio: true })[m
+[31m-         .then(stream => {[m
+[31m-           mediaRecorderRef.current = new MediaRecorder(stream);[m
+[31m-           mediaRecorderRef.current.ondataavailable = handleDataAvailable;[m
+[31m-           mediaRecorderRef.current.start(1); // Collect data every 1ms[m
+[31m-           [m
+[31m-           // Simulate sending to backend[m
+[31m-           const interval = setInterval(() => {[m
+[31m-             if (audioChunks.length > 0) {[m
+[31m-               // Store recording data locally since we don't have backend[m
+[31m-               const timestamp = new Date().toISOString();[m
+[31m-               const newData = {[m
+[31m-                 timestamp,[m
+[31m-                 chunks: [...audioChunks],[m
+[31m-                 ayah: currentAyah[m
+[31m-               };[m
+[31m-               setRecordingData(prev => [...prev, newData]);[m
+[31m-               console.log('Storing audio chunks locally:', newData);[m
+[31m-               setAudioChunks([]);[m
+[31m-             }[m
+[31m-           }, 1);[m
+[31m-           [m
+[31m-           return () => clearInterval(interval);[m
+[31m-         })[m
+[31m-         .catch(err => {[m
+[31m-           console.error('Error accessing microphone:', err);[m
+[31m-           // Fallback to simulated recording[m
+[31m-           simulateRecitation();[m
+[31m-         });[m
+[31m-     } else {[m
+[31m-       // Fallback to simulated recording[m
+[31m-       simulateRecitation();[m
+[32m++  clearInterval(recordingIntervalRef.current);[m
+[32m++[m
+[32m++  setTimeout(() => {[m
+[32m++    const summary = document.querySelector('.recitation-summary');[m
+[32m++    if (summary) {[m
+[32m++      summary.scrollIntoView({ behavior: 'smooth' });[m
+[32m +    }[m
+[31m-     [m
+[32m++  }, 100);[m
+[32m++};[m
+[32m++[m
+[32m++[m
+[32m++ const startRecording = () => {[m
+[32m++  setRecording(true);[m
+[32m++  setRecordingPaused(false);[m
+[32m++  setReadAyahs([]);[m
+[32m++  setMistakes([]);[m
+[32m++  setProgress(0);[m
+[32m++  setRecordingData([]);[m
+[32m++  setAudioChunks([]);[m
+[32m++[m
+[32m++  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {[m
+[32m++    navigator.mediaDevices.getUserMedia({ audio: true })[m
+[32m++      .then(stream => {[m
+[32m++        mediaRecorderRef.current = new MediaRecorder(stream);[m
+[32m++        mediaRecorderRef.current.ondataavailable = handleDataAvailable;[m
+[32m++        mediaRecorderRef.current.start(1);[m
+[32m++[m
+[32m++       recordingIntervalRef.current = setInterval(() => {[m
+[32m++  if (audioChunks.length > 0) {[m
+[32m++    const timestamp = new Date().toISOString();[m
+[32m++    const newData = {[m
+[32m++      timestamp,[m
+[32m++      chunks: [...audioChunks],[m
+[32m++      ayah: currentAyah[m
+[32m++    };[m
+[32m++[m
+[32m++    setRecordingData(prev => [...prev, newData]);[m
+[32m++    sendAudioToBackend(newData); // 👈 Upload audio[m
+[32m++    setAudioChunks([]);[m
+[32m+   }[m
+[32m++}, 1000);[m
+[32m++[m
+[32m++      })[m
+[32m++      .catch(err => {[m
+[32m++        console.error('Microphone error:', err);[m
+[32m++        simulateRecitation();[m
+[32m++      });[m
+[32m++  } else {[m
+[32m +    simulateRecitation();[m
+[31m-   };[m
+[32m++  }[m
+[32m++[m
+[32m++  simulateRecitation();[m
+[32m+ };[m
+[32m+ [m
+[31m -useEffect(() => {[m
+[31m -  if (!recording && !recordingPaused) {[m
+[31m -    setReadyToRecite(true);[m
+[32m++const speakWord = (word) => {[m
+[32m++  if ('speechSynthesis' in window) {[m
+[32m++    const utter = new SpeechSynthesisUtterance(word);[m
+[32m++    utter.lang = 'ar-SA'; // Arabic voice[m
+[32m++    window.speechSynthesis.speak(utter);[m
+[32m+   }[m
+[31m -}, [selectedSurah]);[m
+[32m++};[m
+[32m++[m
+[32m++const sendAudioToBackend = async (data) => {[m
+[32m++  const formData = new FormData();[m
+[32m++  const blob = new Blob(data.chunks, { type: 'audio/webm' });[m
+[32m++  formData.append('file', blob);[m
+[32m++  formData.append('ayah', data.ayah);[m
+[32m++  formData.append('timestamp', data.timestamp);[m
+[32m++[m
+[32
