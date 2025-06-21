@@ -24,6 +24,21 @@
   overflow: hidden;
 }
 
+.ayah.highlighted {
+  background-color: #a1e8af; /* Light green for highlight */
+  border-radius: 5px;
+  padding: 2px 4px;
+  transition: background-color 0.3s ease;
+}
+
+.ayah.highlighted {
+  background-color: #a1e8af;
+  border-radius: 5px;
+  padding: 2px 4px;
+  box-shadow: 0 0 8px #a1e8af;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .dropdown-item,
 .surah-name,
 .surah-number {
