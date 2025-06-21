@@ -1,23 +1,52 @@
-import React from 'react';
-import Header from '../components/header'; // Adjust path if needed
+import React, { useEffect, useState } from 'react';
+import Header from '../components/header';
 import './mutashabihat.css';
 
-const tilesData = [
-  { surah: 'Surah Al-Fatihah', count: 2 },
-  { surah: 'Surah Al-Baqarah', count: 5 },
-  { surah: 'Surah Al-Imran', count: 3 },
-  { surah: 'Surah An-Nisa', count: 4 },
-  { surah: 'Surah Al-Ma’idah', count: 2 },
-  { surah: 'Surah Al-An’am', count: 3 },
-  { surah: 'Surah Al-A’raf', count: 6 },
-  { surah: 'Surah Al-Anfal', count: 1 },
-  { surah: 'Surah At-Tawbah', count: 2 },
-  { surah: 'Surah Yunus', count: 4 },
-  { surah: 'Surah Hud', count: 3 },
-  { surah: 'Surah Yusuf', count: 2 },
-];
-
 const Mutashabihat = () => {
+  const [tilesData, setTilesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMutashabihat = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/v1/surah/mutashabihat');
+        const json = await response.json();
+
+        if (json.success && Array.isArray(json.data)) {
+          // Map: surahName => count of occurrences
+          const surahCounts = {};
+
+          json.data.forEach(entry => {
+            const { source, matches } = entry;
+            const name = source.surahName;
+
+            if (!surahCounts[name]) {
+              surahCounts[name] = 0;
+            }
+
+            surahCounts[name] += matches.length;
+          });
+
+          // Convert to array
+          const result = Object.entries(surahCounts).map(([surah, count]) => ({
+            surah,
+            count,
+          }));
+
+          setTilesData(result);
+        } else {
+          console.error('Unexpected response format:', json);
+        }
+      } catch (error) {
+        console.error('Error fetching mutashabihat:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMutashabihat();
+  }, []);
+
   return (
     <div className="muta-container">
       <Header />
@@ -28,14 +57,18 @@ const Mutashabihat = () => {
           Each card below lists ayahs in that surah that are similar to any other ayah in Quran.
         </p>
 
-        <div className="muta-tiles-grid">
-          {tilesData.map((tile, index) => (
-            <div key={index} className="muta-tile">
-              <h3>{tile.surah}</h3>
-              <p>Mutashabihat: {tile.count}</p>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="muta-tiles-grid">
+            {tilesData.map((tile, index) => (
+              <div key={index} className="muta-tile">
+                <h3>{tile.surah}</h3>
+                <p>Mutashabihat: {tile.count}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

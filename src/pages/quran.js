@@ -194,13 +194,6 @@ const recordingIntervalRef = useRef(null);
           const ayahList = [];
 
           result.data.ayahs.forEach(ayah => {
-            if (ayah.bismillah) {
-              ayahList.push({
-                number: 0,
-                text: ayah.bismillah,
-              });
-            }
-
             ayahList.push({
               number: parseInt(ayah.number),
               text: ayah.text,
@@ -597,4 +590,6 @@ const sendAudioToBackend = async (data) => {
   );
 };
 
+
 export default Quran;
+

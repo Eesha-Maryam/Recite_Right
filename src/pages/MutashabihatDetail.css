@@ -1,0 +1,111 @@
+.mutashabihat-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 15px 24px;
+  background-color: #fff;
+  border-bottom: 2px solid olive;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  margin-right: 16px;
+  padding: 6px;
+  cursor: pointer;
+  color: olive;
+}
+
+.back-icon {
+  font-size: 20px;
+}
+
+.detail-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.surah-title {
+  font-size: 22px;
+  margin: 20px 0 10px;
+  padding-left: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.ayah-box {
+  border: 2px solid #d7e2cc;
+  border-radius: 8px;
+  background-color: #f9fdf8;
+  padding: 15px 10px;
+  margin: 0 10px;
+}
+
+.ayah-group {
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.ayah-source-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: #222;
+  font-weight: 500;
+}
+
+.ayah-number-circle {
+  background-color: #dce8cf;
+  color: #333;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 22px;
+  font-weight: bold;
+}
+
+.ayah-text {
+  font-size: 18px;
+  direction: rtl;
+  flex: 1;
+  color: #000;
+}
+
+.similar-ayahs {
+  list-style: none;
+  padding-left: 30px;
+  margin-top: 10px;
+}
+
+.similar-ayahs li {
+  padding: 5px 0;
+  font-size: 16px;
+  direction: rtl;
+}
+
+.match-surah {
+  font-weight: bold;
+  color: #333;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+.match-text {
+  color: #000;
+}
+
+.highlight {
+  color: red;
+  font-weight: bold;
+}
