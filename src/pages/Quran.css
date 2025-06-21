@@ -25,6 +25,11 @@
 }
 
 
+.quran-text {
+  font-family: 'Scheherazade New', serif;
+  font-size: 28px;
+  line-height: 2.2;
+}
 
 
 .quran-block {
