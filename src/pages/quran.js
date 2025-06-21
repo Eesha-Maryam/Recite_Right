@@ -75,7 +75,8 @@ const Quran = () => {
   const [highlightedAyah, setHighlightedAyah] = useState(null);
   const [recordingData, setRecordingData] = useState([]);
   const [surahList, setSurahList] = useState([]);
-
+  const [readyToRecite, setReadyToRecite] = useState(false);
+  const isReciteDisabled = !selectedSurah;
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
   // Refs
@@ -237,19 +238,32 @@ const Quran = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Simulate recitation with 3-state button (start/pause/resume)
-  const toggleRecording = () => {
-    if (!recording && !recordingPaused) {
-      // First click - start recording
-      startRecording();
-    } else if (recording && !recordingPaused) {
-      // Second click - pause recording
-      pauseRecording();
-    } else if (recordingPaused) {
-      // Third click - resume recording
-      resumeRecording();
-    }
-  };
+  
+ const toggleRecording = () => {
+  if (!recording && !recordingPaused) {
+    startRecording();
+    setReadyToRecite(false);
+    setSidebarOpen(false);
+  } else if (recording && !recordingPaused) {
+    pauseRecording();
+    setSidebarOpen(true);
+    setTimeout(() => {
+      const summary = document.querySelector('.recitation-summary');
+      if (summary) {
+        summary.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  } else if (recordingPaused) {
+    resumeRecording();
+    setSidebarOpen(false);
+  }
+};
+
+useEffect(() => {
+  if (!recording && !recordingPaused) {
+    setReadyToRecite(true);
+  }
+}, [selectedSurah]);
 
   const startRecording = () => {
     setRecording(true);
@@ -367,6 +381,18 @@ const Quran = () => {
     return () => clearInterval(interval);
   };
 
+
+useEffect(() => {
+  if (!recording && !recordingPaused && mistakes.length === 0) {
+    setMistakes([
+      { user: 'النَّبَايِ' },
+      { user: 'مُخْطَلِفُونَ' },
+      { user: 'مِهَادُا' },
+    ]);
+  }
+}, [recording, recordingPaused]);
+
+
   return (
     <div className="quran-app">
       <Header />
@@ -399,13 +425,17 @@ const Quran = () => {
                   <div className="dropdown-list">
                     {surahList.map(surah => (
                       <div
-                        key={surah.number}
-                        className="dropdown-item"
-                        onClick={() => {
-                          setSelectedSurah(surah);
-                          setDropdownOpen(false);
-                        }}
-                      >
+                          key={surah.number}
+                          className="dropdown-item"
+                            onClick={() => {
+                                setSelectedSurah(surah);
+                                setDropdownOpen(false);
+                                setStartAyah('');
+                                setRecording(false);
+                                setRecordingPaused(false);
+                                setReadyToRecite(false);
+                  }}
+                >
                         <span className="surah-number">{surah.number}.</span>
                         <span className="surah-name">{surah.name}</span>
                       </div>
@@ -414,6 +444,8 @@ const Quran = () => {
                 )}
               </div>
             </div>
+
+            
 
             <div className="form-group">
               <label>Start Ayah (optional)</label>
@@ -427,7 +459,11 @@ const Quran = () => {
               />
               <button 
                 className="go-to-ayah-btn"
-                onClick={() => scrollToAyah(startAyah)}
+                onClick={() => {
+    scrollToAyah(startAyah);
+    setReadyToRecite(true);     // ✅ Move it here instead!
+    setSidebarOpen(false);      // ✅ Close sidebar on recitation start
+  }}
                 disabled={!selectedSurah}
               >
                 Go to Ayah
@@ -446,19 +482,17 @@ const Quran = () => {
                 <span className="progress-text">{progress}%</span>
               </div>
 
-              {mistakes.length > 0 && (
-                <div className="mistakes-container">
-                  <h5>Areas to Improve</h5>
-                  <ul>
-                    {mistakes.map((mistake, i) => (
-                      <li key={i}>
-                        Ayah {mistake.ayah}: <span className="correct">"{mistake.correct}"</span> 
-                        (You said: <span className="incorrect">"{mistake.user}"</span>)
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+             {mistakes.length > 0 && (
+  <div className="mistakes-container">
+    <h5>Areas to Improve</h5>
+    <ul>
+      {mistakes.map((mistake, i) => (
+        <li key={i}>{mistake.user}</li>
+      ))}
+    </ul>
+  </div>
+)}
+
             </div>
           </div>
         </aside>
@@ -467,10 +501,11 @@ const Quran = () => {
         <main className={`quran-main ${sidebarOpen ? '' : 'centered'}`}>
       <div className="quran-controls">
   {!sidebarOpen && (
-    <button
-      className="select-surah-btn"
-      onClick={() => setSidebarOpen(true)}
-    >
+  <button 
+  className="select-surah-btn" 
+  onClick={() => setSidebarOpen(true)}
+  disabled={recording || recordingPaused}
+>
       Select Surah
     </button>
   )}
@@ -520,25 +555,32 @@ const Quran = () => {
             )}
           </div>
 
-          <div className="recitation-control">
-            <button
-              className={`recite-btn ${recording ? (recordingPaused ? 'paused' : 'recording') : ''} ${
-                !selectedSurah ? 'disabled' : ''
-              }`}
-              onClick={toggleRecording}
-              disabled={!selectedSurah}
-            >
-              <FaMicrophone className="mic-icon" />
-              {!recording && !recordingPaused && 'Start Recitation'}
-              {recording && !recordingPaused && 'Stop Recitation'}
-              {recordingPaused && 'Resume Recitation'}
-              {(recording || recordingPaused) && <span className="pulse-ring"></span>}
-            </button>
-          </div>
+         <div className="recitation-control">
+
+
+<button
+  className={`recite-btn ${recording ? (recordingPaused ? 'paused' : 'recording') : ''} ${isReciteDisabled ? 'disabled' : ''}`}
+  onClick={toggleRecording}
+  disabled={isReciteDisabled}
+>
+  <FaMicrophone className="mic-icon" />
+  {!recording && !recordingPaused && 'Start Recitation'}
+  {recording && !recordingPaused && 'Pause Recitation'}
+  {recordingPaused && 'Resume Recitation'}
+  {(recording || recordingPaused) && <span className="pulse-ring"></span>}
+</button>
+
+</div>
+
+
         </main>
       </div>
     </div>
   );
+
+
 };
+
+
 
 export default Quran;
