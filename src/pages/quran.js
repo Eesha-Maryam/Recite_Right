@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes } from 'react-icons/fa';
+import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes, FaStop, FaPause, FaPlay } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
 
@@ -39,6 +39,7 @@ const ToggleWithDescription = ({ description, isOn, onToggle, option1, option2 }
   );
 };
 
+{/*
 const HideUnhideToggle = ({ isHidden, onToggle }) => {
   return (
     <div>
@@ -51,6 +52,8 @@ const HideUnhideToggle = ({ isHidden, onToggle }) => {
     </div>
   );
 };
+
+*/}
 
 function useQuery() {
   const location = useLocation();
@@ -75,6 +78,10 @@ const Quran = () => {
   const [highlightedAyah, setHighlightedAyah] = useState(null);
   const [recordingData, setRecordingData] = useState([]);
   const [surahList, setSurahList] = useState([]);
+  const [readyToRecite, setReadyToRecite] = useState(false);
+  const [showRecitationControls, setShowRecitationControls] = useState(false);
+
+  const isReciteDisabled = !selectedSurah || !startAyah;
 
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
@@ -137,7 +144,6 @@ const Quran = () => {
     fetchSurahList();
   }, []);
 
-
   // Initialize audio context and beep sound
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -199,7 +205,9 @@ const Quran = () => {
           });
 
           setAyahs(ayahList);
-          scrollToAyah(startAyah || 1);
+          if (startAyah) {
+            scrollToAyah(startAyah);
+          }
         } else {
           console.error('Invalid surah data format:', result);
           setAyahs([]);
@@ -212,7 +220,7 @@ const Quran = () => {
     };
 
     fetchSurah();
-  }, [selectedSurah, startAyah]);
+  }, [selectedSurah]);
 
   const scrollToAyah = (ayahNumber) => {
     if (!ayahNumber) return;
@@ -237,18 +245,36 @@ const Quran = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Simulate recitation with 3-state button (start/pause/resume)
+  const startRecitation = () => {
+    if (!selectedSurah || !startAyah) return;
+    
+    scrollToAyah(startAyah);
+    setReadyToRecite(false);
+    setSidebarOpen(false);
+    setShowRecitationControls(true);
+    startRecording();
+  };
+
   const toggleRecording = () => {
-    if (!recording && !recordingPaused) {
-      // First click - start recording
-      startRecording();
-    } else if (recording && !recordingPaused) {
-      // Second click - pause recording
+    if (recording && !recordingPaused) {
       pauseRecording();
     } else if (recordingPaused) {
-      // Third click - resume recording
       resumeRecording();
     }
+  };
+
+  const stopRecitation = () => {
+    setRecording(false);
+    setRecordingPaused(false);
+    setShowRecitationControls(false);
+    setSidebarOpen(true);
+    
+    setTimeout(() => {
+      const summary = document.querySelector('.recitation-summary');
+      if (summary) {
+        summary.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const startRecording = () => {
@@ -265,7 +291,7 @@ const Quran = () => {
         .then(stream => {
           mediaRecorderRef.current = new MediaRecorder(stream);
           mediaRecorderRef.current.ondataavailable = handleDataAvailable;
-          mediaRecorderRef.current.start(100); // Collect data every 100ms
+          mediaRecorderRef.current.start(1); // Collect data every 1ms
           
           // Simulate sending to backend
           const interval = setInterval(() => {
@@ -281,7 +307,7 @@ const Quran = () => {
               console.log('Storing audio chunks locally:', newData);
               setAudioChunks([]);
             }
-          }, 1000);
+          }, 1);
           
           return () => clearInterval(interval);
         })
@@ -313,7 +339,6 @@ const Quran = () => {
     simulateRecitation();
   };
 
-
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
       setAudioChunks(prev => [...prev, event.data]);
@@ -324,14 +349,13 @@ const Quran = () => {
     if (!selectedSurah || !dummyQuranData[selectedSurah.number]) return;
     
     const ayahNumbers = dummyQuranData[selectedSurah.number].map(a => a.number);
-    let i = readAyahs.length > 0 ? ayahNumbers.indexOf(readAyahs[readAyahs.length - 1]) + 1 : 0;
+    let i = startAyah ? ayahNumbers.indexOf(parseInt(startAyah)) : 0;
     
     const interval = setInterval(() => {
       if (i >= ayahNumbers.length || !recording || recordingPaused) {
         clearInterval(interval);
         if (i >= ayahNumbers.length) {
-          setRecording(false);
-          setRecordingPaused(false);
+          stopRecitation();
         }
         return;
       }
@@ -367,6 +391,16 @@ const Quran = () => {
     return () => clearInterval(interval);
   };
 
+  useEffect(() => {
+    if (!recording && !recordingPaused && mistakes.length === 0) {
+      setMistakes([
+        { user: 'النَّبَايِ' },
+        { user: 'مُخْطَلِفُونَ' },
+        { user: 'مِهَادُا' },
+      ]);
+    }
+  }, [recording, recordingPaused]);
+
   return (
     <div className="quran-app">
       <Header />
@@ -376,17 +410,12 @@ const Quran = () => {
         <aside className={`quran-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-header">
             <h3>Quran Recitation</h3>
-            <button
-              className="close-sidebar-x"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <FaTimes />
-            </button>
+          
           </div>
 
           <div className="sidebar-content">
             <div className="form-group">
-              <label>Surah Selection</label>
+              <label>Select Surah</label>
               <div className="dropdown" ref={dropdownRef}>
                 <div 
                   className="dropdown-header"
@@ -404,6 +433,9 @@ const Quran = () => {
                         onClick={() => {
                           setSelectedSurah(surah);
                           setDropdownOpen(false);
+                          setStartAyah('');
+                          setRecording(false);
+                          setRecordingPaused(false);
                         }}
                       >
                         <span className="surah-number">{surah.number}.</span>
@@ -416,7 +448,7 @@ const Quran = () => {
             </div>
 
             <div className="form-group">
-              <label>Start Ayah (optional)</label>
+              <label>Start Ayah</label>
               <input
                 type="number"
                 min="1"
@@ -426,34 +458,25 @@ const Quran = () => {
                 className="ayah-input"
               />
               <button 
-                className="go-to-ayah-btn"
-                onClick={() => scrollToAyah(startAyah)}
-                disabled={!selectedSurah}
+                className={`start-recitation-btn ${isReciteDisabled ? 'disabled' : ''}`}
+                onClick={startRecitation}
+                disabled={isReciteDisabled}
               >
-                Go to Ayah
+                Start Recitation
               </button>
             </div>
 
             <div className="recitation-summary">
               <h4>Recitation Progress</h4>
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-                <span className="progress-text">{progress}%</span>
-              </div>
+              <div className="progress-percentage">{progress}%</div>
 
               {mistakes.length > 0 && (
                 <div className="mistakes-container">
                   <h5>Areas to Improve</h5>
                   <ul>
                     {mistakes.map((mistake, i) => (
-                      <li key={i}>
-                        Ayah {mistake.ayah}: <span className="correct">"{mistake.correct}"</span> 
-                        (You said: <span className="incorrect">"{mistake.user}"</span>)
+                      <li key={i} className="mistake-item">
+                        <span className="incorrect-word">{mistake.user}</span>
                       </li>
                     ))}
                   </ul>
@@ -465,22 +488,15 @@ const Quran = () => {
 
         {/* Main Content */}
         <main className={`quran-main ${sidebarOpen ? '' : 'centered'}`}>
-      <div className="quran-controls">
-  {!sidebarOpen && (
-    <button
-      className="select-surah-btn"
-      onClick={() => setSidebarOpen(true)}
-    >
-      Select Surah
-    </button>
-  )}
-  <div className="visibility-toggle-container">
-    <HideUnhideToggle
-      isHidden={textHidden}
-      onToggle={() => setTextHidden(!textHidden)}
-    />
-  </div>
-</div>
+          <div className="quran-controls">
+           
+         {/*  <div className="visibility-toggle-container">
+              <HideUnhideToggle
+                isHidden={textHidden}
+                onToggle={() => setTextHidden(!textHidden)}
+              />
+            </div> */}
+          </div>
 
           {/* Quran Text Block */}
           <div 
@@ -488,53 +504,59 @@ const Quran = () => {
             ref={quranBlockRef}
           >
             {ayahs.length > 0 ? (
-              ayahs.map(ayah => (
-                <div 
-                  key={ayah.number}
-                  ref={el => ayahRefs.current[ayah.number] = el}
-                  className={`ayah-container ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
-                >
-                  <p 
-                    className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${
-                      mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''
-                    } ${currentAyah === ayah.number ? 'current' : ''}`}
-                    style={{ 
-                      filter: textHidden && !readAyahs.includes(ayah.number) ? 'blur(5px)' : 'none',
-                      transition: 'filter 0.3s ease'
-                    }}
-                  >
-                    {ayah.text} 
-                    <span className="ayah-number">۝ {ayah.number}</span>
-                  </p>
-                  {textHidden && !readAyahs.includes(ayah.number) && mistakes.some(m => m.ayah === ayah.number) && (
-                    <p className="ayah mistake" style={{ color: 'red' }}>
-                      {mistakes.find(m => m.ayah === ayah.number).user}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="no-surah-selected">
-                <p>Loading Quran text...</p>
-              </div>
-            )}
+  <p className="quran-text">
+    {ayahs.map(ayah => (
+      <span
+        key={ayah.number}
+        ref={el => ayahRefs.current[ayah.number] = el}
+        className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${
+          mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''
+        } ${currentAyah === ayah.number ? 'current' : ''}`}
+        style={{
+          filter: textHidden && !readAyahs.includes(ayah.number) ? 'blur(5px)' : 'none',
+          transition: 'filter 0.3s ease'
+        }}
+      >
+        {ayah.text}
+        <span className="ayah-number"> ۝ {ayah.number} </span>{' '}
+      </span>
+    ))}
+  </p>
+) : (
+  <div className="no-surah-selected">
+    <p>Loading Quran text...</p>
+  </div>
+)}
+
           </div>
 
-          <div className="recitation-control">
-            <button
-              className={`recite-btn ${recording ? (recordingPaused ? 'paused' : 'recording') : ''} ${
-                !selectedSurah ? 'disabled' : ''
-              }`}
-              onClick={toggleRecording}
-              disabled={!selectedSurah}
-            >
-              <FaMicrophone className="mic-icon" />
-              {!recording && !recordingPaused && 'Start Recitation'}
-              {recording && !recordingPaused && 'Stop Recitation'}
-              {recordingPaused && 'Resume Recitation'}
-              {(recording || recordingPaused) && <span className="pulse-ring"></span>}
-            </button>
-          </div>
+          {showRecitationControls && (
+            <div className="recitation-controls-container">
+              <div className="recitation-controls">
+                <button
+                  className="recitation-control-btn stop-btn"
+                  onClick={stopRecitation}
+                >
+                  <FaStop /> Stop
+                </button>
+                {recordingPaused ? (
+                  <button
+                    className="recitation-control-btn resume-btn"
+                    onClick={resumeRecording}
+                  >
+                    <FaPlay /> Resume
+                  </button>
+                ) : (
+                  <button
+                    className="recitation-control-btn pause-btn"
+                    onClick={pauseRecording}
+                  >
+                    <FaPause /> Pause
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

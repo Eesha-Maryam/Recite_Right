@@ -14,23 +14,6 @@
   --white: #ffffff;
 }
 
-/* Base Styles */
-html, body {
-  overflow: hidden;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.quran-app {
-  margin: 0 45px;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #ffffff;
-}
-
 /* Layout Styles */
 .quran-layout {
   display: flex;
@@ -41,26 +24,63 @@ html, body {
   overflow: hidden;
 }
 
+
+
+
 .quran-block {
   background-color: white;
   border: 2px solid var(--olive-green);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   overflow-y: auto;
-  transition: all 0.3s;
-  direction: rtl; /* This is what makes content right-aligned */
-  text-align: right;
-  font-family: 'Traditional Arabic', 'Arial', sans-serif;
-  width: 80%;
-  margin: 0 auto;
-  height: 60vh;
-  padding: 1.5rem;
-  margin-bottom: 10px;
-  
-  /* Add these properties to move scrollbar to the right */
-  scrollbar-width: thin; /* For Firefox */
-  scrollbar-gutter: stable; /* Prevents content shift when scrollbar appears */
+  direction: rtl;
+  text-align: justify;
+  font-family: 'UthmanicHafs', 'Traditional Arabic', serif;
+   font-size: 1.6rem; 
+   line-height: 2.8rem;
+   padding: 1.5rem 2rem;
+   margin: 1.5rem auto 1.5rem;
+  width: 85%;
+  max-width: 800px;
+     height: 60vh;  
+  scrollbar-width: thin;
+  scrollbar-color: var(--olive-light) #f1f1f1;
 }
+
+.quran-text {
+  direction: rtl;
+  text-align: justify;
+  font-size: 1.6rem; 
+  line-height: 2.8rem;
+  word-spacing: 0.3rem;
+}
+
+.ayah {
+  display: inline;
+  margin-left: 1.5rem;
+}
+
+.ayah-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--olive-light);
+  color: var(--text-dark);
+  font-size: 0.9rem;            /* smaller font */
+  width: 50px;                  /* fixed circle size */
+  height: 40px;
+  border-radius: 50%;           /* perfect circle */
+  margin-right: 0.3rem;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.dark-mode .recitation-controls-container {
+  background: var(--card-bg); /* matches dark background */
+}
+
+
+
 
 .quran-main.centered .quran-block {
   width: 70%; /* Increased width when sidebar is closed */
@@ -72,16 +92,6 @@ html, body {
   width: 80%;
   max-width: 800px;
   margin: 0 auto 0.5rem;
-}
-
-.quran-main:not(.centered) .quran-controls {
-  justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 0;
-}
-
-.quran-main.centered .quran-controls {
-  gap: 1.5rem; /* Even larger gap */
 }
 
 /* Sidebar Styles */
@@ -120,27 +130,6 @@ html, body {
   font-size: 1.2rem;
 }
 
-.close-sidebar-x {
-  background: none;
-  border: none;
-  color: var(--charcoal);
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.close-sidebar-x:hover {
-  background-color: rgba(0,0,0,0.05);
-  color: var(--white);
-}
-
 .sidebar-content {
   padding: 1rem;
   height: calc(100% - 60px);
@@ -169,6 +158,11 @@ html, body {
   transition: all 0.3s;
   margin-bottom: 0.5rem;
 }
+.ayah-input {
+  width: 100%;
+  max-width: 400px; /* Adjust as needed */
+  box-sizing: border-box;
+}
 
 .ayah-input:focus {
   border-color: var(--olive-green);
@@ -176,24 +170,6 @@ html, body {
   box-shadow: 0 0 0 2px rgba(151, 180, 105, 0.2);
 }
 
-.go-to-ayah-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: var(--olive-green);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.go-to-ayah-btn:hover {
-  background-color: var(--olive-dark);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
 
 /* Dropdown Styles */
 .dropdown {
@@ -441,30 +417,17 @@ html, body {
   direction: rtl;
 }
 
-.ayah {
-  font-size: 1.8rem;
-  line-height: 3.5rem;
-  color: var(--text-dark);
-  margin: 0;
-  padding: 0.5rem 0;
-  transition: all 0.3s;
-  text-align: right;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  font-weight: 500;
-}
+
 
 .ayah.read {
   background-color: rgba(151, 180, 105, 0.1);
   border-radius: 4px;
 }
 
-.ayah-number {
-  color: var(--olive-dark);
-  font-weight: bold;
-  margin-right: 0.5rem;
+.ayah-container {
+  margin-bottom: 0.5rem !important;
+  padding: 0.5rem 0 !important;
 }
-
 
 .pulse-ring {
   display: block;
@@ -491,6 +454,16 @@ html, body {
   }
 }
 
+.quran-text {
+  direction: rtl;
+  text-align: justify;
+  line-height: 4rem;
+  font-size: 2.4rem;
+  word-spacing: 0.25rem;
+  white-space: normal;
+  padding: 0;
+  margin: 0;
+}
 /* Responsive Design */
 @media (max-width: 992px) {
   .quran-block {
@@ -503,32 +476,21 @@ html, body {
 }
 
 @media (max-width: 768px) {
-  .quran-app {
-    margin: 0 20px;
+  .quran-block {
+    font-size: 1.4rem;
+    line-height: 2.4rem;
+    height: 55vh;
   }
 
-  .quran-block {
-    width: 100%;
-    max-height: 60vh;
-  }
-  
-  .quran-main.centered .quran-block {
-    width: 100%;
-  }
-  
-  .quran-controls {
+  .recitation-controls-container {
     flex-direction: column;
-    gap: 0.3rem;
-    align-items: flex-end;
+    gap: 0.75rem;
   }
-  
- 
-  
-  .select-surah-btn,
-  .visibility-toggle,
-  .recite-btn {
-    width: 100%;
+
+  .recitation-controls {
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 0.5rem;
   }
 }
 
@@ -545,6 +507,45 @@ html, body {
   text-align: right; /* Maintains right-aligned text */
   overflow-y: auto;
 }
+
+/* Fix for Quran text visibility in dark mode */
+.dark-mode .quran-block,
+.dark-mode .quran-text,
+.dark-mode .ayah,
+.dark-mode .ayah-number {
+  color: var(--text-dark) !important;
+}
+
+.dark-mode .quran-block,
+.dark-mode .quran-text {
+  color: #f5f5f5 !important; /* or use var(--cream) */
+}
+
+.dark-mode .ayah-number {
+  background-color: var(--olive-green);
+  color: #fff !important;
+}
+
+
+
+.recitation-controls-container {
+  z-index: 2;
+  background: white;
+  position: relative;
+}
+
+.recitation-controls-container {
+  margin-top: 0.5rem;
+  padding-bottom: 2rem;         /* space below buttons */
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+
 
 /* Content inside quran-block should be RTL */
 .quran-block > * {
@@ -672,3 +673,159 @@ html, body {
 .dark-mode .form-group label{
   color: white;
 }
+
+/* dummy data */
+.sidebar-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Mistakes list style */
+.mistakes-container ul {
+  padding-left: 16px;
+  margin-top: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.mistakes-container li {
+  color: red;
+  font-weight: 500;
+  list-style-type: disc;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.mistakes-container h5 {
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #b30000;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+}
+
+
+.sidebar-content::-webkit-scrollbar:horizontal {
+  display: none;
+}
+.sidebar-content {
+  overflow-x: hidden;
+}
+
+/* Add these new CSS rules to your existing Quran.css */
+
+/* Recitation Controls */
+.recitation-controls-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.recitation-controls {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.recitation-control-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stop-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.stop-btn:hover {
+  background-color: #c0392b;
+}
+
+.pause-btn {
+  background-color: #f39c12;
+  color: white;
+}
+
+.pause-btn:hover {
+  background-color: #d35400;
+}
+
+.resume-btn {
+  background-color: #27ae60;
+  color: white;
+}
+
+.resume-btn:hover {
+  background-color: #2ecc71;
+}
+
+/* Progress Percentage */
+.progress-percentage {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--olive-green);
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* Mistakes List */
+.mistakes-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(231, 76, 60, 0.05);
+  border-radius: 8px;
+}
+
+.mistakes-container h5 {
+  margin-bottom: 10px;
+  color: #e74c3c;
+  font-size: 1rem;
+}
+
+.mistakes-container ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mistakes-container li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  font-size: 0.9rem;
+}
+
+/* Start Recitation Button */
+.start-recitation-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--olive-green);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.start-recitation-btn:hover:not(.disabled) {
+  background-color: var(--olive-dark);
+}
+
+.start-recitation-btn.disabled {
+  background-color: #7f8c8d;
+  cursor: not-allowed;
+}
+
