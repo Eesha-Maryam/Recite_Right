@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './header.css';
-
+import { useQuranFont } from '../contexts/FontSizeContext';
 // Define all helper components first
 const MenuItem = ({ icon, text, onClick }) => (
   <div className="menu-item" onClick={onClick}>
@@ -96,12 +96,10 @@ const MenuDrawer = ({ isOpen, onClose }) => {
 };
 
 const SettingsDrawer = ({ isOpen, onClose }) => {
-const [isLightMode, setIsLightMode] = useState(() => {
-  return localStorage.getItem('theme') !== 'dark'; // true if no dark theme set
-});
-
-  const [isVoiceOn, setIsVoiceOn] = useState(false);
-  const [fontSize, setFontSize] = useState(20);
+  const { quranFontSize, updateQuranFontSize } = useQuranFont();
+  const [isLightMode, setIsLightMode] = useState(() => {
+    return localStorage.getItem('theme') !== 'dark';
+  });
 
   return (
     <div className={`settings-drawer ${isOpen ? 'open' : ''}`}>
@@ -118,35 +116,61 @@ const [isLightMode, setIsLightMode] = useState(() => {
           <ToggleWithDescription
             description="Choose Light or Dark modes using the theme selector."
             isOn={isLightMode}
-          onToggle={() => {
-  const newMode = !isLightMode;
-  setIsLightMode(newMode);
-  const body = document.body;
+            onToggle={() => {
+              const newMode = !isLightMode;
+              setIsLightMode(newMode);
+              const body = document.body;
 
-  if (newMode) {
-    body.classList.remove('dark-mode');
-    localStorage.setItem('theme', 'light');
-  } else {
-    body.classList.add('dark-mode');
-    localStorage.setItem('theme', 'dark');
-  }
-}}
-
+              if (newMode) {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+              } else {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+              }
+            }}
             option1="Light"
             option2="Dark"
           />
           <div className="separator"></div>
           
           <SettingsItem icon="font_download" text="QURAN FONT" />
-          <QuranFontDisplay fontSize={fontSize} />
-          <FontAdjuster 
-            fontSize={fontSize} 
-            onDecrease={() => setFontSize(Math.max(10, fontSize - 1))}
-            onIncrease={() => setFontSize(Math.min(30, fontSize + 1))}
-          />
+          <QuranFontDisplay fontSize={quranFontSize} />
+          <div className="font-adjuster">
+            <span>Font Size</span>
+            <div className="adjuster-controls">
+              <button 
+                onClick={() => updateQuranFontSize(Math.max(16, quranFontSize - 1))}
+                disabled={quranFontSize <= 16}
+              >
+                <span className="material-icons">remove</span>
+              </button>
+              <div className="font-size-display">{quranFontSize}</div>
+              <button 
+                onClick={() => updateQuranFontSize(Math.min(30, quranFontSize + 1))}
+                disabled={quranFontSize >= 30}
+              >
+                <span className="material-icons">add</span>
+              </button>
+            </div>
+          </div>
           <div className="separator"></div>
           
-          <button className="reset-button-slider">RESET SETTINGS</button>
+         <button
+  className="reset-button-slider"
+  onClick={() => {
+    // Reset font size
+    updateQuranFontSize(20); // Replace 20 with your actual default if it's different
+
+    // Reset theme to light
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('theme', 'light');
+    setIsLightMode(true);
+  }}
+>
+  RESET SETTINGS
+</button>
+
         </div>
       </div>
       <div className="drawer-backdrop" onClick={onClose}></div>
