@@ -80,7 +80,12 @@ const Quran = () => {
   const [surahList, setSurahList] = useState([]);
   const [readyToRecite, setReadyToRecite] = useState(false);
   const [showRecitationControls, setShowRecitationControls] = useState(false);
-const recordingIntervalRef = useRef(null);
+  const [transcript, setTranscript] = useState('');
+
+  const recordingIntervalRef = useRef(null);
+  const wsRef = useRef(null);
+  const sourceRef = useRef(null);
+  const processorRef = useRef(null);
 
   const isReciteDisabled = !selectedSurah || !startAyah;
 
@@ -96,8 +101,8 @@ const recordingIntervalRef = useRef(null);
 
   // Dummy Quran Data (expanded for Juz 30)
   const dummyQuranData = {
-    78: Array.from({ length: 40 }, (_, i) => ({ 
-      number: i + 1, 
+    78: Array.from({ length: 40 }, (_, i) => ({
+      number: i + 1,
       text: 'عَمَّ يَتَسَآءَلُونَ عَنِ ٱلنَّبَإِ ٱلْعَظِيمِ ٱلَّذِى هُمْ فِيهِ مُخْتَلِفُونَ كَلَّا سَيَعْلَمُونَ ثُمَّ كَلَّا سَيَعْلَمُونَ أَلَمْ نَجْعَلِ ٱلْأَرْضَ مِهَٰدًا وَٱلْجِبَالَ أَوْتَادًا وَخَلَقْنَٰكُمْ أَزْوَٰجًا وَجَعَلْنَا نَوْمَكُمْ سُبَاتًا وَجَعَلْنَا ٱلَّيْلَ لِبَاسًا وَجَعَلْنَا ٱلنَّهَارَ مَعَاشًا وَبَنَيْنَا فَوْقَكُمْ سَبْعًا شِدَادًا وَجَعَلْنَا سِرَاجًا وَهَّاجًا وَأَنزَلْنَا مِنَ ٱلْمُعْصِرَٰتِ مَآءً ثَجَّاجًا لِّنُخْرِجَ بِهِۦ حَبًّا وَنَبَاتًا وَجَنَّٰتٍ أَلْفَافًا'
         .split(' ').slice(0, 30 + Math.floor(Math.random() * 10)).join(' ')
     })),
@@ -151,7 +156,7 @@ const recordingIntervalRef = useRef(null);
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     beepSoundRef.current = createBeepSound(audioContextRef.current, 800, 0.3);
-    
+
     return () => {
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
@@ -163,14 +168,14 @@ const recordingIntervalRef = useRef(null);
     return function() {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.type = 'sine';
       oscillator.frequency.value = frequency;
       gainNode.gain.value = 0.3;
-      
+
       oscillator.start();
       setTimeout(() => {
         oscillator.stop();
@@ -242,85 +247,142 @@ const recordingIntervalRef = useRef(null);
   }, []);
 
  const startRecitation = () => {
-  if (!selectedSurah) return;
+     if (!selectedSurah) return;
 
-  let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
-  setStartAyah(ayahToStart);
-    
-    scrollToAyah(startAyah);
-    setReadyToRecite(false);
-    setSidebarOpen(false);
-    setShowRecitationControls(true);
-    startRecording();
-  };
+     let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
+     setStartAyah(ayahToStart);
 
-  const toggleRecording = () => {
-    if (recording && !recordingPaused) {
-      pauseRecording();
-    } else if (recordingPaused) {
-      resumeRecording();
-    }
-  };
+     scrollToAyah(startAyah);
+     setReadyToRecite(false);
+     setSidebarOpen(false);
+     setShowRecitationControls(true);
+     startRecording();
+     startWebSocketConnection();
+   };
 
-const stopRecitation = () => {
-  setRecording(false);
-  setRecordingPaused(false);
-  setShowRecitationControls(false);
-  setSidebarOpen(true);
+   const startWebSocketConnection = () => {
+     if (!selectedSurah || !startAyah) {
+       alert("Please select both surah and ayah");
+       return;
+     }
 
-  clearInterval(recordingIntervalRef.current);
+     const WS_URL = `ws://127.0.0.1:8000/ws/transcribe/${selectedSurah.number}/${startAyah}`;
+     wsRef.current = new WebSocket(WS_URL);
+     wsRef.current.binaryType = 'arraybuffer';
 
-  setTimeout(() => {
-    const summary = document.querySelector('.recitation-summary');
-    if (summary) {
-      summary.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, 100);
-};
+     wsRef.current.onmessage = (e) => {
+       const data = JSON.parse(e.data);
+       if (data.incorrect_word) {
+         setMistakes(prev => [...prev, {
+           ayah: currentAyah,
+           user: data.incorrect_word
+         }]);
+         setTranscript(prev => prev + ` [Incorrect: ${data.incorrect_word}]`);
+       }
+       if (data.error) {
+         console.error("Error from server:", data.error);
+       }
+     };
 
+     wsRef.current.onopen = () => {
+       console.log("WebSocket connection established");
+     };
 
- const startRecording = () => {
-  setRecording(true);
-  setRecordingPaused(false);
-  setReadAyahs([]);
-  setMistakes([]);
-  setProgress(0);
-  setRecordingData([]);
-  setAudioChunks([]);
+     wsRef.current.onclose = () => {
+       console.log("WebSocket connection closed");
+     };
 
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        mediaRecorderRef.current = new MediaRecorder(stream);
-        mediaRecorderRef.current.ondataavailable = handleDataAvailable;
-        mediaRecorderRef.current.start(1);
+     wsRef.current.onerror = (error) => {
+       console.error("WebSocket error:", error);
+     };
+   };
 
-       recordingIntervalRef.current = setInterval(() => {
-  if (audioChunks.length > 0) {
-    const timestamp = new Date().toISOString();
-    const newData = {
-      timestamp,
-      chunks: [...audioChunks],
-      ayah: currentAyah
+  const stopRecitation = () => {
+      setRecording(false);
+      setRecordingPaused(false);
+      setShowRecitationControls(false);
+      setSidebarOpen(true);
+
+      // Close WebSocket connection
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+
+      clearInterval(recordingIntervalRef.current);
+
+      setTimeout(() => {
+        const summary = document.querySelector('.recitation-summary');
+        if (summary) {
+          summary.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     };
 
-    setRecordingData(prev => [...prev, newData]);
-    sendAudioToBackend(newData); // 👈 Upload audio
-    setAudioChunks([]);
-  }
-}, 1000);
 
-      })
-      .catch(err => {
-        console.error('Microphone error:', err);
+  const startRecording = () => {
+      setRecording(true);
+      setRecordingPaused(false);
+      setReadAyahs([]);
+      setMistakes([]);
+      setProgress(0);
+      setRecordingData([]);
+      setAudioChunks([]);
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            // Initialize audio context and processor for WebSocket
+            audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+            sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+            processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+
+            processorRef.current.onaudioprocess = (e) => {
+              const inputData = e.inputBuffer.getChannelData(0);
+              const pcmData = new Int16Array(inputData.length);
+
+              for (let i = 0; i < inputData.length; i++) {
+                let s = Math.max(-1, Math.min(1, inputData[i]));
+                pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+              }
+
+              if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(pcmData.buffer);
+              }
+            };
+
+            sourceRef.current.connect(processorRef.current);
+            processorRef.current.connect(audioContextRef.current.destination);
+
+            // Also initialize MediaRecorder for local recording
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            mediaRecorderRef.current.ondataavailable = handleDataAvailable;
+            mediaRecorderRef.current.start(1);
+
+            recordingIntervalRef.current = setInterval(() => {
+              if (audioChunks.length > 0) {
+                const timestamp = new Date().toISOString();
+                const newData = {
+                  timestamp,
+                  chunks: [...audioChunks],
+                  ayah: currentAyah
+                };
+                setRecordingData(prev => [...prev, newData]);
+                sendAudioToBackend(newData);
+                setAudioChunks([]);
+              }
+            }, 1000);
+          })
+          .catch(err => {
+            console.error('Microphone error:', err);
+            simulateRecitation();
+          });
+      } else {
         simulateRecitation();
-      });
-  } else {
-    simulateRecitation();
-  }
+      }
 
-  simulateRecitation();
-};
+      simulateRecitation();
+    };
 
 const speakWord = (word) => {
   if ('speechSynthesis' in window) {
@@ -349,19 +411,27 @@ const sendAudioToBackend = async (data) => {
 
 
   const pauseRecording = () => {
-    setRecordingPaused(true);
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.pause();
-    }
-  };
+      setRecordingPaused(true);
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.pause();
+      }
+      if (processorRef.current) {
+        processorRef.current.disconnect();
+      }
+    };
 
-  const resumeRecording = () => {
-    setRecordingPaused(false);
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.resume();
-    }
-    simulateRecitation();
-  };
+    const resumeRecording = () => {
+      setRecordingPaused(false);
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.resume();
+      }
+      // Reconnect audio processor for WebSocket
+      if (sourceRef.current && processorRef.current) {
+        sourceRef.current.connect(processorRef.current);
+        processorRef.current.connect(audioContextRef.current.destination);
+      }
+      simulateRecitation();
+    };
 
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
@@ -371,10 +441,10 @@ const sendAudioToBackend = async (data) => {
 
   const simulateRecitation = () => {
     if (!selectedSurah || !dummyQuranData[selectedSurah.number]) return;
-    
+
     const ayahNumbers = dummyQuranData[selectedSurah.number].map(a => a.number);
     let i = startAyah ? ayahNumbers.indexOf(parseInt(startAyah)) : 0;
-    
+
     const interval = setInterval(() => {
       if (i >= ayahNumbers.length || !recording || recordingPaused) {
         clearInterval(interval);
@@ -387,7 +457,7 @@ const sendAudioToBackend = async (data) => {
       const currentAyahNum = ayahNumbers[i];
       setCurrentAyah(currentAyahNum);
       setReadAyahs(prev => [...prev, currentAyahNum]);
-      
+
       // Scroll to current ayah
       const element = ayahRefs.current[currentAyahNum];
       if (element) {
@@ -397,12 +467,12 @@ const sendAudioToBackend = async (data) => {
       // Simulate occasional mistakes (20% chance)
     if (Math.random() < 0.2 && i > 0) {
   const mistakeWord = `Mistake_${Math.floor(Math.random() * 100)}`;
-  setMistakes(prev => [...prev, { 
-    ayah: currentAyahNum, 
-    correct: 'CorrectWord', 
-    user: mistakeWord 
+  setMistakes(prev => [...prev, {
+    ayah: currentAyahNum,
+    correct: 'CorrectWord',
+    user: mistakeWord
   }]);
-  
+
   // 🔊 Beep + Speak
   if (beepSoundRef.current) beepSoundRef.current();
   speakWord('الكلمة الخاطئة'); // Replace with actual Arabic word if needed
@@ -412,7 +482,7 @@ const sendAudioToBackend = async (data) => {
       setProgress(Math.floor((i / ayahNumbers.length) * 100));
       i++;
     }, 1500);
-    
+
     return () => clearInterval(interval);
   };
 
@@ -429,20 +499,20 @@ const sendAudioToBackend = async (data) => {
   return (
     <div className="quran-app">
       <Header />
-      
+
       <div className="quran-layout">
         {/* Sidebar */}
         <aside className={`quran-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-header">
             <h3>Quran Recitation</h3>
-          
+
           </div>
 
           <div className="sidebar-content">
             <div className="form-group">
               <label>Select Surah</label>
               <div className="dropdown" ref={dropdownRef}>
-                <div 
+                <div
                   className="dropdown-header"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
@@ -482,7 +552,7 @@ const sendAudioToBackend = async (data) => {
                 placeholder="Enter ayah number"
                 className="ayah-input"
               />
-              <button 
+              <button
                 className={`start-recitation-btn ${isReciteDisabled ? 'disabled' : ''}`}
                 onClick={startRecitation}
                 disabled={isReciteDisabled}
@@ -514,7 +584,7 @@ const sendAudioToBackend = async (data) => {
         {/* Main Content */}
         <main className={`quran-main ${sidebarOpen ? '' : 'centered'}`}>
           <div className="quran-controls">
-           
+
          {/*  <div className="visibility-toggle-container">
               <HideUnhideToggle
                 isHidden={textHidden}
@@ -524,7 +594,7 @@ const sendAudioToBackend = async (data) => {
           </div>
 
           {/* Quran Text Block */}
-          <div 
+          <div
             className={`quran-block ${textHidden ? 'text-hidden' : ''}`}
             ref={quranBlockRef}
           >
@@ -534,8 +604,8 @@ const sendAudioToBackend = async (data) => {
      <span
   key={ayah.number}
   ref={el => ayahRefs.current[ayah.number] = el}
-  className={`ayah 
-    ${readAyahs.includes(ayah.number) ? 'read' : ''} 
+  className={`ayah
+    ${readAyahs.includes(ayah.number) ? 'read' : ''}
     ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''}
     ${currentAyah === ayah.number ? 'current' : ''}
     ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
