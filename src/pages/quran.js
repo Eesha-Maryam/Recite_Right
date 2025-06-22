@@ -303,10 +303,34 @@ const stopRecitation = () => {
   setShowRecitationControls(false);
   setSidebarOpen(true);
 
-  // Close WebSocket connection
+  // Cleanup WebSocket
   if (wsRef.current) {
     wsRef.current.close();
     wsRef.current = null;
+  }
+
+  // Cleanup MediaRecorder
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    mediaRecorderRef.current = null;
+  }
+
+  // Cleanup Audio Context
+  if (audioContextRef.current) {
+    if (audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close();
+    }
+    audioContextRef.current = null;
+  }
+
+  // Cleanup processor and source
+  if (processorRef.current) {
+    processorRef.current.disconnect();
+    processorRef.current = null;
+  }
+  if (sourceRef.current) {
+    sourceRef.current.disconnect();
+    sourceRef.current = null;
   }
 
   clearInterval(recordingIntervalRef.current);
