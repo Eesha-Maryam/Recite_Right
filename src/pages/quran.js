@@ -510,15 +510,15 @@ const sendAudioToBackend = async (data) => {
     return () => clearInterval(interval);
   };
 
-  useEffect(() => {
-    if (!recording && !recordingPaused && mistakes.length === 0) {
-      setMistakes([
-        { user: 'النَّبَايِ' },
-        { user: 'مُخْطَلِفُونَ' },
-        { user: 'مِهَادُا' },
-      ]);
-    }
-  }, [recording, recordingPaused]);
+//  useEffect(() => {
+//    if (!recording && !recordingPaused && mistakes.length === 0) {
+//      setMistakes([
+//        { user: 'النَّبَايِ' },
+//        { user: 'مُخْطَلِفُونَ' },
+//        { user: 'مِهَادُا' },
+//      ]);
+//    }
+//  }, [recording, recordingPaused]);
 
   return (
     <div className="quran-app">
