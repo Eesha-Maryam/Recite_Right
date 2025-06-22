@@ -154,29 +154,30 @@ const FeedbackPage = () => {
                 <p>No feedback yet.</p>
               ) : (
                 feedbackList.map((item, index) => (
-                  <article key={index} className="feedback-item">
-                    <div className="feedback-item-header">
-                      <h3>{item.type}</h3>
-                      <span className="feedback-user">
-                        <img
-                          src={item.user?.avatar || '/default-avatar.png'}
-                          alt="avatar"
-                          className="avatar"
-                        />
-                        {item.user?.name || 'Anonymous'}
-                      </span>
-                    </div>
-                    <div className="stars-display">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <i
-                          key={star}
-                          className={`fa-star ${item.rating >= star ? 'fas' : 'far'}`}
-                        ></i>
-                      ))}
-                      <span className="rating-score">{item.rating}/5</span>
-                    </div>
-                    <p>{item.text}</p>
-                  </article>
+  <article key={index} className="feedback-item">
+    <div className="feedback-item-header">
+      <div className="user-info">
+        <img
+          src={item.user?.avatar || '/default-avatar.png'}
+          alt="avatar"
+          className="avatar"
+        />
+        <span className="user-name">{item.user?.name || 'Anonymous'}</span>
+      </div>
+      <h3 className="feedback-type">{item.type}</h3>
+    </div>
+    <div className="stars-display">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <i
+          key={star}
+          className={`fa-star ${item.rating >= star ? 'fas' : 'far'}`}
+        ></i>
+      ))}
+      <span className="rating-score">{item.rating}/5</span>
+    </div>
+    <p className="">{item.text}</p>
+  </article>
+
                 ))
               )}
             </div>

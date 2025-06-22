@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes, FaStop, FaPause, FaPlay } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
-
+import { useQuranFont } from '../contexts/FontSizeContext'; 
 const SettingsItem = ({ icon, text }) => {
   const getIcon = () => {
     switch (icon) {
@@ -62,6 +62,7 @@ function useQuery() {
 
 const Quran = () => {
   // State management
+    const { quranFontSize, updateQuranFontSize } = useQuranFont();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState(null);
   const [startAyah, setStartAyah] = useState('');
@@ -80,12 +81,11 @@ const Quran = () => {
   const [surahList, setSurahList] = useState([]);
   const [readyToRecite, setReadyToRecite] = useState(false);
   const [showRecitationControls, setShowRecitationControls] = useState(false);
-const recordingIntervalRef = useRef(null);
-
+  const recordingIntervalRef = useRef(null);
   const isReciteDisabled = !selectedSurah || !startAyah;
-
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
+  
   // Refs
   const ayahRefs = useRef({});
   const dropdownRef = useRef(null);
@@ -254,13 +254,7 @@ const recordingIntervalRef = useRef(null);
     startRecording();
   };
 
-  const toggleRecording = () => {
-    if (recording && !recordingPaused) {
-      pauseRecording();
-    } else if (recordingPaused) {
-      resumeRecording();
-    }
-  };
+
 
 const stopRecitation = () => {
   setRecording(false);
@@ -278,6 +272,12 @@ const stopRecitation = () => {
   }, 100);
 };
 
+
+const handleDataAvailable = (event) => {
+  if (event.data.size > 0) {
+    setAudioChunks(prev => [...prev, event.data]);
+  }
+};
 
  const startRecording = () => {
   setRecording(true);
@@ -348,26 +348,86 @@ const sendAudioToBackend = async (data) => {
 };
 
 
-  const pauseRecording = () => {
-    setRecordingPaused(true);
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.pause();
-    }
+const saveRecitationState = async (surahId, startAyah, currentAyah) => {
+  const state = {
+    surahId,
+    startAyah,
+    currentAyah,
+    timestamp: new Date().toISOString(),
   };
 
-  const resumeRecording = () => {
+  try {
+    // Try sending to backend
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/recitation/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(state),
+    });
+
+    if (!response.ok) throw new Error('Backend failed');
+  } catch (err) {
+    console.warn('Saving to backend failed. Saving to localStorage instead.');
+    localStorage.setItem('lastRecitation', JSON.stringify(state));
+  }
+};
+
+
+const pauseRecording = () => {
+  setRecordingPaused(true);
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.pause();
+  }
+
+  // Save current recitation state when paused
+  if (selectedSurah?.number && startAyah && currentAyah) {
+    saveRecitationState(selectedSurah.number, startAyah, currentAyah);
+  }
+};
+
+
+const resumeRecording = () => {
+  // Try to use existing state
+  if (selectedSurah && startAyah) {
     setRecordingPaused(false);
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.resume();
     }
     simulateRecitation();
-  };
+    return;
+  }
 
-  const handleDataAvailable = (event) => {
-    if (event.data.size > 0) {
-      setAudioChunks(prev => [...prev, event.data]);
-    }
-  };
+  // If state is lost, try to recover from localStorage
+  const lastSession = localStorage.getItem('lastRecitation');
+  if (!lastSession) {
+    alert("No recitation session found. Please start a new one.");
+    return;
+  }
+
+  const { surahId, startAyah: savedStartAyah, currentAyah } = JSON.parse(lastSession);
+
+  const matchingSurah = surahList.find(s => s.number === surahId);
+  if (!matchingSurah) {
+    alert("Saved surah not found in list. Please select manually.");
+    return;
+  }
+
+  // Restore session state
+  setSelectedSurah(matchingSurah);
+  setStartAyah(savedStartAyah);
+  setCurrentAyah(currentAyah);
+  setRecordingPaused(false);
+
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.resume();
+  }
+
+  simulateRecitation();
+};
+
+
+
 
   const simulateRecitation = () => {
     if (!selectedSurah || !dummyQuranData[selectedSurah.number]) return;
@@ -524,39 +584,36 @@ const sendAudioToBackend = async (data) => {
           </div>
 
           {/* Quran Text Block */}
-          <div 
-            className={`quran-block ${textHidden ? 'text-hidden' : ''}`}
-            ref={quranBlockRef}
-          >
-            {ayahs.length > 0 ? (
-  <p className="quran-text">
-    {ayahs.map(ayah => (
-     <span
-  key={ayah.number}
-  ref={el => ayahRefs.current[ayah.number] = el}
-  className={`ayah 
-    ${readAyahs.includes(ayah.number) ? 'read' : ''} 
-    ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''}
-    ${currentAyah === ayah.number ? 'current' : ''}
-    ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
-
-        style={{
-          filter: textHidden && !readAyahs.includes(ayah.number) ? 'blur(5px)' : 'none',
-          transition: 'filter 0.3s ease'
-        }}
-      >
-        {ayah.text}
-        <span className="ayah-number"> ۝ {ayah.number} </span>{' '}
-      </span>
-    ))}
-  </p>
-) : (
-  <div className="no-surah-selected">
-    <p>Loading Quran text...</p>
-  </div>
-)}
-
-          </div>
+        <div className={`quran-block ${textHidden ? 'text-hidden' : ''}`} ref={quranBlockRef}>
+  {ayahs.length > 0 ? (
+    <p 
+      className="quran-text"
+      style={{ 
+        fontSize: `${quranFontSize}px`,
+        lineHeight: `${quranFontSize * 1.5}px`
+      }}
+    >
+      {ayahs.map(ayah => (
+        <span
+          key={ayah.number}
+          ref={el => ayahRefs.current[ayah.number] = el}
+          className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} ${currentAyah === ayah.number ? 'current' : ''} ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
+          style={{
+            filter: textHidden && !readAyahs.includes(ayah.number) ? 'blur(5px)' : 'none',
+            transition: 'filter 0.3s ease'
+          }}
+        >
+          {ayah.text}
+          <span className="ayah-number"> ۝ {ayah.number} </span>
+        </span>
+      ))}
+    </p>
+  ) : (
+    <div className="no-surah-selected">
+      <p>Loading Quran text...</p>
+    </div>
+  )}
+</div>
           {showRecitationControls && (
             <div className="recitation-controls-container">
               <div className="recitation-controls">
@@ -570,6 +627,7 @@ const sendAudioToBackend = async (data) => {
                   <button
                     className="recitation-control-btn resume-btn"
                     onClick={resumeRecording}
+                    
                   >
                     <FaPlay /> Resume
                   </button>
@@ -580,6 +638,7 @@ const sendAudioToBackend = async (data) => {
                   >
                     <FaPause /> Pause
                   </button>
+                  
                 )}
               </div>
             </div>
@@ -588,6 +647,7 @@ const sendAudioToBackend = async (data) => {
       </div>
     </div>
   );
+
 };
 
 

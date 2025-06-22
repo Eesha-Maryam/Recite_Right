@@ -1,0 +1,174 @@
+.help-container {
+    padding-top: 60px; /* Matches header height */
+  }
+  
+  .help-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* help.css */
+
+.help-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.help-sidebar {
+  width: 250px;
+  background-color: #fff;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: 800;
+  color: #333;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  list-style: none;
+  margin-bottom: 12px;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #e8f0fe;
+  color: #0b57d0;
+}
+
+
+.sidebar-item::marker {
+  content: none;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  font-size: 16px;
+  color: #333;
+  padding: 6px 10px;
+  display: block;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #e6f0ff;
+  color: #1a73e8;
+}
+
+.sidebar-separator {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin-top: 8px;
+}
+
+.help-content {
+  flex-grow: 1;
+  padding: 30px 40px;
+  background-color: #fff;
+}
+
+.help-content section {
+  margin-bottom: 40px;
+}
+
+.help-content h2 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #1a1a1a;
+}
+
+
+
+.help-content ul,
+.help-content li {
+  list-style-type: none;      /* Removes bullets */
+  padding-left: 0;        /* Removes default padding */
+  margin-left: 0;
+}
+
+.help-content li::marker {
+  content: none;          /* Ensures no list marker shows */
+}
+
+.help-content li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+/* Dark mode support */
+body.dark-mode .help-container {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .help-sidebar {
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+}
+
+body.dark-mode .sidebar-title {
+  color: #ffffff;
+  border-bottom: 2px solid #555;
+}
+
+body.dark-mode .sidebar-link {
+  color: #ccc;
+}
+
+body.dark-mode .sidebar-link:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+body.dark-mode .sidebar-separator {
+  background-color: #444;
+}
+
+body.dark-mode .help-content {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .help-content h2 {
+  color: #ffffff;
+}
+
+body.dark-mode .help-content li {
+  color: #cccccc;
+}
+
+body.dark-mode a {
+  color: #90caf9;
+}
+
+body.dark-mode a:hover {
+  color: #64b5f6;
+}

@@ -124,34 +124,52 @@ const UserProfile = ({ setAuthenticated }) => {
     }
   };
 
-  const handleUploadAvatar = async () => {
-    if (!avatarFile) return setApiError('Please select an image file');
+ const handleUploadAvatar = async (file) => {
+  if (!file) return setApiError('Please select an image file');
 
-    try {
-      const token = localStorage.getItem('accessToken');
-      const formData = new FormData();
-      formData.append('avatar', avatarFile);
+  try {
+    const token = localStorage.getItem('accessToken');
+    const formData = new FormData();
+    formData.append('avatar', file);
 
-      const response = await axios.post(
-        'http://localhost:5000/v1/users/me/avatar',
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
+    const response = await axios.post(
+      'http://localhost:5000/v1/users/me/avatar',
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
         }
-      );
+      }
+    );
 
-      setUserData(prev => ({
-        ...prev,
-        avatar: response.data.avatarUrl || response.data.avatar
-      }));
-      setShowSuccessDialog(true);
-    } catch (err) {
-      setApiError(err.response?.data?.message || 'Failed to upload avatar');
-    }
-  };
+    setUserData(prev => ({
+      ...prev,
+      avatar: response.data.avatarUrl || response.data.avatar
+    }));
+    setShowSuccessDialog(true);
+    setApiError('');
+  } catch (err) {
+    setApiError(err.response?.data?.message || 'Failed to upload avatar');
+  }
+};
+
+const handleRemoveAvatar = async () => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    await axios.delete('http://localhost:5000/v1/users/me/avatar', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
+
+    setUserData(prev => ({ ...prev, avatar: '' }));
+    setAvatarFile(null);
+    setAvatarPreview('');
+  } catch (err) {
+    setApiError('Failed to remove avatar');
+  }
+};
 
   const handleLogout = async () => {
     try {
@@ -221,29 +239,39 @@ const UserProfile = ({ setAuthenticated }) => {
               <div className="avatar-wrapper">
                 <img
                   src={avatarPreview || userData.avatar || '/default-avatar.png'}
-                  alt="Profile"
                   className="user-avatar"
                 />
               </div>
-              <div className="avatar-controls">
-                <input
-                  type="file"
-                  id="avatar-upload"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  style={{ display: 'none' }}
-                />
-                <label htmlFor="avatar-upload" className="btn btn-outline">
-                  Change Photo
-                </label>
-                <button
-                  onClick={handleUploadAvatar}
-                  className="btn btn-primary"
-                  disabled={!avatarFile}
-                >
-                  Save Photo
-                </button>
-              </div>
+           <div className="avatar-controls">
+<input
+  type="file"
+  id="avatar-upload"
+  accept="image/*"
+  onChange={async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+      await new Promise((res) => setTimeout(res, 100)); // wait for state to update
+      await handleUploadAvatar(file); // pass file directly
+    }
+  }}
+  style={{ display: 'none' }}
+/>
+
+  <label htmlFor="avatar-upload" className="btn btn-primary">
+    Upload
+  </label>
+{/*
+<button
+  onClick={handleRemoveAvatar}
+  className="btn btn-outline"
+>
+  Remove
+</button>
+*/}
+</div>
+
             </div>
 
             <div className="info-section">

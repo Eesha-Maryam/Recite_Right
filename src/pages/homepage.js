@@ -8,7 +8,6 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const [, setHoveredTiles] = useState(new Set()); // Removed unused hoveredTiles
-  const [activeTab, setActiveTab] = useState('Surah');
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -17,9 +16,23 @@ const HomePage = () => {
     const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
-
+  const [sortOrder, setSortOrder] = useState('ASCENDING'); // Add this line
   const baseUrl = process.env.REACT_APP_BASE_URL;
   const [surahTiles, setSurahTiles] = useState([]);
+
+  // Add this function
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+  };
+
+  // Add this function
+  const getSortedTiles = () => {
+    return [...surahTiles].sort((a, b) => {
+      const idA = parseInt(a.id);
+      const idB = parseInt(b.id);
+      return sortOrder === 'ASCENDING' ? idA - idB : idB - idA;
+    });
+  };
 
     // Fetch API on mount
     useEffect(() => {
@@ -90,31 +103,27 @@ const HomePage = () => {
           padding: isVerySmallMobile ? '12px' : isMobile ? '16px' : '20px'
         }}
       >
-        <div 
-          className="search-container"
-          style={{
-            width: isVerySmallMobile ? '90%' : isMobile ? '85%' : '70%',
-            maxWidth: '500px',
-            borderRadius: isVerySmallMobile ? '30px' : isMobile ? '35px' : '40px'
-          }}
-        >
-          <span className="material-icons" style={{ 
-            color: '#333333',
-            fontSize: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px'
-          }}>search</span>
-          <input 
-            type="text" 
-            placeholder="What do you want to read?"
-            style={{
-              fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px',
-              padding: isVerySmallMobile ? '8px 0' : '12px 0'
-            }}
-          />
-          <span className="material-icons" style={{ 
-            color: '#333333',
-            fontSize: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px'
-          }}>mic</span>
-        </div>
+       <div 
+  className="search-container"
+  style={{
+    width: isVerySmallMobile ? '90%' : isMobile ? '85%' : '70%',
+    maxWidth: '500px',
+    borderRadius: isVerySmallMobile ? '30px' : isMobile ? '35px' : '40px'
+  }}
+>
+  <input 
+    type="text" 
+    placeholder="What do you want to read?"
+    style={{
+      fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px',
+      padding: isVerySmallMobile ? '8px 12px 8px 36px' : '12px 12px 12px 42px'
+    }}
+  />
+  <span className="material-icons search-icon" style={{ 
+  fontSize: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
+  left: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px'
+}}>search</span>
+</div>
       </div>
 
       <div className="content-container">
@@ -157,17 +166,35 @@ const HomePage = () => {
           justifyContent: 'flex-end'
         }}>
           {item.content === "resume" && (
-            <button 
-              className="resume-button"
-              style={{
-                borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
-                padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
-                fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
-                alignSelf: 'flex-start'
-              }}
-            >
-              Resume
-            </button>
+          <button 
+  className="resume-button"
+  style={{
+    borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
+    padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
+    fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
+    alignSelf: 'flex-start'
+  }}
+  onClick={async () => {
+    let session = null;
+    try {
+      const res = await fetch(`${baseUrl}/api/recitation/last`);
+      if (!res.ok) throw new Error('Backend down');
+      session = await res.json();
+    } catch (err) {
+      const local = localStorage.getItem('lastRecitation');
+      if (local) session = JSON.parse(local);
+    }
+
+    if (session?.surahId) {
+      navigate(`/quran?surahId=${session.surahId}&startAyah=${session.startAyah}`);
+    } else {
+      alert('No recitation session found.');
+    }
+  }}
+>
+  Resume
+</button>
+
           )}
           {item.content === "progress" && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -219,13 +246,25 @@ const HomePage = () => {
           <div className="tab-container">
           
           </div>
-          <div className="sort-dropdown">
-            <span style={{ fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px' }}>Sort by: </span>
-            <select style={{ fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px' }}>
-              <option>ASCENDING</option>
-              <option>DESCENDING</option>
-            </select>
-          </div>
+ <div className="sort-dropdown">
+  <span style={{ fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px' }}>Sort by: </span>
+  <select 
+    value={sortOrder}
+    onChange={(e) => setSortOrder(e.target.value)}
+    style={{ 
+      fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px',
+      border: '1px solid #97B469',
+      borderRadius: '4px',
+      padding: '4px 8px',
+      backgroundColor: 'transparent',
+      cursor: 'pointer',
+      outline: 'none'
+    }}
+  >
+    <option value="ASCENDING">Ascending (78-114)</option>
+    <option value="DESCENDING">Descending (114-78)</option>
+  </select>
+</div>
         </div>
 
         {/* Tile Section */}
@@ -241,7 +280,7 @@ const HomePage = () => {
           }}
         >
           <div className="tile-grid">
-            {(surahTiles.length > 0 ? surahTiles : []).map((tile, index) => (
+              {(getSortedTiles().length > 0 ? getSortedTiles() : []).map((tile, index) => (
               <div
                 key={index}
                 className="tile"

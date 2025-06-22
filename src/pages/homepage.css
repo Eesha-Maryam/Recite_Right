@@ -56,6 +56,24 @@ body.dark-mode .resume-button {
   color: #1c1c1c;
 }
 
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-container input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: white;
+}
+
+.search-icon {
+  position: absolute;
+  pointer-events: none; /* Makes the icon non-interactive */
+}
+
 body.dark-mode .tile:hover {
   background-color: #3c3c3c;
   box-shadow: 0 4px 10px rgba(151, 180, 105, 0.4);
@@ -96,16 +114,6 @@ body.homepage {
   overflow-x: hidden;
 }
 
-.search-container {
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26);
-  width: 100%;
-  max-width: 500px;
-  box-sizing: border-box;
-  color:#ffffff;
-}
 
 .search-container input {
   flex: 1;
@@ -382,20 +390,69 @@ body.dark-mode .search-container input::placeholder {
 }
 
 
-/* Default icon color */
-.search-container .material-icons {
-  color: #333333;
-  transition: color 0.3s ease;
-}
-
 /* When dark mode or search bar is toggled */
 body.dark-mode .search-container .material-icons {
   color: #ffffff; /* Turns icons white in dark mode */
 }
 
-.search-icon,
+
 .clear-icon {
   color: var(--icon-color);
   transition: color 0.3s ease;
 }
 
+
+/* Light mode icon color */
+.search-icon {
+  position: absolute;
+  pointer-events: none;
+  color: var(--icon-color); /* Now using your CSS variable */
+  transition: color 0.3s ease; /* Smooth transition between modes */
+}
+
+/* Dark mode override */
+body.dark-mode .search-icon {
+  color: #ffffff;
+}
+
+/* Add to your homepage.css */
+.tile {
+  /* Your existing tile styles */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+.tile:hover {
+  background-color: #e6eddc;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(151, 180, 105, 0.3);
+}
+
+/* Dark mode hover */
+body.dark-mode .tile:hover {
+  background-color: #3c3c3c;
+  box-shadow: 0 4px 10px rgba(151, 180, 105, 0.4);
+}
+
+/* Sort dropdown styles */
+.sort-dropdown select {
+  border: 2px solid #97B469 !important;
+  border-radius: 4px;
+  padding: 4px 8px;
+  background-color: transparent;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.sort-dropdown select:hover {
+  border-color: #7a9a4d;
+}
+
+body.dark-mode .sort-dropdown select {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+body.dark-mode .sort-dropdown select:hover {
+  border-color: #97B469;
+}
