@@ -19,6 +19,8 @@ const QuizPage = () => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [quizId, setQuizId] = useState(null);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
 
   // States for specific question input types
   const [selectedWords, setSelectedWords] = useState([]);
@@ -37,6 +39,13 @@ const QuizPage = () => {
     else if (testMode === 'medium') setTimeLimit(600); // 10 mins
     else if (testMode === 'hard') setTimeLimit(900);   // 15 mins
   }, [testMode]);
+
+  useEffect(() => {
+    if (quizCompleted) {
+      submitQuizResult();
+    }
+  }, [quizCompleted]);
+
 
   // Timer countdown logic
   useEffect(() => {
@@ -85,6 +94,13 @@ const QuizPage = () => {
 
         setQuestions(data.questions);
         setAvailableWords(data.questions[0]?.words || []);
+
+        if (data.id) {
+            setQuizId(data.id);
+        } else {
+            console.warn('Quiz ID missing from API response');
+        }
+
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -94,6 +110,47 @@ const QuizPage = () => {
 
     fetchQuestions();
   }, [selectedSurahs, testMode, navigate]);
+
+const submitQuizResult = async () => {
+  try {
+    if (quizSubmitted) return;
+
+    const token = localStorage.getItem('accessToken');
+    if (!quizId) throw new Error('No quiz ID available');
+
+    const answersPayload = userAnswers
+      .filter(ans => ans.question._id)
+      .map(ans => ({
+        questionId: ans.question._id,
+        selectedOption: ans.question.options.findIndex(opt => opt === ans.userAnswer)
+      }));
+
+    console.log(quizId);
+    console.log(answersPayload);
+    console.log(userAnswers);
+
+    const response = await fetch(`${baseUrl}/v1/quiz/submit`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        quizId,
+        answers: answersPayload
+      })
+    });
+
+    if (!response.ok) throw new Error(`Failed to submit quiz. Status: ${response.status}`);
+
+    const result = await response.json();
+    console.log('Quiz submitted successfully:', result);
+    setQuizSubmitted(true);
+
+  } catch (err) {
+    console.error('Error submitting quiz:', err.message);
+  }
+};
 
   // Main logic for evaluating user answers
   const handleAnswerSubmit = (answer) => {
@@ -121,16 +178,16 @@ const QuizPage = () => {
     }
 
     // Store user's answer and update score
-    setUserAnswers([
-      ...userAnswers,
+    setUserAnswers(prev => [
+      ...prev,
       {
         question: currentQuestion,
         userAnswer: answer,
         isCorrect,
-      },
+      }
     ]);
 
-    if (isCorrect) setScore(score + 1);
+    if (isCorrect) setScore(prev => prev + 1);
 
     // Move to next question or finish quiz
     if (currentQuestionIndex < questions.length - 1) {

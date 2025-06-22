@@ -1,19 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/header';
 import './dashboard.css';
 
 const Dashboard = () => {
-  const [selectedMonth, setSelectedMonth] = useState('January');
+  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [quizList, setQuizList] = useState([]);
+
   const months = [
     'January', 'February', 'March', 'April',
     'May', 'June', 'July', 'August',
     'September', 'October', 'November', 'December'
   ];
 
+  useEffect(() => {
+    const fetchQuizList = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.error('No access token found');
+          return;
+        }
+
+        const response = await fetch('http://localhost:5000/v1/quiz/list', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch quiz list. Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Quiz list:', data);
+        setQuizList(data.data || []);
+      } catch (err) {
+        console.error('Error fetching quiz list:', err.message);
+      }
+    };
+
+    fetchQuizList();
+  }, []);
+
+  // Map to SVG bar attributes
+  const barWidth = 40;
+  const barSpacing = 100;
+  const baseX = 120;
+  const baseY = 220;
+  const chartHeight = 200;
+
+  const bars = quizList
+    .filter(quiz => quiz.attempts && quiz.attempts.length > 0)
+    .map((quiz, index) => {
+      const attempt = quiz.attempts[0];
+      const totalQuestions = quiz.questions.length || 1; // Avoid division by zero
+      const score = attempt.score || 0;
+      const percentageScore = Math.round((score / totalQuestions) * 100);
+
+      const barHeight = (percentageScore / 100) * chartHeight;
+      const y = baseY - barHeight;
+      const x = baseX + index * barSpacing;
+
+      return (
+        <g key={quiz._id}>
+          <rect x={x} y={y} width={barWidth} height={barHeight} className="bar" />
+          <text x={x - 5} y={y - 5} className="score-label">{percentageScore}%</text>
+          <text x={x + 5} y={240} className="label">{quiz.title}</text>
+        </g>
+      );
+    });
+
   return (
     <div className="dashboard-container">
       <Header />
-      
+
       <main className="dashboard-main">
         <div className="dashboard-header">
           <h1 className="dashboard-title">Dashboard</h1>
@@ -85,7 +148,7 @@ const Dashboard = () => {
             <div className="card-header">
               <h2 className="card-title">Scoreboard</h2>
               <div className="dropdown-container">
-                <select 
+                <select
                   className="month-dropdown"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
@@ -96,7 +159,7 @@ const Dashboard = () => {
                 </select>
               </div>
             </div>
-            
+
             <div className="chart-container">
               <svg
                 role="img"
@@ -118,28 +181,8 @@ const Dashboard = () => {
                 <text x="20" y="75" className="label">75</text>
                 <text x="20" y="25" className="label">100</text>
 
-                {/* Bars with increased spacing */}
-                <rect x="120" y="70" width="40" height="150" className="bar" />
-                <rect x="220" y="120" width="40" height="100" className="bar" />
-                <rect x="320" y="170" width="40" height="50" className="bar" />
-                <rect x="420" y="100" width="40" height="120" className="bar" />
-                <rect x="520" y="20" width="40" height="200" className="bar" />
-                <rect x="620" y="90" width="40" height="130" className="bar" />
-                <rect x="720" y="70" width="40" height="150" className="bar" />
-
-                {/* Score labels */}
-                <text x="215" y="110" className="score-orange">60 score</text>
-                <text x="318" y="160" className="score-red">40 score</text>
-                <text x="510" y="10" className="score-green">99.95 score</text>
-
-                {/* X-axis labels */}
-                <text x="125" y="240" className="label">Test 1</text>
-                <text x="222" y="240" className="label">Test 2</text>
-                <text x="322" y="240" className="label">Test 3</text>
-                <text x="422" y="240" className="label">Test 4</text>
-                <text x="522" y="240" className="label">Test 5</text>
-                <text x="622" y="240" className="label">Test 6</text>
-                <text x="722" y="240" className="label">Test 7</text>
+                {/* Dynamic bars */}
+                {bars}
               </svg>
             </div>
           </div>
