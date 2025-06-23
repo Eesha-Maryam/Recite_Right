@@ -228,14 +228,7 @@ const SurahSelection = () => {
         {/* Left Half */}
         <div className="left-half">
           <div className="full-quran-checkbox">
-            <input
-              type="checkbox"
-              id="fullQuran"
-              checked={fullQuranChecked}
-              onChange={() => setFullQuranChecked(prev => !prev)}
-            />
-            <label htmlFor="fullQuran"><strong>Full Quran Test</strong></label>
-            <p className="full-quran-text">Check to take a test of the entire Quran</p>
+           
           </div>
 
           <div className="surah-list-block">

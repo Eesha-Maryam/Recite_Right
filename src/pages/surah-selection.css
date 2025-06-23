@@ -4,7 +4,7 @@
     --olive-dark: #556B2F;         /* Darker olive (hover states) */
     --olive-light: #F0F4E8;        /* Very light olive (backgrounds) */
     --olive-accent: #C1D684;       /* Soft olive highlight */
-    
+    --olive: #97B469;
     --gray-100: #F8F9FA;           /* Lightest gray (cards) */
     --gray-200: #E9ECEF;           /* Borders/divider lines */
     --gray-500: #6C757D;           /* Secondary text */
@@ -72,11 +72,7 @@
     background-color: #7a934d;;
   }
   
-  .full-quran-text {
-    margin-top: 0.5rem;
-    color: #666;
-    font-size: 0.9rem;
-  }
+
   
   .surah-list-block {
     background-color: var(--white);
@@ -87,7 +83,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: calc(100% - 160px); /* Account for full Quran block */
+   height: 500px;
+   margin-top: 70px; /* Account for full Quran block */
   }
   
   
@@ -426,6 +423,7 @@
   --olive-dark: #89b140;
   --olive-light: #1e1e1e;
   --olive-accent: #b5cc8e;
+  --olive:#97B469;
   --gray-100: #1e1e1e;
   --gray-200: #333;
   --gray-500: #aaa;
@@ -451,7 +449,7 @@
 .dark-mode .surah-checkbox,
 .dark-mode .range-input button,
 .dark-mode .selected-item {
-  background-color: var(--olive-dark);
+  background-color: var(--olive);
   color: var(--gray-700);
 }
 
@@ -492,12 +490,12 @@
 
 .dark-mode .save-range-btn,
 .dark-mode .start-quiz-btn {
-  background-color: var(--olive-primary);
+  background-color: var(--olive);
   color: var(--white);
 }
 
 .dark-mode .start-quiz-btn:hover {
-  background-color: var(--olive-dark);
+  background-color: var(--olive);
 }
 
 .dark-mode .clear-btn {

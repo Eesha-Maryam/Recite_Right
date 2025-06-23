@@ -14,6 +14,10 @@
   --white: #ffffff;
 }
 
+body{
+  overflow: hidden;
+}
+
 /* Layout Styles */
 .quran-layout {
   display: flex;
@@ -21,8 +25,9 @@
   position: relative;
   height: calc(100vh - var(--header-height));
   margin-top: var(--header-height);
-  overflow: hidden;
+  overflow: hidden !important;
 }
+
 
 .ayah.highlighted {
   background-color: #a1e8af; /* Light green for highlight */
