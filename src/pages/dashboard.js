@@ -53,10 +53,14 @@ const Dashboard = () => {
   const chartHeight = 200;
 
   const bars = quizList
-    .filter(quiz => quiz.attempts && quiz.attempts.length > 0)
+    .filter(quiz =>
+      quiz.attempts &&
+      quiz.attempts.length > 0 &&
+      new Date(quiz.attempts[0].completedAt).toLocaleString('default', { month: 'long' }) === selectedMonth
+    )
     .map((quiz, index) => {
       const attempt = quiz.attempts[0];
-      const totalQuestions = quiz.questions.length || 1; // Avoid division by zero
+      const totalQuestions = quiz.questions.length || 1;
       const score = attempt.score || 0;
       const percentageScore = Math.round((score / totalQuestions) * 100);
 
