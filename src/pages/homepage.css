@@ -569,3 +569,16 @@ body.homepage {
   max-height: 300px;
   overflow-y: auto;
 }
+
+/* DARK MODE: Fix sort dropdown background */
+body.dark-mode .sort-dropdown select {
+  color: #2b2b2b !important; /* Dark charcoal background */
+  color: #ffffff !important;            /* White text */
+
+}
+
+body.dark-mode .sort-dropdown select:hover,
+body.dark-mode .sort-dropdown select:focus {
+  background-color: #3c3c3c !important;
+  border-color: #97B469 !important;
+}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes, FaStop, FaPause, FaPlay } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
@@ -56,6 +56,7 @@ const HideUnhideToggle = ({ isHidden, onToggle }) => {
 */}
 
 function useQuery() {
+
   const location = useLocation();
   return new URLSearchParams(location.search);
 }
@@ -116,6 +117,7 @@ const Quran = () => {
     ]
   };
 
+  
   useEffect(() => {
     const fetchSurahList = async () => {
       try {
@@ -152,6 +154,7 @@ const Quran = () => {
     fetchSurahList();
   }, []);
 
+  
   // Initialize audio context and beep sound
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -163,6 +166,21 @@ const Quran = () => {
       }
     };
   }, []);
+
+  const location = useLocation();
+useEffect(() => {
+  const query = new URLSearchParams(location.search);
+  const surahId = query.get('surahId');
+
+  if (surahList.length && surahId) {
+    const matchedSurah = surahList.find(s => s.number === parseInt(surahId));
+    if (matchedSurah) {
+      setSelectedSurah(matchedSurah);
+      setStartAyah('1'); // Always go to Ayah 1 when searched
+      scrollToAyah(1); // 👈 Scroll to the first Ayah
+    }
+  }
+}, [location.search, surahList]);
 
   function createBeepSound(audioContext, frequency, duration) {
     return function() {
@@ -223,17 +241,22 @@ const Quran = () => {
     fetchSurah();
   }, [selectedSurah]);
 
+
+
   const scrollToAyah = (ayahNumber) => {
-    if (!ayahNumber) return;
-    setTimeout(() => {
-      const element = ayahRefs.current[ayahNumber];
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setHighlightedAyah(parseInt(ayahNumber));
-        setTimeout(() => setHighlightedAyah(null), 2000);
-      }
-    }, 200);
-  };
+  if (!ayahNumber) return;
+  setTimeout(() => {
+    const element = ayahRefs.current[ayahNumber];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightedAyah(parseInt(ayahNumber));
+      setTimeout(() => setHighlightedAyah(null), 2000);
+    }
+  }, 200);
+};
+
+
+
 
   // Handle click outside dropdown
   useEffect(() => {
@@ -245,6 +268,10 @@ const Quran = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+
+  
+
 
  const startRecitation = () => {
   if (!selectedSurah) return;
@@ -521,7 +548,7 @@ const sendAudioToBackend = async (data) => {
 //  }, [recording, recordingPaused]);
 
   return (
-    <div className="quran-app">
+    <div className="quran-app no-scroll">
       <Header />
       
       <div className="quran-layout">

@@ -2,7 +2,7 @@
   padding: 20px;
   font-family: 'Segoe UI', sans-serif;
   background-color: #f5f7fa;
-  overflow-y: auto; /* Enables vertical scroll */
+  /*overflow-y: auto;  Enables vertical scroll */
   min-height: 100vh;
   max-height: 100vh; /* Prevents overflow beyond viewport */
 }
