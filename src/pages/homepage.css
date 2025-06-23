@@ -582,3 +582,21 @@ body.dark-mode .sort-dropdown select:focus {
   background-color: #3c3c3c !important;
   border-color: #97B469 !important;
 }
+
+
+/* Dark mode styles for search dropdown */
+body.dark-mode .search-results-dropdown {
+  background-color: #2b2b2b; /* dark background */
+  border-color: #555; /* optional, adjust as needed */
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .search-result-item {
+  color: #ffffff; /* white text */
+  background-color: #2b2b2b; /* match dropdown */
+  border-bottom: 1px solid #444444;
+}
+
+body.dark-mode .search-result-item:hover {
+  background-color: #3c3c3c;
+}
