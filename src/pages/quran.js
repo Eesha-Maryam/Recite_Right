@@ -709,18 +709,25 @@ const Quran = () => {
               <h4>Recitation Progress</h4>
               <div className="progress-percentage">{progress}%</div>
 
-              {mistakes.length > 0 && (
-                <div className="mistakes-container">
-                  <h5>Areas to Improve</h5>
-                  <ul>
-                    {mistakes.map((mistake, i) => (
-                      <li key={i} className="mistake-item">
-                        <span className="incorrect-word">{mistake.user}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            {mistakes.length > 0 || Object.keys(incorrectWords).length > 0 ? (
+  <div className="mistakes-container">
+    <h5>Areas to Improve</h5>
+    <ul>
+      {Object.entries(incorrectWords).map(([ayahNumber, wordIndices]) => {
+        const ayah = ayahs.find(a => a.number === parseInt(ayahNumber));
+        if (!ayah) return null;
+        
+        return wordIndices.map((wordIndex, i) => (
+          <li key={`${ayahNumber}-${wordIndex}-${i}`} className="mistake-item">
+            <span className="incorrect-word">
+              {ayah.words[wordIndex]} (Ayah {ayahNumber})
+            </span>
+          </li>
+        ));
+      })}
+    </ul>
+  </div>
+) : null}
             </div>
           </div>
         </aside>
@@ -736,85 +743,91 @@ const Quran = () => {
             </div> 
           </div>
 
-          {/* Quran Text Block */}
-          <div className="quran-block" ref={quranBlockRef}>
-            {ayahs.length > 0 ? (
-              <>
-                {/* Check if first ayah is Bismillah (ayah 0) or contains Bismillah */}
-                {ayahs.length > 0 && isBismillah(ayahs[0]) && (
-                  <div className="bismillah-line-container">
-                    <div
-                      ref={el => ayahRefs.current[ayahs[0].number] = el}
-                      className={`bismillah-line ${readAyahs.includes(ayahs[0].number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayahs[0].number) ? 'mistake' : ''} ${currentAyah === ayahs[0].number ? 'current' : ''} ${highlightedAyah === ayahs[0].number ? 'highlighted' : ''}`}
-                      style={{
-                        fontSize: `${quranFontSize}px`
-                      }}
-                    >
-                      {renderWords(ayahs[0], true)}
-                      <span className="ayah-number-container">
-                        <span className="ayah-number-circle" style={{ transform: `scale(${quranFontSize / 28})` }}> 
-                          <span className="ayah-number">{ayahs[0].number === 0 ? '0' : ayahs[0].number}</span>
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Regular ayahs - justified flow */}
-                <p
-                  className="quran-text"
-                  style={{
-                    fontSize: `${quranFontSize}px`,
-                    lineHeight: `${quranFontSize * 1.5}px`,
-                    textAlign: 'justify'
-                  }}
-                >
-                  {ayahs.map((ayah, index) => {
-                    // Skip if this is the first ayah and it's Bismillah (already rendered above)
-                    if (index === 0 && isBismillah(ayah)) {
-                      // If ayah 1 contains Bismillah, render the remaining text
-                      const remainingText = getRemainingText(ayah);
-                      if (!remainingText) return null;
-                      
-                      return (
-                        <span
-                          key={`${ayah.number}-remaining`}
-                          ref={el => ayahRefs.current[`${ayah.number}-remaining`] = el}
-                          className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} ${currentAyah === ayah.number ? 'current' : ''} ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
-                        >
-                          {renderWords(ayah)}
-                          <span className="ayah-number-container">
-                            <span className="ayah-number-circle">
-                              <span className="ayah-number">{ayah.number}</span>
-                            </span>
-                          </span>
-                        </span>
-                      );
-                    }
-                    
-                    return (
-                      <span
-                        key={ayah.number}
-                        ref={el => ayahRefs.current[ayah.number] = el}
-                        className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} ${currentAyah === ayah.number ? 'current' : ''} ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
-                      >
-                        {renderWords(ayah)}
-                        <span className="ayah-number-container">
-                          <span className="ayah-number-circle" style={{ transform: `scale(${quranFontSize / 28})` }}>
-                            <span className="ayah-number">{ayah.number}</span>
-                          </span>
-                        </span>
-                      </span>
-                    );
-                  })}
-                </p>
-              </>
-            ) : (
-              <div className="no-surah-selected">
-                <p>Loading Quran text...</p>
-              </div>
-            )}
-          </div>
+{/* Quran Text Block */}
+<div className="quran-block" ref={quranBlockRef}>
+  {ayahs.length > 0 ? (
+    <>
+      {/* Bismillah line (if exists in first ayah) */}
+     {isBismillah(ayahs[0]) && (
+  <div className="bismillah-line-container">
+    <div
+      ref={el => ayahRefs.current[ayahs[0].number] = el}
+   className={`bismillah-line  ${readAyahs.includes(ayahs[0].number) ? 'read' : ''} ${highlightedAyah === ayahs[0].number ? 'highlighted' : ''}`}
+      style={{ fontSize: `${quranFontSize}px` }}
+    >
+      {renderWords(ayahs[0], true)}
+      <span className="ayah-number-circle">
+        <span className="ayah-number">
+          {ayahs[0].number === 0 ? '' : ayahs[0].number}
+        </span>
+      </span>
+    </div>
+  </div>
+      )}
+
+      {/* Remaining Ayahs */}
+      <p
+        className="quran-text"
+        style={{
+          fontSize: `${quranFontSize}px`,
+          lineHeight: `${quranFontSize * 1.5}px`,
+          textAlign: 'justify'
+        }}
+      >
+        {ayahs.map((ayah, index) => {
+          // Skip already rendered bismillah
+          if (index === 0 && isBismillah(ayah)) {
+            const remainingText = getRemainingText(ayah);
+            if (!remainingText) return null;
+
+            return (
+<span
+  key={ayah.number}
+  ref={el => ayahRefs.current[ayah.number] = el}
+className={`ayah 
+  ${readAyahs.includes(ayah.number) ? 'read' : ''} 
+  ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} 
+  ${currentAyah === ayah.number ? 'current' : ''} 
+  ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
+
+>
+
+                {renderWords(ayah)}
+                <span className="ayah-number-circle">
+                  <span className="ayah-number">{ayah.number}</span>
+                </span>
+              </span>
+            );
+          }
+
+          return (
+          <span
+  key={ayah.number}
+  ref={el => ayahRefs.current[ayah.number] = el}
+  className={`ayah 
+    ${readAyahs.includes(ayah.number) ? 'read' : ''} 
+    ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} 
+    ${currentAyah === ayah.number ? 'current' : ''} 
+    ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
+>
+
+              {renderWords(ayah)}
+              <span className="ayah-number-circle">
+                <span className="ayah-number">{ayah.number}</span>
+              </span>
+            </span>
+          );
+        })}
+      </p>
+    </>
+  ) : (
+    <div className="no-surah-selected">
+      <p>Loading Quran text...</p>
+    </div>
+  )}
+</div>
+
+
 
           {showRecitationControls && (
             <div className="recitation-controls-container">

@@ -8,15 +8,53 @@ const SurahSelection = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const testMode = location.state?.testMode || 'easy';
-
   const [selectedSurahs, setSelectedSurahs] = useState([]);
   const [expandedSurah, setExpandedSurah] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [rangeValues, setRangeValues] = useState({});
   const [fullQuranChecked, setFullQuranChecked] = useState(false);
   const [surahs, setSurahs] = useState([]);
-
   const baseUrl = process.env.REACT_APP_BASE_URL;
+  const transliteratedSurahs = {
+  78: "An-Naba",
+  79: "An-Nazi'at",
+  80: "Abasa",
+  81: "At-Takwir",
+  82: "Al-Infitar",
+  83: "Al-Mutaffifin",
+  84: "Al-Inshiqaq",
+  85: "Al-Buruj",
+  86: "At-Tariq",
+  87: "Al-Ala",
+  88: "Al-Ghashiyah",
+  89: "Al-Fajr",
+  90: "Al-Balad",
+  91: "Ash-Shams",
+  92: "Al-Lail",
+  93: "Ad-Duhaa",
+  94: "Ash-Sharh",
+  95: "At-Tin",
+  96: "Al-Alaq",
+  97: "Al-Qadr",
+  98: "Al-Bayyinah",
+  99: "Az-Zalzalah",
+  100: "Al-Adiyat",
+  101: "Al-Qari'ah",
+  102: "At-Takathur",
+  103: "Al-Asr",
+  104: "Al-Humazah",
+  105: "Al-Fil",
+  106: "Quraysh",
+  107: "Al-Ma'un",
+  108: "Al-Kawthar",
+  109: "Al-Kafirun",
+  110: "An-Nasr",
+  111: "Al-Masad",
+  112: "Al-Ikhlas",
+  113: "Al-Falaq",
+  114: "An-Nas"
+};
+
 
    useEffect(() => {
     const fetchSurahList = async () => {
@@ -25,11 +63,13 @@ const SurahSelection = () => {
         const result = await response.json();
 
         if (result.success && result.data) {
-          const formattedList = Object.entries(result.data).map(([number, details]) => ({
-            id: parseInt(number),
-            name: `${details.arabic}`,
-            ayahs: details.ayah
-          }));
+      const formattedList = Object.entries(result.data).map(([number, details]) => ({
+  id: parseInt(number),
+name: transliteratedSurahs[parseInt(number)],
+  ayahs: details.ayah
+}));
+
+
 
           setSurahs(formattedList);
 

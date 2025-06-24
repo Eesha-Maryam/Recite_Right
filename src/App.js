@@ -12,7 +12,7 @@ import QuizPage from './pages/QuizPage';
 import Mutashabihat from './pages/mutashabihat';
 import MutashabihatDetail from './pages/MutashabihatDetail';
 import Help from './pages/help';
-import MemorizationTest from './pages/memorization-test';
+import MemorizationTest from './pages/memorization-test-mode';
 import SurahSelection from './pages/surah-selection';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import UserProfile from './pages/user-profile';

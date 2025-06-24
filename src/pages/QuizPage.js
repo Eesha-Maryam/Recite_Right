@@ -1,14 +1,17 @@
-// Quiz.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // ✅ useRef added
 import { useLocation, useNavigate } from 'react-router-dom';
 import './QuizPage.css';
 
 const QuizPage = () => {
-  // Get quiz config from previous route (selected Surahs and difficulty)
   const location = useLocation();
   const navigate = useNavigate();
+  const [quizConfig, setQuizConfig] = useState(() => {
+  return location.state || JSON.parse(localStorage.getItem('quizData')) || null;
+});
+
   const { selectedSurahs, testMode } = location.state || {};
 
+  const firstRender = useRef(true); // ✅ Reference to track first render
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
   // Core quiz states
@@ -21,8 +24,9 @@ const QuizPage = () => {
   const [error, setError] = useState(null);
   const [quizId, setQuizId] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  // States for specific question input types
+  // States for question input types
   const [selectedWords, setSelectedWords] = useState([]);
   const [availableWords, setAvailableWords] = useState([]);
   const [userRecitation, setUserRecitation] = useState('');
@@ -30,27 +34,22 @@ const QuizPage = () => {
   const [ayahGuess, setAyahGuess] = useState('');
 
   // Timer state
-  const [timer, setTimer] = useState(0); // elapsed time
-  const [timeLimit, setTimeLimit] = useState(0); // time limit by difficulty
+  const [timer, setTimer] = useState(0);
+  const [timeLimit, setTimeLimit] = useState(0);
+  const [timerActive, setTimerActive] = useState(false);
 
-  // Set time limit based on selected test mode
   useEffect(() => {
-    if (testMode === 'easy') setTimeLimit(300);    // 5 mins
-    else if (testMode === 'medium') setTimeLimit(600); // 10 mins
-    else if (testMode === 'hard') setTimeLimit(900);   // 15 mins
+    if (testMode === 'easy') setTimeLimit(300);
+    else if (testMode === 'medium') setTimeLimit(600);
+    else if (testMode === 'hard') setTimeLimit(900);
   }, [testMode]);
 
   useEffect(() => {
-    if (quizCompleted) {
-      submitQuizResult();
-    }
+    if (quizCompleted) submitQuizResult();
   }, [quizCompleted]);
 
-
-  // Timer countdown logic
   useEffect(() => {
-    if (quizCompleted || loading) return;
-
+    if (!timerActive || quizCompleted) return;
     const interval = setInterval(() => {
       setTimer(prev => {
         if (prev + 1 >= timeLimit) {
@@ -61,24 +60,24 @@ const QuizPage = () => {
         return prev + 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
-  }, [quizCompleted, timeLimit, loading]);
+  }, [timerActive, quizCompleted, timeLimit]);
 
-  // Fetch quiz questions from backend when component mounts
   useEffect(() => {
-    if (!selectedSurahs || selectedSurahs.length === 0) {
-      navigate('/');
-      return;
-    }
+ if (!quizConfig || !selectedSurahs || selectedSurahs.length === 0) {
+  navigate('/');
+  return;
+}
+
 
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-
         const token = localStorage.getItem('accessToken');
         const surahNames = selectedSurahs.map(s => s.name).join(',');
-        const numQuestions = selectedSurahs.length === 1 ? 5 : selectedSurahs.length * 3;
+        const numQuestions = 10;
+
+
         const response = await fetch(`${baseUrl}/v1/quiz?topic=${encodeURIComponent(surahNames)}&numQuestions=${numQuestions}`, {
           method: 'GET',
           headers: {
@@ -89,19 +88,16 @@ const QuizPage = () => {
 
         if (!response.ok) throw new Error('Failed to fetch questions');
 
-        const responseData  = await response.json();
-        const data = responseData.data;
+        const { data } = await response.json();
+        if (!data?.questions) throw new Error('Invalid question data');
 
         setQuestions(data.questions);
-        setAvailableWords(data.questions[0]?.words || []);
+        if (data.id) setQuizId(data.id);
 
-        if (data.id) {
-            setQuizId(data.id);
-        } else {
-            console.warn('Quiz ID missing from API response');
-        }
-
+        setDataLoaded(true);
+        setTimerActive(true);
         setLoading(false);
+
       } catch (err) {
         setError(err.message);
         setLoading(false);
@@ -111,53 +107,52 @@ const QuizPage = () => {
     fetchQuestions();
   }, [selectedSurahs, testMode, navigate]);
 
-const submitQuizResult = async () => {
-  try {
-    if (quizSubmitted) return;
 
-    const token = localStorage.getItem('accessToken');
-    if (!quizId) throw new Error('No quiz ID available');
 
-    const answersPayload = userAnswers
-      .filter(ans => ans.question._id)
-      .map(ans => ({
-        questionId: ans.question._id,
-        selectedOption: ans.question.options.findIndex(opt => opt === ans.userAnswer)
-      }));
 
-    console.log(quizId);
-    console.log(answersPayload);
-    console.log(userAnswers);
 
-    const response = await fetch(`${baseUrl}/v1/quiz/submit`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        quizId,
-        answers: answersPayload
-      })
-    });
+  const submitQuizResult = async () => {
+    try {
+      if (quizSubmitted) return;
 
-    if (!response.ok) throw new Error(`Failed to submit quiz. Status: ${response.status}`);
+      const token = localStorage.getItem('accessToken');
+      if (!quizId) throw new Error('No quiz ID available');
 
-    const result = await response.json();
-    console.log('Quiz submitted successfully:', result);
-    setQuizSubmitted(true);
+      const answersPayload = userAnswers
+        .filter(ans => ans.question._id)
+        .map(ans => ({
+          questionId: ans.question._id,
+          selectedOption: ans.question.options.findIndex(opt => opt === ans.userAnswer)
+        }));
 
-  } catch (err) {
-    console.error('Error submitting quiz:', err.message);
-  }
-};
+      const response = await fetch(`${baseUrl}/v1/quiz/submit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ quizId, answers: answersPayload })
+      });
 
-  // Main logic for evaluating user answers
+      if (!response.ok) throw new Error(`Failed to submit quiz. Status: ${response.status}`);
+
+      await response.json();
+      setQuizSubmitted(true);
+
+    } catch (err) {
+      console.error('Error submitting quiz:', err.message);
+    }
+  };
+
   const handleAnswerSubmit = (answer) => {
+    if (answer === undefined || answer === null || (Array.isArray(answer) && answer.length === 0)) {
+      console.warn('Blocked accidental or empty auto-submit.');
+      return;
+    }
+
     const currentQuestion = questions[currentQuestionIndex];
     let isCorrect = false;
 
-    // Check correctness based on question type
     switch (currentQuestion.type) {
       case 'multiple_choice':
         isCorrect = answer === currentQuestion.options[currentQuestion.correctAnswer];
@@ -173,38 +168,19 @@ const submitQuizResult = async () => {
         isCorrect = answer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
         break;
       default:
-        // Currently, MCQ is default behavior
         isCorrect = answer === currentQuestion.options[currentQuestion.correctAnswer];
     }
 
-    // Store user's answer and update score
-    setUserAnswers(prev => [
-      ...prev,
-      {
-        question: currentQuestion,
-        userAnswer: answer,
-        isCorrect,
-      }
-    ]);
-
+    setUserAnswers(prev => [...prev, { question: currentQuestion, userAnswer: answer, isCorrect }]);
     if (isCorrect) setScore(prev => prev + 1);
 
-    // Move to next question or finish quiz
     if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
-      const nextQuestion = questions[nextIndex];
-      setCurrentQuestionIndex(nextIndex);
-      setSelectedWords([]);
-      setAvailableWords(nextQuestion?.words || []);
-      setUserRecitation('');
-      setSurahGuess('');
-      setAyahGuess('');
+      setCurrentQuestionIndex(prev => prev + 1);
     } else {
       setQuizCompleted(true);
     }
   };
 
-  // Renders for each type of question
   const renderMultipleChoice = (question) => (
     <div className="question-container">
       <h3 className="question-text">{question.question}</h3>
@@ -293,7 +269,6 @@ const submitQuizResult = async () => {
     </div>
   );
 
-  // Renders final score and review
   const renderResults = () => (
     <div className="results-container">
       <h2>Quiz Completed!</h2>
@@ -308,7 +283,11 @@ const submitQuizResult = async () => {
             {answer.question.reference && <p><strong>Reference:</strong> {answer.question.reference}</p>}
             <p><strong>Your answer:</strong> {Array.isArray(answer.userAnswer) ? answer.userAnswer.join(' ') : answer.userAnswer}</p>
             {!answer.isCorrect && (
-              <p><strong>Correct answer:</strong> {Array.isArray(answer.question.correctAnswer) ? answer.question.correctAnswer.join(' ') : answer.question.options[answer.question.correctAnswer]}</p>
+              <p><strong>Correct answer:</strong> {
+                Array.isArray(answer.question.correctAnswer)
+                  ? answer.question.correctAnswer.join(' ')
+                  : answer.question.options[answer.question.correctAnswer]
+              }</p>
             )}
           </div>
         ))}
@@ -317,51 +296,41 @@ const submitQuizResult = async () => {
     </div>
   );
 
-  // Main question renderer (delegates to specific type renderer)
   const renderQuestion = () => {
     if (loading) return <div className="loading">Loading questions...</div>;
     if (error) return <div className="error">Error: {error}</div>;
     if (quizCompleted) return renderResults();
+    if (!dataLoaded) return <div className="loading">Preparing quiz...</div>;
 
     const question = questions[currentQuestionIndex];
-    if (!question) return null;
+    if (!question) return <div className="error">Question not available</div>;
 
     switch (question.type) {
-      case 'multiple_choice':
-        return renderMultipleChoice(question);
-      case 'word_arrangement':
-        return renderWordArrangement(question);
+      case 'multiple_choice': return renderMultipleChoice(question);
+      case 'word_arrangement': return renderWordArrangement(question);
       case 'recitation':
-      case 'recitation_from_point':
-        return renderRecitation(question);
-      case 'identification':
-        return renderIdentification(question);
-      default:
-        // For now, backend is only generating MCQ's questions
-        return renderMultipleChoice(question);
+      case 'recitation_from_point': return renderRecitation(question);
+      case 'identification': return renderIdentification(question);
+      default: return renderMultipleChoice(question);
     }
   };
 
-  // Quit button logic
   const handleQuit = () => {
     if (window.confirm("Are you sure you want to quit the quiz?")) {
       navigate('/memorization-test');
     }
   };
 
-  // Shows alert box with instructions
   const showInstructions = () => {
     alert("Quiz Instructions:\n- Answer all questions before the timer ends.\n- Each question type is based on Quranic understanding.\n- Click on words or type answers as instructed.");
   };
 
-  // Converts seconds into MM:SS format
   const formatTime = (seconds) => {
     const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
     const secs = String(seconds % 60).padStart(2, '0');
     return `${mins}:${secs}`;
   };
 
-  // Final render
   return (
     <div className="quiz-page">
       <header className="quiz-header">
@@ -378,7 +347,7 @@ const submitQuizResult = async () => {
           <div className="progress-indicator">
             Question {currentQuestionIndex + 1} of {questions.length}
             <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}></div>
+              <div className="progress-fill" style={{ width: `${(currentQuestionIndex / questions.length) * 100}%` }}></div>
             </div>
           </div>
         )}

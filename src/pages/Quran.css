@@ -36,12 +36,7 @@
 }
 
 
-.ayah.highlighted {
-  background-color: #a1e8af; /* Light green for highlight */
-  border-radius: 5px;
-  padding: 2px 4px;
-  transition: background-color 0.3s ease;
-}
+
 
 .ayah.highlighted {
   background-color: #a1e8af;
@@ -62,11 +57,6 @@
   color: var(--white) !important; /* Ensures readability in dark mode */
 }
 
-.quran-text {
-  font-family: 'Scheherazade New', serif;
-  font-size: 28px;
-  line-height: 2.2;
-}
 
 
 
@@ -102,7 +92,16 @@
   margin: 0;
   color:#333333;
 }
-
+.quran-text {
+  direction: rtl;
+  text-align: justify;
+  line-height: 4rem;
+  font-size: 2.4rem;
+  word-spacing: 0.25rem;
+  white-space: normal;
+  padding: 0;
+  margin: 0;
+}
 
 
 .dropdown-item,
@@ -547,16 +546,7 @@
   }
 }
 
-.quran-text {
-  direction: rtl;
-  text-align: justify;
-  line-height: 4rem;
-  font-size: 2.4rem;
-  word-spacing: 0.25rem;
-  white-space: normal;
-  padding: 0;
-  margin: 0;
-}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   .quran-block {
@@ -943,13 +933,21 @@
   padding: 0;
 }
 
+
 .bismillah-line {
+    font-family: 'Scheherazade New', serif;
+    font-size: 2.4rem;
   display: block;
-  font-weight: 400;
   color: #333333;
   line-height: 2.8rem; /* match ayah line height */
   direction: rtl;
   text-align: center; /* match ayah alignment */
   margin: 0;
-  padding: 0.2rem 0; /* minimal vertical spacing */
+  padding-bottom: 0.5rem; /* minimal vertical spacing */
+}
+
+
+.ayah.highlighted {
+    background-color: #a1e8af; /* soft yellow */
+  transition: background-color 0.3s ease;
 }

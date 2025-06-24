@@ -2,9 +2,13 @@
     font-family: 'Poppins', sans-serif;
     background-color: #ffffff;
     color: #333333;
-    min-height: 100vh;
+    height: 100vh;
+  overflow: hidden;
+
   }
   
+
+
   .header-left {
     display: flex;
     align-items: center;
@@ -118,10 +122,23 @@
     margin-bottom: 0.75rem;
   }
   
+
+ 
+
   .mode-description {
-    font-size: 0.875rem;
+  list-style-type: disc;           /* Default bullets */
+  text-align: left ;
+  color: var(--charcoal);          /* Or white for dark mode */
+ font-size: 0.875rem;
     max-width: 300px;
-  }
+
+}
+
+
+  .muta-tile ul {
+  text-align: left;
+}
+
   
   /* Responsive Design */
   @media (min-width: 768px) {
@@ -159,8 +176,10 @@
   .mode-card:hover {
     transform: translateY(-5px);
     transition: transform 0.2s ease;
+    background-color: #97B469;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   }
+  
   /* === DARK MODE STYLES FOR MEMORIZATION TEST === */
 .dark-mode .memorization-test {
   background-color: #1e1e1e;

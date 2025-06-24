@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/header'; 
 import { FaCheck, FaPencilAlt, FaFire } from 'react-icons/fa'; 
-import './MemorizationTest.css';
+import './Memorization-test-mode.css';
 
 const MemorizationTest = () => {
   const navigate = useNavigate();
@@ -32,10 +32,11 @@ const MemorizationTest = () => {
                 <FaCheck className="card-icon easy-icon" />
               </div>
               <h3 className="mode-title">Easy Mode</h3>
-              <p className="mode-description">
-                Ideal for beginners, Basic Mode covers foundational Quran knowledge with common Surahs, 
-                core concepts, and activities like identifying and arranging missing words.
-              </p>
+            <ul className="mode-description">
+              <li>Ideal for beginners</li>
+              <li>Covers foundational Quran knowledge</li>
+              <li>Includes Activities like identifying and arranging missing words</li>
+            </ul>
             </article>
 
             {/* Medium Mode Card */}
@@ -47,10 +48,11 @@ const MemorizationTest = () => {
                 <FaPencilAlt className="card-icon medium-icon" />
               </div>
               <h3 className="mode-title">Medium Mode</h3>
-              <p className="mode-description">
-                Designed for intermediate learners, Medium Mode offers a balanced challenge. 
-                You'll be tested on more complex Surahs, recitation prompts, and memorization activities.
-              </p>
+             <ul className="mode-description">
+  <li>Designed for intermediate learners</li>
+  <li>Offers a balanced challenge</li>
+  <li>Includes recitation prompts and memorization activities</li>
+</ul>
             </article>
 
             {/* Hard Mode Card */}
@@ -62,10 +64,12 @@ const MemorizationTest = () => {
                 <FaFire className="card-icon hard-icon" />
               </div>
               <h3 className="mode-title">Hard Mode</h3>
-              <p className="mode-description">
-                Hard Mode is for advanced learners. You'll be tested on full Ayah recall, 
-                mapping Surahs and Ayahs, long passage recitation, and identification tasks.
-              </p>
+            <ul className="mode-description">
+  <li>Hard Mode is for advanced learners</li>
+  <li>Full Ayah recall and long passage recitation</li>
+  <li>Mapping Surahs and Ayahs</li>
+  <li>Challenging identification tasks</li>
+</ul>
             </article>
           </div>
         </section>
