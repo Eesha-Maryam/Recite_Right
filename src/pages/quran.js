@@ -4,6 +4,7 @@ import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes, FaStop
 import Header from '../components/header';
 import './Quran.css';
 import { useQuranFont } from '../contexts/FontSizeContext';
+
 const SettingsItem = ({ icon, text }) => {
   const getIcon = () => {
     switch (icon) {
@@ -39,7 +40,6 @@ const ToggleWithDescription = ({ description, isOn, onToggle, option1, option2 }
   );
 };
 
-{/*
 const HideUnhideToggle = ({ isHidden, onToggle }) => {
   return (
     <div>
@@ -53,17 +53,14 @@ const HideUnhideToggle = ({ isHidden, onToggle }) => {
   );
 };
 
-*/}
-
 function useQuery() {
-
   const location = useLocation();
   return new URLSearchParams(location.search);
 }
 
 const Quran = () => {
   // State management
-    const { quranFontSize, updateQuranFontSize } = useQuranFont();
+  const { quranFontSize, updateQuranFontSize } = useQuranFont();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState(null);
   const [startAyah, setStartAyah] = useState('');
@@ -83,6 +80,9 @@ const Quran = () => {
   const [readyToRecite, setReadyToRecite] = useState(false);
   const [showRecitationControls, setShowRecitationControls] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [recitedWords, setRecitedWords] = useState({}); // Track recited words by ayah
+  const [incorrectWords, setIncorrectWords] = useState({}); // Track incorrect words by ayah
+  const [currentWordIndex, setCurrentWordIndex] = useState(0); // Track current word being recited
 
   const recordingIntervalRef = useRef(null);
   const wsRef = useRef(null);
@@ -104,20 +104,19 @@ const Quran = () => {
   const dummyQuranData = {
     78: Array.from({ length: 40 }, (_, i) => ({
       number: i + 1,
-      text: 'عَمَّ يَتَسَآءَلُونَ عَنِ ٱلنَّبَإِ ٱلْعَظِيمِ ٱلَّذِى هُمْ فِيهِ مُخْتَلِفُونَ كَلَّا سَيَعْلَمُونَ ثُمَّ كَلَّا سَيَعْلَمُونَ أَلَمْ نَجْعَلِ ٱلْأَرْضَ مِهَٰدًا وَٱلْجِبَالَ أَوْتَادًا وَخَلَقْنَٰكُمْ أَزْوَٰجًا وَجَعَلْنَا نَوْمَكُمْ سُبَاتًا وَجَعَلْنَا ٱلَّيْلَ لِبَاسًا وَجَعَلْنَا ٱلنَّهَارَ مَعَاشًا وَبَنَيْنَا فَوْقَكُمْ سَبْعًا شِدَادًا وَجَعَلْنَا سِرَاجًا وَهَّاجًا وَأَنزَلْنَا مِنَ ٱلْمُعْصِرَٰتِ مَآءً ثَجَّاجًا لِّنُخْرِجَ بِهِۦ حَبًّا وَنَبَاتًا وَجَنَّٰتٍ أَلْفَافًا'
+      text: 'عَمَّ يَتَسَآءَلُونَ عَنِ ٱلنَّبَإِ ٱلْعَظِيمِ ٱلَّذِى هُمْ فِيهِ مُخْتَلِفُونَ كَلَّا سَيَعْلَمُونَ ثُمَّ كَلَّا سَيَعْلَمُونَ أَلَمْ نَجْعَلِ ٱلْأَرْضَ مِهَٰدًا وَٱلْجِبَالَ أَوْتَادًا وَخَلَقْنَٰكُمْ أَزْوَٰجًا وَجَعَلْنَا نَوْمَكُمْ سُبَاتًا وَجَعَلْنَا ٱلَّيْلَ لِبَاسًا وَجَعَلْنَا ٱلنَّهَارَ مَعَاشًا وَبَنَيْنَا فَوْقَكُمْ سَبْعًا شِدَادًا وَجَعَلْنَا سِرَاجًا وَهَّاجًا وَأَنزَلْنَا مِنَ ٱلْمُعْصِرَٰتِ مَآءً ثَجَّاجًا لِّنُخْرِجَ بِهِۦ حَبًّا وَنَبَاتًا وَجَنَّٰتٍ أَلْفَافًا'
         .split(' ').slice(0, 30 + Math.floor(Math.random() * 10)).join(' ')
     })),
     114: [
-      { number: 1, text: 'قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ' },
-      { number: 2, text: 'مَلِكِ ٱلنَّاسِ' },
-      { number: 3, text: 'إِلَـٰهِ ٱلنَّاسِ' },
-      { number: 4, text: 'مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ' },
-      { number: 5, text: 'ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ' },
-      { number: 6, text: 'مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ' }
+      { number: 1, text: 'قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ' },
+      { number: 2, text: 'مَلِكِ ٱلنَّاسِ' },
+      { number: 3, text: 'إِلَـٰهِ ٱلنَّاسِ' },
+      { number: 4, text: 'مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ' },
+      { number: 5, text: 'ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ' },
+      { number: 6, text: 'مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ' }
     ]
   };
 
-  
   useEffect(() => {
     const fetchSurahList = async () => {
       try {
@@ -140,9 +139,7 @@ const Quran = () => {
 
             setSelectedSurah(surahToSelect);
             setStartAyah('1');
-
           }
-
         } else {
           console.error('Unexpected API response format:', result);
         }
@@ -154,7 +151,6 @@ const Quran = () => {
     fetchSurahList();
   }, []);
 
-  
   // Initialize audio context and beep sound
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -168,19 +164,19 @@ const Quran = () => {
   }, []);
 
   const location = useLocation();
-useEffect(() => {
-  const query = new URLSearchParams(location.search);
-  const surahId = query.get('surahId');
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const surahId = query.get('surahId');
 
-  if (surahList.length && surahId) {
-    const matchedSurah = surahList.find(s => s.number === parseInt(surahId));
-    if (matchedSurah) {
-      setSelectedSurah(matchedSurah);
-      setStartAyah('1'); // Always go to Ayah 1 when searched
-      scrollToAyah(1); // 👈 Scroll to the first Ayah
+    if (surahList.length && surahId) {
+      const matchedSurah = surahList.find(s => s.number === parseInt(surahId));
+      if (matchedSurah) {
+        setSelectedSurah(matchedSurah);
+        setStartAyah('1');
+        scrollToAyah(1);
+      }
     }
-  }
-}, [location.search, surahList]);
+  }, [location.search, surahList]);
 
   function createBeepSound(audioContext, frequency, duration) {
     return function() {
@@ -220,6 +216,7 @@ useEffect(() => {
             ayahList.push({
               number: parseInt(ayah.number),
               text: ayah.text,
+              words: ayah.text.split(' ') // Split text into words
             });
           });
 
@@ -232,7 +229,7 @@ useEffect(() => {
           setAyahs([]);
         }
       } catch (err) {
-        console.error(`{baseUrl}/v1/surah/get-surah/${selectedSurah.number}`)
+        console.error(`${baseUrl}/v1/surah/get-surah/${selectedSurah.number}`)
         console.error('Error fetching surah:', err);
         setAyahs([]);
       }
@@ -241,22 +238,17 @@ useEffect(() => {
     fetchSurah();
   }, [selectedSurah]);
 
-
-
   const scrollToAyah = (ayahNumber) => {
-  if (!ayahNumber) return;
-  setTimeout(() => {
-    const element = ayahRefs.current[ayahNumber];
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setHighlightedAyah(parseInt(ayahNumber));
-      setTimeout(() => setHighlightedAyah(null), 2000);
-    }
-  }, 200);
-};
-
-
-
+    if (!ayahNumber) return;
+    setTimeout(() => {
+      const element = ayahRefs.current[ayahNumber];
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedAyah(parseInt(ayahNumber));
+        setTimeout(() => setHighlightedAyah(null), 2000);
+      }
+    }, 200);
+  };
 
   // Handle click outside dropdown
   useEffect(() => {
@@ -269,220 +261,273 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const startRecitation = () => {
+    if (!selectedSurah) return;
 
-  
+    let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
+    setStartAyah(ayahToStart);
 
+    // Reset recitation tracking
+    setRecitedWords({});
+    setIncorrectWords({});
+    setCurrentWordIndex(0);
 
- const startRecitation = () => {
-  if (!selectedSurah) return;
-
-  let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
-  setStartAyah(ayahToStart);
-
-   scrollToAyah(startAyah);
-   setReadyToRecite(false);
-   setSidebarOpen(false);
-   setShowRecitationControls(true);
-   startRecording();
-   startWebSocketConnection();
- };
-
-const startWebSocketConnection = () => {
-  if (!selectedSurah || !startAyah) {
-    alert("Please select both surah and ayah");
-    return;
-  }
-
-  const WS_URL = `ws://127.0.0.1:8000/ws/transcribe/${selectedSurah.number}/${startAyah}`;
-  wsRef.current = new WebSocket(WS_URL);
-  wsRef.current.binaryType = 'arraybuffer';
-
-  wsRef.current.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-    if (data.incorrect_word) {
-      setMistakes(prev => [...prev, {
-        ayah: currentAyah,
-        user: data.incorrect_word
-      }]);
-      setTranscript(prev => prev + ` [Incorrect: ${data.incorrect_word}]`);
-    }
-    if (data.error) {
-      console.error("Error from server:", data.error);
-    }
+    scrollToAyah(startAyah);
+    setReadyToRecite(false);
+    setSidebarOpen(false);
+    setShowRecitationControls(true);
+    startRecording();
+    startWebSocketConnection();
   };
 
-  wsRef.current.onopen = () => {
-    console.log("WebSocket connection established");
-  };
-
-  wsRef.current.onclose = () => {
-    console.log("WebSocket connection closed");
-  };
-
-  wsRef.current.onerror = (error) => {
-    console.error("WebSocket error:", error);
-  };
-};
-
-const stopRecitation = () => {
-  setRecording(false);
-  setRecordingPaused(false);
-  setShowRecitationControls(false);
-  setSidebarOpen(true);
-
-  // Cleanup WebSocket
-  if (wsRef.current) {
-    wsRef.current.close();
-    wsRef.current = null;
-  }
-
-  // Cleanup MediaRecorder
-  if (mediaRecorderRef.current) {
-    mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-    mediaRecorderRef.current = null;
-  }
-
-  // Cleanup Audio Context
-  if (audioContextRef.current) {
-    if (audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close();
+  const startWebSocketConnection = () => {
+    if (!selectedSurah || !startAyah) {
+      alert("Please select both surah and ayah");
+      return;
     }
-    audioContextRef.current = null;
-  }
 
-  // Cleanup processor and source
-  if (processorRef.current) {
-    processorRef.current.disconnect();
-    processorRef.current = null;
-  }
-  if (sourceRef.current) {
-    sourceRef.current.disconnect();
-    sourceRef.current = null;
-  }
+    const WS_URL = `ws://127.0.0.1:8000/ws/transcribe/${selectedSurah.number}/${startAyah}`;
+    wsRef.current = new WebSocket(WS_URL);
+    wsRef.current.binaryType = 'arraybuffer';
 
-  clearInterval(recordingIntervalRef.current);
+    wsRef.current.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.incorrect_word) {
+        handleIncorrectWord(data.incorrect_word);
+        setTranscript(prev => prev + ` [Incorrect: ${data.incorrect_word}]`);
+      }
+      if (data.correct_word) {
+        handleCorrectWord(data.correct_word);
+      }
+      if (data.error) {
+        console.error("Error from server:", data.error);
+      }
+    };
 
-  setTimeout(() => {
-    const summary = document.querySelector('.recitation-summary');
-    if (summary) {
-      summary.scrollIntoView({ behavior: 'smooth' });
+    wsRef.current.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+
+    wsRef.current.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    wsRef.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+  };
+
+  const handleCorrectWord = (word) => {
+    // Find the current ayah and word index
+    const ayah = currentAyah || parseInt(startAyah);
+    const ayahData = ayahs.find(a => a.number === ayah);
+    if (!ayahData) return;
+
+    const wordIndex = ayahData.words.indexOf(word);
+    if (wordIndex === -1) return;
+
+    // Mark the word as recited
+    setRecitedWords(prev => {
+      const ayahRecitedWords = prev[ayah] || [];
+      return {
+        ...prev,
+        [ayah]: [...ayahRecitedWords, wordIndex]
+      };
+    });
+
+    // Remove from incorrect words if it was there
+    setIncorrectWords(prev => {
+      const ayahIncorrectWords = prev[ayah] || [];
+      return {
+        ...prev,
+        [ayah]: ayahIncorrectWords.filter(i => i !== wordIndex)
+      };
+    });
+
+    setCurrentWordIndex(wordIndex + 1);
+  };
+
+  const handleIncorrectWord = (word) => {
+    const ayah = currentAyah || parseInt(startAyah);
+    const ayahData = ayahs.find(a => a.number === ayah);
+    if (!ayahData) return;
+
+    const wordIndex = ayahData.words.indexOf(word);
+    if (wordIndex === -1) return;
+
+    // Play beep sound
+    if (beepSoundRef.current) beepSoundRef.current();
+
+    // Speak the correct word
+    speakWord(ayahData.words[wordIndex]);
+
+    // Mark the word as incorrect
+    setIncorrectWords(prev => {
+      const ayahIncorrectWords = prev[ayah] || [];
+      return {
+        ...prev,
+        [ayah]: [...ayahIncorrectWords, wordIndex]
+      };
+    });
+  };
+
+  const stopRecitation = () => {
+    setRecording(false);
+    setRecordingPaused(false);
+    setShowRecitationControls(false);
+    setSidebarOpen(true);
+
+    // Cleanup WebSocket
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
     }
-  }, 100);
-};
 
+    // Cleanup MediaRecorder
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current = null;
+    }
+
+    // Cleanup Audio Context
+    if (audioContextRef.current) {
+      if (audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
+      audioContextRef.current = null;
+    }
+
+    // Cleanup processor and source
+    if (processorRef.current) {
+      processorRef.current.disconnect();
+      processorRef.current = null;
+    }
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
+    }
+
+    clearInterval(recordingIntervalRef.current);
+
+    setTimeout(() => {
+      const summary = document.querySelector('.recitation-summary');
+      if (summary) {
+        summary.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
 
   const startRecording = () => {
-      setRecording(true);
-      setRecordingPaused(false);
-      setReadAyahs([]);
-      setMistakes([]);
-      setProgress(0);
-      setRecordingData([]);
-      setAudioChunks([]);
+    setRecording(true);
+    setRecordingPaused(false);
+    setReadAyahs([]);
+    setMistakes([]);
+    setProgress(0);
+    setRecordingData([]);
+    setAudioChunks([]);
 
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(stream => {
-            // Initialize audio context and processor for WebSocket
-            audioContextRef.current = new AudioContext({ sampleRate: 16000 });
-            sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
-            processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          // Initialize audio context and processor for WebSocket
+          audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+          sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+          processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
 
-            processorRef.current.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const pcmData = new Int16Array(inputData.length);
+          processorRef.current.onaudioprocess = (e) => {
+            const inputData = e.inputBuffer.getChannelData(0);
+            const pcmData = new Int16Array(inputData.length);
 
-              for (let i = 0; i < inputData.length; i++) {
-                let s = Math.max(-1, Math.min(1, inputData[i]));
-                pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-              }
+            for (let i = 0; i < inputData.length; i++) {
+              let s = Math.max(-1, Math.min(1, inputData[i]));
+              pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
 
-              if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                wsRef.current.send(pcmData.buffer);
-              }
-            };
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              wsRef.current.send(pcmData.buffer);
+            }
+          };
 
-            sourceRef.current.connect(processorRef.current);
-            processorRef.current.connect(audioContextRef.current.destination);
+          sourceRef.current.connect(processorRef.current);
+          processorRef.current.connect(audioContextRef.current.destination);
 
-            // Also initialize MediaRecorder for local recording
-            mediaRecorderRef.current = new MediaRecorder(stream);
-            mediaRecorderRef.current.ondataavailable = handleDataAvailable;
-            mediaRecorderRef.current.start(1);
+          // Also initialize MediaRecorder for local recording
+          mediaRecorderRef.current = new MediaRecorder(stream);
+          mediaRecorderRef.current.ondataavailable = handleDataAvailable;
+          mediaRecorderRef.current.start(1);
 
-            recordingIntervalRef.current = setInterval(() => {
-              if (audioChunks.length > 0) {
-                const timestamp = new Date().toISOString();
-                const newData = {
-                  timestamp,
-                  chunks: [...audioChunks],
-                  ayah: currentAyah
-                };
-                setRecordingData(prev => [...prev, newData]);
-                sendAudioToBackend(newData);
-                setAudioChunks([]);
-              }
-            }, 1000);
-          })
-          .catch(err => {
-            console.error('Microphone error:', err);
-            simulateRecitation();
-          });
-      } else {
-        simulateRecitation();
-      }
-
+          recordingIntervalRef.current = setInterval(() => {
+            if (audioChunks.length > 0) {
+              const timestamp = new Date().toISOString();
+              const newData = {
+                timestamp,
+                chunks: [...audioChunks],
+                ayah: currentAyah
+              };
+              setRecordingData(prev => [...prev, newData]);
+              sendAudioToBackend(newData);
+              setAudioChunks([]);
+            }
+          }, 1000);
+        })
+        .catch(err => {
+          console.error('Microphone error:', err);
+          simulateRecitation();
+        });
+    } else {
       simulateRecitation();
-    };
+    }
 
-const speakWord = (word) => {
-  if ('speechSynthesis' in window) {
-    const utter = new SpeechSynthesisUtterance(word);
-    utter.lang = 'ar-SA'; // Arabic voice
-    window.speechSynthesis.speak(utter);
-  }
-};
+    simulateRecitation();
+  };
 
-const sendAudioToBackend = async (data) => {
-  const formData = new FormData();
-  const blob = new Blob(data.chunks, { type: 'audio/webm' });
-  formData.append('file', blob);
-  formData.append('ayah', data.ayah);
-  formData.append('timestamp', data.timestamp);
+  const speakWord = (word) => {
+    if ('speechSynthesis' in window) {
+      const utter = new SpeechSynthesisUtterance(word);
+      utter.lang = 'ar-SA'; // Arabic voice
+      window.speechSynthesis.speak(utter);
+    }
+  };
 
-  try {
-    await fetch(`${baseUrl}/v1/recitation/audio-upload`, {
-      method: 'POST',
-      body: formData,
-    });
-  } catch (error) {
-    console.error('Error sending audio to backend:', error);
-  }
-};
+  const sendAudioToBackend = async (data) => {
+    const formData = new FormData();
+    const blob = new Blob(data.chunks, { type: 'audio/webm' });
+    formData.append('file', blob);
+    formData.append('ayah', data.ayah);
+    formData.append('timestamp', data.timestamp);
 
+    try {
+      await fetch(`${baseUrl}/v1/recitation/audio-upload`, {
+        method: 'POST',
+        body: formData,
+      });
+    } catch (error) {
+      console.error('Error sending audio to backend:', error);
+    }
+  };
 
   const pauseRecording = () => {
-      setRecordingPaused(true);
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.pause();
-      }
-      if (processorRef.current) {
-        processorRef.current.disconnect();
-      }
-    };
+    setRecordingPaused(true);
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.pause();
+    }
+    if (processorRef.current) {
+      processorRef.current.disconnect();
+    }
+  };
 
-    const resumeRecording = () => {
-      setRecordingPaused(false);
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.resume();
-      }
-      // Reconnect audio processor for WebSocket
-      if (sourceRef.current && processorRef.current) {
-        sourceRef.current.connect(processorRef.current);
-        processorRef.current.connect(audioContextRef.current.destination);
-      }
-      simulateRecitation();
-    };
+  const resumeRecording = () => {
+    setRecordingPaused(false);
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.resume();
+    }
+    // Reconnect audio processor for WebSocket
+    if (sourceRef.current && processorRef.current) {
+      sourceRef.current.connect(processorRef.current);
+      processorRef.current.connect(audioContextRef.current.destination);
+    }
+    simulateRecitation();
+  };
 
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
@@ -515,37 +560,86 @@ const sendAudioToBackend = async (data) => {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
-      // Simulate occasional mistakes (20% chance)
-    if (Math.random() < 0.2 && i > 0) {
-  const mistakeWord = `Mistake_${Math.floor(Math.random() * 100)}`;
-  setMistakes(prev => [...prev, {
-    ayah: currentAyahNum,
-    correct: 'CorrectWord',
-    user: mistakeWord
-  }]);
-  
-  // 🔊 Beep + Speak
-  if (beepSoundRef.current) beepSoundRef.current();
-  speakWord('الكلمة الخاطئة'); // Replace with actual Arabic word if needed
-}
+      // Simulate word-by-word recitation
+      const ayahData = ayahs.find(a => a.number === currentAyahNum);
+      if (ayahData && ayahData.words) {
+        let wordIndex = 0;
+        const wordInterval = setInterval(() => {
+          if (wordIndex >= ayahData.words.length || !recording || recordingPaused) {
+            clearInterval(wordInterval);
+            return;
+          }
 
+          // 20% chance of making a mistake
+          if (Math.random() < 0.2) {
+            handleIncorrectWord(ayahData.words[wordIndex]);
+          } else {
+            handleCorrectWord(ayahData.words[wordIndex]);
+          }
+
+          wordIndex++;
+        }, 1000);
+      }
 
       setProgress(Math.floor((i / ayahNumbers.length) * 100));
       i++;
-    }, 1500);
+    }, 3000);
     
     return () => clearInterval(interval);
   };
 
-//  useEffect(() => {
-//    if (!recording && !recordingPaused && mistakes.length === 0) {
-//      setMistakes([
-//        { user: 'النَّبَايِ' },
-//        { user: 'مُخْطَلِفُونَ' },
-//        { user: 'مِهَادُا' },
-//      ]);
-//    }
-//  }, [recording, recordingPaused]);
+  // Helper function to check if ayah is Bismillah (ayah 0)
+  const isBismillah = (ayah) => {
+    return ayah.number === 0 || (ayah.number === 1 && ayah.text.includes('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ'));
+  };
+
+  // Helper function to get Bismillah text
+  const getBismillahText = (ayah) => {
+    if (ayah.number === 0) {
+      return ayah.text;
+    }
+    // If it's ayah 1 and contains Bismillah, extract just the Bismillah part
+    if (ayah.text.includes('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ')) {
+      return 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
+    }
+    return ayah.text;
+  };
+
+  // Helper function to get remaining text after Bismillah
+  const getRemainingText = (ayah) => {
+    if (ayah.number === 0) return '';
+    if (ayah.text.includes('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ')) {
+      return ayah.text.replace('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ', '').trim();
+    }
+    return ayah.text;
+  };
+
+  // Render words with recitation tracking
+  const renderWords = (ayah, isBismillahAyah = false) => {
+    if (!ayah.words) return ayah.text;
+
+    return ayah.words.map((word, wordIndex) => {
+      const isRecited = recitedWords[ayah.number]?.includes(wordIndex);
+      const isIncorrect = incorrectWords[ayah.number]?.includes(wordIndex);
+      const isCurrent = currentWordIndex === wordIndex && currentAyah === ayah.number;
+
+      // Always show Bismillah words
+      const shouldShowWord = isRecited || !textHidden || isBismillahAyah;
+
+      return (
+        <span
+          key={`${ayah.number}-${wordIndex}`}
+          className={`word ${isRecited ? 'recited' : ''} ${isIncorrect ? 'incorrect' : ''} ${isCurrent ? 'current-word' : ''}`}
+          style={{
+            visibility: shouldShowWord ? 'visible' : 'hidden',
+            color: isIncorrect ? 'red' : 'inherit'
+          }}
+        >
+          {word}{' '}
+        </span>
+      );
+    });
+  };
 
   return (
     <div className="quran-app no-scroll">
@@ -556,7 +650,6 @@ const sendAudioToBackend = async (data) => {
         <aside className={`quran-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-header">
             <h3>Quran Recitation</h3>
-          
           </div>
 
           <div className="sidebar-content">
@@ -635,46 +728,94 @@ const sendAudioToBackend = async (data) => {
         {/* Main Content */}
         <main className={`quran-main ${sidebarOpen ? '' : 'centered'}`}>
           <div className="quran-controls">
-           
-         {/*  <div className="visibility-toggle-container">
+            <div className="visibility-toggle-container">
               <HideUnhideToggle
                 isHidden={textHidden}
                 onToggle={() => setTextHidden(!textHidden)}
               />
-            </div> */}
+            </div> 
           </div>
 
           {/* Quran Text Block */}
-        <div className={`quran-block ${textHidden ? 'text-hidden' : ''}`} ref={quranBlockRef}>
-  {ayahs.length > 0 ? (
-    <p
-      className="quran-text"
-      style={{
-        fontSize: `${quranFontSize}px`,
-        lineHeight: `${quranFontSize * 1.5}px`
-      }}
-    >
-      {ayahs.map(ayah => (
-        <span
-          key={ayah.number}
-          ref={el => ayahRefs.current[ayah.number] = el}
-          className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} ${currentAyah === ayah.number ? 'current' : ''} ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
-          style={{
-            filter: textHidden && !readAyahs.includes(ayah.number) ? 'blur(5px)' : 'none',
-            transition: 'filter 0.3s ease'
-          }}
-        >
-          {ayah.text}
-          <span className="ayah-number"> ۝ {ayah.number} </span>
-        </span>
-      ))}
-    </p>
-  ) : (
-    <div className="no-surah-selected">
-      <p>Loading Quran text...</p>
-    </div>
-  )}
-</div>
+          <div className="quran-block" ref={quranBlockRef}>
+            {ayahs.length > 0 ? (
+              <>
+                {/* Check if first ayah is Bismillah (ayah 0) or contains Bismillah */}
+                {ayahs.length > 0 && isBismillah(ayahs[0]) && (
+                  <div className="bismillah-line-container">
+                    <div
+                      ref={el => ayahRefs.current[ayahs[0].number] = el}
+                      className={`bismillah-line ${readAyahs.includes(ayahs[0].number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayahs[0].number) ? 'mistake' : ''} ${currentAyah === ayahs[0].number ? 'current' : ''} ${highlightedAyah === ayahs[0].number ? 'highlighted' : ''}`}
+                      style={{
+                        fontSize: `${quranFontSize}px`
+                      }}
+                    >
+                      {renderWords(ayahs[0], true)}
+                      <span className="ayah-number-container">
+                        <span className="ayah-number-circle" style={{ transform: `scale(${quranFontSize / 28})` }}> 
+                          <span className="ayah-number">{ayahs[0].number === 0 ? '0' : ayahs[0].number}</span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Regular ayahs - justified flow */}
+                <p
+                  className="quran-text"
+                  style={{
+                    fontSize: `${quranFontSize}px`,
+                    lineHeight: `${quranFontSize * 1.5}px`,
+                    textAlign: 'justify'
+                  }}
+                >
+                  {ayahs.map((ayah, index) => {
+                    // Skip if this is the first ayah and it's Bismillah (already rendered above)
+                    if (index === 0 && isBismillah(ayah)) {
+                      // If ayah 1 contains Bismillah, render the remaining text
+                      const remainingText = getRemainingText(ayah);
+                      if (!remainingText) return null;
+                      
+                      return (
+                        <span
+                          key={`${ayah.number}-remaining`}
+                          ref={el => ayahRefs.current[`${ayah.number}-remaining`] = el}
+                          className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} ${currentAyah === ayah.number ? 'current' : ''} ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
+                        >
+                          {renderWords(ayah)}
+                          <span className="ayah-number-container">
+                            <span className="ayah-number-circle">
+                              <span className="ayah-number">{ayah.number}</span>
+                            </span>
+                          </span>
+                        </span>
+                      );
+                    }
+                    
+                    return (
+                      <span
+                        key={ayah.number}
+                        ref={el => ayahRefs.current[ayah.number] = el}
+                        className={`ayah ${readAyahs.includes(ayah.number) ? 'read' : ''} ${mistakes.some(m => m.ayah === ayah.number) ? 'mistake' : ''} ${currentAyah === ayah.number ? 'current' : ''} ${highlightedAyah === ayah.number ? 'highlighted' : ''}`}
+                      >
+                        {renderWords(ayah)}
+                        <span className="ayah-number-container">
+                          <span className="ayah-number-circle" style={{ transform: `scale(${quranFontSize / 28})` }}>
+                            <span className="ayah-number">{ayah.number}</span>
+                          </span>
+                        </span>
+                      </span>
+                    );
+                  })}
+                </p>
+              </>
+            ) : (
+              <div className="no-surah-selected">
+                <p>Loading Quran text...</p>
+              </div>
+            )}
+          </div>
+
           {showRecitationControls && (
             <div className="recitation-controls-container">
               <div className="recitation-controls">
@@ -708,6 +849,4 @@ const sendAudioToBackend = async (data) => {
   );
 };
 
-
 export default Quran;
-
