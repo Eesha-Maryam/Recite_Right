@@ -19,7 +19,7 @@ import UserProfile from './pages/user-profile';
 import { ThemeProvider } from './ThemeContext';
 import PrivateRoute from './components/PrivateRoute'; 
 import { QuranFontProvider } from './contexts/FontSizeContext';
- 
+import MistakeLog from './pages/mistake-log';
 function App({ authenticated, setAuthenticated }) {
   return (
     <ThemeProvider>
@@ -48,6 +48,7 @@ function App({ authenticated, setAuthenticated }) {
             <Route path="/surah-selection" element={<PrivateRoute authenticated={authenticated}><SurahSelection /></PrivateRoute>} />
             <Route path="/quiz" element={<PrivateRoute authenticated={authenticated}><QuizPage /></PrivateRoute>} />
             <Route path="/user-profile" element={<PrivateRoute authenticated={authenticated}><UserProfile setAuthenticated={setAuthenticated} /></PrivateRoute>} />
+          <Route path="/mistake-log" element={<MistakeLog />} />
           </Routes>
         </div>
       </QuranFontProvider>

@@ -3,12 +3,27 @@ const { generateQuiz, submitQuiz, getUserQuizzes, getQuizById } = require('../se
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/response');
 const httpStatus = require('http-status');
+const Quiz = require('../models/quiz.model');
 
 const getQuiz = catchAsync(async (req, res) => {
   const { topic, numQuestions } = req.query;
+
+  // First, try to find existing active quiz
+  const existingQuiz = await Quiz.findOne({
+    createdBy: req.user.id,
+    title: `${topic} Quiz`,
+    status: 'active',
+  });
+
+  if (existingQuiz) {
+    return ApiResponse.success(res, existingQuiz, 'Existing quiz retrieved');
+  }
+
+  // Otherwise, generate new one
   const result = await generateQuiz(topic, numQuestions, req.user.id);
   return ApiResponse.success(res, result, 'Quiz generated successfully');
 });
+
 
 const submitQuizAnswers = catchAsync(async (req, res) => {
   const { quizId, answers } = req.body;

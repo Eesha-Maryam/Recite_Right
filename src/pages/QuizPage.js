@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // ✅ useRef added
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './QuizPage.css';
 
@@ -6,12 +6,12 @@ const QuizPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [quizConfig, setQuizConfig] = useState(() => {
-  return location.state || JSON.parse(localStorage.getItem('quizData')) || null;
-});
+    return location.state || JSON.parse(localStorage.getItem('quizData')) || null;
+  });
 
   const { selectedSurahs, testMode } = location.state || {};
 
-  const firstRender = useRef(true); // ✅ Reference to track first render
+  const firstRender = useRef(true);
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
   // Core quiz states
@@ -37,6 +37,22 @@ const QuizPage = () => {
   const [timer, setTimer] = useState(0);
   const [timeLimit, setTimeLimit] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
+
+  // Initialize question-specific states when questions load or change
+  useEffect(() => {
+    if (questions.length > 0 && currentQuestionIndex < questions.length) {
+      const currentQuestion = questions[currentQuestionIndex];
+      if (currentQuestion.type === 'word_arrangement') {
+        setAvailableWords([...currentQuestion.options]);
+        setSelectedWords([]);
+      } else {
+        // Reset other question-specific states
+        setUserRecitation('');
+        setSurahGuess('');
+        setAyahGuess('');
+      }
+    }
+  }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
     if (testMode === 'easy') setTimeLimit(300);
@@ -64,11 +80,10 @@ const QuizPage = () => {
   }, [timerActive, quizCompleted, timeLimit]);
 
   useEffect(() => {
- if (!quizConfig || !selectedSurahs || selectedSurahs.length === 0) {
-  navigate('/');
-  return;
-}
-
+    if (!quizConfig || !selectedSurahs || selectedSurahs.length === 0) {
+      navigate('/');
+      return;
+    }
 
     const fetchQuestions = async () => {
       try {
@@ -76,7 +91,6 @@ const QuizPage = () => {
         const token = localStorage.getItem('accessToken');
         const surahNames = selectedSurahs.map(s => s.name).join(',');
         const numQuestions = 10;
-
 
         const response = await fetch(`${baseUrl}/v1/quiz?topic=${encodeURIComponent(surahNames)}&numQuestions=${numQuestions}`, {
           method: 'GET',
@@ -93,9 +107,20 @@ const QuizPage = () => {
 
         setQuestions(data.questions);
         if (data.id) setQuizId(data.id);
+        console.log('Quiz ID:', data._id); // This should stay the same across renders
+
+        // Initialize states for the first question
+        if (data.questions.length > 0) {
+          const firstQuestion = data.questions[0];
+          if (firstQuestion.type === 'word_arrangement') {
+            setAvailableWords([...firstQuestion.options]);
+            setSelectedWords([]);
+          }
+        }
 
         setDataLoaded(true);
-        setTimerActive(true);
+        // Small delay to ensure all states are properly initialized
+        setTimeout(() => setTimerActive(true), 100);
         setLoading(false);
 
       } catch (err) {
@@ -106,10 +131,6 @@ const QuizPage = () => {
 
     fetchQuestions();
   }, [selectedSurahs, testMode, navigate]);
-
-
-
-
 
   const submitQuizResult = async () => {
     try {
@@ -145,6 +166,7 @@ const QuizPage = () => {
   };
 
   const handleAnswerSubmit = (answer) => {
+    if (quizCompleted || !questions[currentQuestionIndex]) return;
     if (answer === undefined || answer === null || (Array.isArray(answer) && answer.length === 0)) {
       console.warn('Blocked accidental or empty auto-submit.');
       return;

@@ -236,20 +236,35 @@ const HomePage = () => {
                       {isResuming ? 'Loading...' : 'Resume'}
                     </button>
                   )}
-                  {item.content === "progress" && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div className="mistakes-bar-container" style={{ width: '100%', maxWidth: '200px' }}>
-                        <div className="mistakes-bar">
-                          <div className="mistakes-progress" style={{ width: '80%' }}></div>
-                        </div>
-                        <div className="mistakes-count" style={{ 
-                          fontSize: isVerySmallMobile ? '10px' : isMobile ? '11px' : '12px',
-                          marginTop: '4px',
-                          textAlign: 'center'
-                        }}>24/30</div>
-                      </div>
-                    </div>
-                  )}
+             {item.content === "progress" && (
+  <div 
+    className="mistakes-bar-container" 
+    style={{
+      width: '100%',
+      maxWidth: '200px',
+      position: 'relative',
+      paddingBottom: '16px',
+      cursor: 'pointer'
+    }}
+    onClick={() => navigate('/mistake-log')}
+  >
+    <div className="mistakes-bar">
+      <div className="mistakes-progress" style={{ width: '0%' }}></div>
+    </div>
+    <div className="mistakes-count" style={{
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      marginTop: '0.5px',
+      fontSize: isVerySmallMobile ? '10px' : isMobile ? '11px' : '12px',
+      color: '#333'
+    }}>
+      0/0
+    </div>
+  </div>
+)}
+
+
                   {item.content === "percentage" && (
                     <p style={{
                       color: '#97B469',
@@ -258,16 +273,14 @@ const HomePage = () => {
                       margin: '0 auto'
                     }}>%</p>
                   )}
-                  {item.content === "days" && (
-                    <p style={{
-                      color: '#97B469',
-                      fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
-                      textAlign: 'center',
-                      margin: '0 auto'
-                    }}>
-                      {user?.streak ?? 0} Days
-                    </p>
-                  )}
+                {item.content === "days" && (
+  <div className="streak-wrapper">
+    <span className="streak-number">{user?.streak ?? 0}</span>
+    <span className="streak-label">Days</span>
+  </div>
+  
+)}
+
                 </div>
               </div>
             ))}

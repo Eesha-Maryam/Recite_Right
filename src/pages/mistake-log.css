@@ -1,0 +1,62 @@
+.mistake-log-page {
+  min-height: 100vh;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.mistake-log-header {
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  padding-right:16px;
+  border-bottom: 3px solid #97B469;
+  background-color: #ffffff;
+  color: #97B469;
+  gap: 8px;
+}
+
+.back-arrow {
+  cursor: pointer;
+  font-size: 24px;
+  color: #97B469;
+}
+
+.mistake-log-content {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-mistake-text {
+  font-size: 20px;
+  font-weight: 500;
+  color: #666;
+}
+
+body.dark-mode .mistake-log-page {
+  background-color: #1e1e1e;
+}
+
+
+
+body.dark-mode .mistake-log-header {
+  background-color: #2b2b2b;
+  color: #97B469;
+  border-color: #97B469;
+}
+
+.back-arrow {
+  cursor: pointer;
+  font-size: 24px;
+  color: #97B469;
+  margin-left: 8px; /* <-- add this line */
+}
+
+
+
+
+body.dark-mode .no-mistake-text {
+  color: #cccccc;
+}
