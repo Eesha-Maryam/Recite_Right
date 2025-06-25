@@ -45,37 +45,60 @@ const Dashboard = () => {
     fetchQuizList();
   }, []);
 
-  // Map to SVG bar attributes
-  const barWidth = 40;
-  const barSpacing = 100;
-  const baseX = 120;
+    // Bar chart configuration
+  const baseX = 80;
   const baseY = 220;
   const chartHeight = 200;
 
-  const bars = quizList
-    .filter(quiz =>
-      quiz.attempts &&
-      quiz.attempts.length > 0 &&
-      new Date(quiz.attempts[0].completedAt).toLocaleString('default', { month: 'long' }) === selectedMonth
-    )
-    .map((quiz, index) => {
-      const attempt = quiz.attempts[0];
-      const totalQuestions = quiz.questions.length || 1;
-      const score = attempt.score || 0;
-      const percentageScore = Math.round((score / totalQuestions) * 100);
+  // Filter quizzes by selected month
+  const filteredQuizzes = quizList
+    .filter(
+      (quiz) =>
+        quiz.attempts &&
+        quiz.attempts.length > 0 &&
+        new Date(quiz.attempts[0].completedAt).toLocaleString('default', { month: 'long' }) === selectedMonth
+    );
 
-      const barHeight = (percentageScore / 100) * chartHeight;
-      const y = baseY - barHeight;
-      const x = baseX + index * barSpacing;
+  const barCount = filteredQuizzes.length;
+  const chartWidth = 680; // total drawable width (760 - 80)
+  const maxBarWidth = 40;
+  const spacing = chartWidth / Math.max(barCount, 1); // spacing per bar
+  const barWidth = Math.min(spacing * 0.6, maxBarWidth); // limit bar width to avoid being too fat
 
-      return (
-        <g key={quiz._id}>
-          <rect x={x} y={y} width={barWidth} height={barHeight} className="bar" />
-          <text x={x - 5} y={y - 5} className="score-label">{percentageScore}%</text>
-          <text x={x + 5} y={240} className="label">{quiz.title}</text>
-        </g>
-      );
-    });
+  const bars = filteredQuizzes.map((quiz, index) => {
+  const attempt = quiz.attempts[0];
+  const totalQuestions = quiz.questions.length || 1;
+  const score = attempt.score || 0;
+  const percentageScore = Math.round((score / totalQuestions) * 100);
+
+  const barHeight = (percentageScore / 100) * chartHeight;
+  const y = baseY - barHeight;
+  const x = baseX + index * spacing + (spacing - barWidth) / 2;
+
+  const completedDate = new Date(attempt.completedAt);
+  const day = completedDate.getDate();
+  const year = completedDate.getFullYear().toString().slice(-2); // get last 2 digits
+  const formattedDate = `${day}/${year}`; // e.g. 25/25
+
+  return (
+    <g key={quiz._id}>
+      {/* Bar */}
+      <rect x={x} y={y} width={barWidth} height={barHeight} className="bar" />
+
+      {/* Percentage on top */}
+      <text x={x + barWidth / 2} y={y - 8} textAnchor="middle" className="score-label">
+        {percentageScore}%
+      </text>
+
+      {/* Date below */}
+      <text x={x + barWidth / 2} y={240} textAnchor="middle" className="label">
+        {formattedDate}
+      </text>
+    </g>
+  );
+});
+
+
 
   return (
     <div className="dashboard-container">
