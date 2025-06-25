@@ -673,12 +673,12 @@ body.dark-mode .search-result-item:hover {
 }
 
 .streak-label {
-  font-size: 16px;
+  font-size: 12px;
   color: #97B469;
   font-weight: 400;
   position: absolute;
   top: 70%;
-  transform: translateY(-50%);
+  transform: translateY(-23%);
   left: 100%; /* right next to number */
 
 }

@@ -209,7 +209,7 @@ const HomePage = () => {
                 }}
               >
                 <h3 style={{
-                  fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : isTablet ? '14px' : '16px',
+                  fontSize: isVerySmallMobile ? '13px' : isMobile ? '15px' : isTablet ? '16px' : '18px',
                   textAlign: item.align,
                   marginBottom: '12px'
                 }}>{item.title}</h3>

@@ -85,7 +85,7 @@ const FeedbackPage = () => {
 
       <main className="main-content">
         <p className="intro-text">
-          Please select the type of feedback you'd like to share from the dropdown below, and then describe your feedback in the text box. Once done, click <span className="intro-text-bold">"Submit Feedback"</span> to send it to us.
+          Choose a feedback type, write your message, and hit <span className="intro-text-bold">"Submit"</span> — we’d love to hear from you!
         </p>
         <div className="feedback-blocks">
           {/* Feedback Form Block */}
