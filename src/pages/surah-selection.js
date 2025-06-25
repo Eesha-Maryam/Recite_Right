@@ -274,13 +274,17 @@ name: transliteratedSurahs[parseInt(number)],
           <div className="surah-list-block">
             <div className="search-header">
               <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search Surah..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                disabled={fullQuranChecked}
-              />
+            <input
+  type="text"
+  placeholder="Search Surah..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  disabled={fullQuranChecked}
+  style={{
+    paddingLeft: '18px', 
+  }}
+/>
+
             </div>
 
             <div className="surah-list">

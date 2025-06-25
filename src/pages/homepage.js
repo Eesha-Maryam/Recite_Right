@@ -18,11 +18,10 @@ const HomePage = () => {
     return stored ? JSON.parse(stored) : null;
   });
   const [sortOrder, setSortOrder] = useState('ASCENDING');
+  const [isResuming, setIsResuming] = useState(false);
   const baseUrl = process.env.REACT_APP_BASE_URL;
   const [surahTiles, setSurahTiles] = useState([]);
 
-
-  // Add this function
   const getSortedTiles = () => {
     return [...surahTiles].sort((a, b) => {
       const idA = parseInt(a.id);
@@ -30,6 +29,42 @@ const HomePage = () => {
       return sortOrder === 'ASCENDING' ? idA - idB : idB - idA;
     });
   };
+
+ const resumeSession = async () => {
+  setIsResuming(true);
+  try {
+    let session = null;
+    
+    // Check both backend and localStorage
+    try {
+      const res = await fetch(`${baseUrl}/api/recitation/last`);
+      if (res.ok) session = await res.json();
+    } catch (err) {
+      console.log('Using localStorage fallback');
+    }
+
+    if (!session) {
+      const local = localStorage.getItem('lastRecitation');
+      if (local) session = JSON.parse(local);
+    }
+
+    if (session?.surahId) {
+      // DEBUG: Check what's being loaded
+      console.log('Resuming session:', session);
+      
+      // Use currentAyah if available, otherwise startAyah
+      const ayahToResume = session.currentAyah || session.startAyah || 1;
+      navigate(`/quran?surahId=${session.surahId}&startAyah=${ayahToResume}`);
+    } else {
+      alert('No session found. Please start a new recitation.');
+    }
+  } catch (error) {
+    console.error('Resume failed:', error);
+    alert('Failed to resume. Please try again.');
+  } finally {
+    setIsResuming(false);
+  }
+};
 
   // Fetch API on mount
   useEffect(() => {
@@ -47,7 +82,7 @@ const HomePage = () => {
       .catch((err) => {
         console.error('Error fetching Surahs:', err);
       });
-  }, []);
+  }, [baseUrl]);
 
   useEffect(() => {
     document.body.classList.add('homepage');
@@ -101,7 +136,7 @@ const HomePage = () => {
           <div className="search-container">
             <input 
               type="text" 
-              placeholder="What do you want to read?"
+              placeholder="Search the Surah..."
               value={searchTerm}
               onChange={(e) => {
                 const term = e.target.value;
@@ -187,34 +222,19 @@ const HomePage = () => {
                   justifyContent: 'flex-end'
                 }}>
                   {item.content === "resume" && (
-                  <button 
-                    className="resume-button"
-                    style={{
-                      borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
-                      padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
-                      fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
-                      alignSelf: 'flex-start'
-                    }}
-                    onClick={async () => {
-                      let session = null;
-                      try {
-                        const res = await fetch(`${baseUrl}/api/recitation/last`);
-                        if (!res.ok) throw new Error('Backend down');
-                        session = await res.json();
-                      } catch (err) {
-                        const local = localStorage.getItem('lastRecitation');
-                        if (local) session = JSON.parse(local);
-                      }
-
-                      if (session?.surahId) {
-                        navigate(`/quran?surahId=${session.surahId}&startAyah=${session.startAyah}`);
-                      } else {
-                        alert('No recitation session found.');
-                      }
-                    }}
-                  >
-                    Resume
-                  </button>
+                    <button 
+                      className="resume-button"
+                      style={{
+                        borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
+                        padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
+                        fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
+                        alignSelf: 'flex-start'
+                      }}
+                      onClick={resumeSession}
+                      disabled={isResuming}
+                    >
+                      {isResuming ? 'Loading...' : 'Resume'}
+                    </button>
                   )}
                   {item.content === "progress" && (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -272,14 +292,13 @@ const HomePage = () => {
                 fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px',
                 border: '1px solid #97B469',
                 borderRadius: '4px',
-                padding: '4px 8px',
                 backgroundColor: 'transparent',
                 cursor: 'pointer',
                 outline: 'none'
               }}
             >
-              <option value="ASCENDING">Ascending (78-114)</option>
-              <option value="DESCENDING">Descending (114-78)</option>
+              <option value="ASCENDING">Ascending</option>
+              <option value="DESCENDING">Descending</option>
             </select>
           </div>
         </div>

@@ -50,15 +50,7 @@
   gap: 10px;
 }
 
-.option-btn {
-  padding: 10px 15px;
-  background-color: #d7e9b3;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
-  color: #222;
-}
+
 
 .option-btn:hover {
   background-color: var(--olive);
@@ -213,12 +205,31 @@
   color: #ffffff;
 }
 
+.option-btn {
+  padding: 12px 16px;
+  background-color: #d7e9b3;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+  color: #222;
+  font-size: 18px; /* larger and clearer */
+  font-weight: 600; /* bolder for clarity */
+  line-height: 1.6; /* improves readability */
+  direction: rtl; /* for Arabic support (optional) */
+  text-align: center; /* makes Arabic better aligned (optional) */
+}
+
 .dark-mode .option-btn {
   background-color: var(--olive-primary);
   color: #ffffff;
-  font-weight:500;
   font-size: 18px;
+  font-weight: 600;
+  line-height: 1.6;
+  direction: rtl;
+  text-align: center;
 }
+
 
 .dark-mode .option-btn:hover {
   background-color: var(--olive-dark);

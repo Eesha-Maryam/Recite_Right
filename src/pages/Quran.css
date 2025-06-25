@@ -921,11 +921,6 @@
   cursor: not-allowed;
 }
 
-
-
-
-
-
 .bismillah-line-container {
   width: 100%;
   text-align: center; /* align like ayahs */
@@ -936,14 +931,15 @@
 
 .bismillah-line {
     font-family: 'Scheherazade New', serif;
-    font-size: 2.4rem;
+    font-size: 2.5rem;
+    font-weight: bolder;
   display: block;
   color: #333333;
   line-height: 2.8rem; /* match ayah line height */
   direction: rtl;
   text-align: center; /* match ayah alignment */
   margin: 0;
-  padding-bottom: 0.5rem; /* minimal vertical spacing */
+  padding-bottom: 0.9rem; /* minimal vertical spacing */
 }
 
 

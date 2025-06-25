@@ -40,8 +40,10 @@ const getMutashabihat = () => {
     const surahDir = path.join(baseDir, 'surah');
 
     const lines = fs.readFileSync(path.join(baseDir, '30.txt'), 'utf-8')
-        .split('\n')
-        .filter(line => line.trim());
+    .replace(/\r\n/g, '\n')            // Normalize line endings for Windows
+    .split('\n')                       // Split by newline
+    .filter(line => line.trim() !== ''); // Filter out empty lines
+
 
     const padSurahNumber = (num) => num.toString().padStart(3, '0');
 

@@ -40,6 +40,7 @@ const ToggleWithDescription = ({ description, isOn, onToggle, option1, option2 }
   );
 };
 
+
 const HideUnhideToggle = ({ isHidden, onToggle }) => {
   return (
     <div>
@@ -52,6 +53,8 @@ const HideUnhideToggle = ({ isHidden, onToggle }) => {
     </div>
   );
 };
+
+
 
 function useQuery() {
   const location = useLocation();
@@ -83,7 +86,7 @@ const Quran = () => {
   const [recitedWords, setRecitedWords] = useState({}); // Track recited words by ayah
   const [incorrectWords, setIncorrectWords] = useState({}); // Track incorrect words by ayah
   const [currentWordIndex, setCurrentWordIndex] = useState(0); // Track current word being recited
-
+ const [showHideToggle, setShowHideToggle] = useState(true);
   const recordingIntervalRef = useRef(null);
   const wsRef = useRef(null);
   const sourceRef = useRef(null);
@@ -100,6 +103,7 @@ const Quran = () => {
   const audioContextRef = useRef(null);
   const beepSoundRef = useRef(null);
 
+  
   // Dummy Quran Data (expanded for Juz 30)
   const dummyQuranData = {
     78: Array.from({ length: 40 }, (_, i) => ({
@@ -151,6 +155,30 @@ const Quran = () => {
     fetchSurahList();
   }, []);
 
+
+
+ useEffect(() => {
+  const saveSession = () => {
+    if (selectedSurah && startAyah) {
+      const session = {
+        surahId: selectedSurah.number,
+        startAyah,
+        currentAyah,
+        textHidden, // This will save whatever the current state is
+        timestamp: Date.now()
+      };
+      localStorage.setItem('lastRecitation', JSON.stringify(session));
+    }
+  };
+
+  const interval = setInterval(saveSession, 5000);
+  return () => clearInterval(interval);
+}, [selectedSurah, startAyah, currentAyah, textHidden]);
+
+
+
+
+
   // Initialize audio context and beep sound
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -164,19 +192,32 @@ const Quran = () => {
   }, []);
 
   const location = useLocation();
-  useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const surahId = query.get('surahId');
+ // Replace your current initialization useEffect with this:
+useEffect(() => {
+  const query = new URLSearchParams(location.search);
+  const surahId = query.get('surahId');
+  const startAyahParam = query.get('startAyah');
 
-    if (surahList.length && surahId) {
-      const matchedSurah = surahList.find(s => s.number === parseInt(surahId));
-      if (matchedSurah) {
-        setSelectedSurah(matchedSurah);
-        setStartAyah('1');
-        scrollToAyah(1);
-      }
+  if (surahList.length && surahId) {
+    const matchedSurah = surahList.find(s => s.number === parseInt(surahId));
+    if (matchedSurah) {
+      setSelectedSurah(matchedSurah);
+      
+      // Always use the ayah from URL parameters for resume
+      const ayahToStart = startAyahParam || '1';
+      setStartAyah(ayahToStart);
+      setCurrentAyah(parseInt(ayahToStart));
+      
+      // Scroll after a small delay to ensure DOM is ready
+      setTimeout(() => {
+        scrollToAyah(parseInt(ayahToStart));
+        setHighlightedAyah(parseInt(ayahToStart));
+      }, 300);
     }
-  }, [location.search, surahList]);
+  }
+}, [location.search, surahList]);
+
+
 
   function createBeepSound(audioContext, frequency, duration) {
     return function() {
@@ -262,24 +303,39 @@ const Quran = () => {
   }, []);
 
   const startRecitation = () => {
-    if (!selectedSurah) return;
+  // Add validation for ayah number
+  const ayahNum = parseInt(startAyah);
+  if (ayahNum <= 0) {
+    alert("Ayah number must be at least 1");
+    return;
+  }
+  
+  const selectedSurahAyahs = ayahs.length;
+  if (ayahNum > selectedSurahAyahs) {
+    alert(`Selected surah only has ${selectedSurahAyahs} ayahs`);
+    return;
+  }
 
-    let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
-    setStartAyah(ayahToStart);
+  if (!selectedSurah) return;
 
-    // Reset recitation tracking
-    setRecitedWords({});
-    setIncorrectWords({});
-    setCurrentWordIndex(0);
+  let ayahToStart = startAyah && parseInt(startAyah) > 0 ? startAyah : '1';
+  setStartAyah(ayahToStart);
+  setCurrentAyah(parseInt(ayahToStart));
 
-    scrollToAyah(startAyah);
-    setReadyToRecite(false);
-    setSidebarOpen(false);
-    setShowRecitationControls(true);
-    startRecording();
-    startWebSocketConnection();
-  };
+  // Reset recitation tracking
+  setRecitedWords({});
+  setIncorrectWords({});
+  setCurrentWordIndex(0);
 
+  scrollToAyah(ayahToStart);
+  setReadyToRecite(false);
+  setSidebarOpen(false);
+  setShowRecitationControls(true);
+  setShowHideToggle(false);
+  
+  startRecording();
+  startWebSocketConnection();
+};
   const startWebSocketConnection = () => {
     if (!selectedSurah || !startAyah) {
       alert("Please select both surah and ayah");
@@ -376,6 +432,8 @@ const Quran = () => {
     setRecordingPaused(false);
     setShowRecitationControls(false);
     setSidebarOpen(true);
+    setShowHideToggle(true); // Show the toggle when recitation stops
+
 
     // Cleanup WebSocket
     if (wsRef.current) {
@@ -506,29 +564,37 @@ const Quran = () => {
     }
   };
 
-  const pauseRecording = () => {
-    setRecordingPaused(true);
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.pause();
-    }
-    if (processorRef.current) {
-      processorRef.current.disconnect();
-    }
+const pauseRecording = () => {
+  setRecordingPaused(true);
+  // Explicit save on pause
+  const session = {
+    surahId: selectedSurah.number,
+    startAyah,
+    currentAyah,
+    textHidden, // Save current visibility state
+    timestamp: Date.now()
   };
+  localStorage.setItem('lastRecitation', JSON.stringify(session));
+};
 
-  const resumeRecording = () => {
-    setRecordingPaused(false);
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.resume();
-    }
-    // Reconnect audio processor for WebSocket
-    if (sourceRef.current && processorRef.current) {
-      sourceRef.current.connect(processorRef.current);
-      processorRef.current.connect(audioContextRef.current.destination);
-    }
-    simulateRecitation();
-  };
 
+ const resumeRecording = () => {
+  setRecordingPaused(false);
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.resume();
+  }
+  // Reconnect audio processor for WebSocket
+  if (sourceRef.current && processorRef.current) {
+    sourceRef.current.connect(processorRef.current);
+    processorRef.current.connect(audioContextRef.current.destination);
+  }
+  
+  // Scroll to current ayah when resuming
+  scrollToAyah(currentAyah);
+  setHighlightedAyah(currentAyah);
+  
+  simulateRecitation();
+};
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
       setAudioChunks(prev => [...prev, event.data]);
@@ -686,24 +752,31 @@ const Quran = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Start Ayah</label>
-              <input
-                type="number"
-                min="1"
-                value={startAyah}
-                onChange={(e) => setStartAyah(e.target.value)}
-                placeholder="Enter ayah number"
-                className="ayah-input"
-              />
-              <button 
-                className={`start-recitation-btn ${isReciteDisabled ? 'disabled' : ''}`}
-                onClick={startRecitation}
-                disabled={isReciteDisabled}
-              >
-                Start Recitation
-              </button>
-            </div>
+           <div className="form-group">
+  <label>Start Ayah</label>
+  <input
+    type="number"
+    min="1"
+    max={ayahs.length} // Set max to number of ayahs in selected surah
+    value={startAyah}
+    onChange={(e) => {
+      const value = e.target.value;
+      // Only update if value is empty or a valid number >= 1
+      if (value === '' || (parseInt(value) > 0 && parseInt(value) <= ayahs.length)) {
+        setStartAyah(value);
+      }
+    }}
+    placeholder="Enter ayah number"
+    className="ayah-input"
+  />
+  <button 
+    className={`start-recitation-btn ${isReciteDisabled ? 'disabled' : ''}`}
+    onClick={startRecitation}
+    disabled={isReciteDisabled}
+  >
+    Start Recitation
+  </button>
+</div>
 
             <div className="recitation-summary">
               <h4>Recitation Progress</h4>
@@ -735,35 +808,40 @@ const Quran = () => {
         {/* Main Content */}
         <main className={`quran-main ${sidebarOpen ? '' : 'centered'}`}>
           <div className="quran-controls">
-            <div className="visibility-toggle-container">
-              <HideUnhideToggle
-                isHidden={textHidden}
-                onToggle={() => setTextHidden(!textHidden)}
-              />
-            </div> 
+           {showHideToggle && (
+  <div className="visibility-toggle-container">
+    <HideUnhideToggle
+      isHidden={textHidden}
+      onToggle={() => setTextHidden(!textHidden)}
+    />
+  </div>
+)}
           </div>
+
+          
+
+
+
+
+
 
 {/* Quran Text Block */}
 <div className="quran-block" ref={quranBlockRef}>
   {ayahs.length > 0 ? (
     <>
       {/* Bismillah line (if exists in first ayah) */}
-     {isBismillah(ayahs[0]) && (
+  {isBismillah(ayahs[0]) && (
   <div className="bismillah-line-container">
     <div
       ref={el => ayahRefs.current[ayahs[0].number] = el}
-   className={`bismillah-line  ${readAyahs.includes(ayahs[0].number) ? 'read' : ''} ${highlightedAyah === ayahs[0].number ? 'highlighted' : ''}`}
+      className={`bismillah-line  ${readAyahs.includes(ayahs[0].number) ? 'read' : ''} ${highlightedAyah === ayahs[0].number ? 'highlighted' : ''}`}
       style={{ fontSize: `${quranFontSize}px` }}
     >
       {renderWords(ayahs[0], true)}
-      <span className="ayah-number-circle">
-        <span className="ayah-number">
-          {ayahs[0].number === 0 ? '' : ayahs[0].number}
-        </span>
-      </span>
     </div>
   </div>
-      )}
+)}
+
 
       {/* Remaining Ayahs */}
       <p
