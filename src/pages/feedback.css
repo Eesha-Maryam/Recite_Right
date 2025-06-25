@@ -19,6 +19,14 @@
   color: #333;
 }
 
+.intro-text-bold {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 40px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
 /* Block Styling */
 .block {
   background: white;
