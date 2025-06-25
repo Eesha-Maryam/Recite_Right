@@ -80,6 +80,40 @@ const MutashabihatDetail = () => {
     }
   };
 
+  const highlightSimilarWords = (sourceText, matchText) => {
+  try {
+    const cleanSourceWords = sourceText
+      .replace(/[^\u0600-\u06FF\s]/g, '') // Arabic only
+      .split(/\s+/)
+      .filter(Boolean);
+
+    const cleanMatchWords = matchText
+      .replace(/[^\u0600-\u06FF\s]/g, '')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    const commonWords = new Set(cleanSourceWords.filter(word => cleanMatchWords.includes(word)));
+
+    const highlightWords = (text) => {
+      return text.replace(
+        /[\u0600-\u06FF]+/g,
+        word => commonWords.has(word) ? `<span class="highlight-word">${word}</span>` : word
+      );
+    };
+
+    return {
+      source: highlightWords(sourceText),
+      match: highlightWords(matchText),
+    };
+  } catch (err) {
+    console.error('Highlighting error:', err);
+    return {
+      source: sourceText,
+      match: matchText,
+    };
+  }
+};
+
   const renderAyahText = (text) => {
     if (!text) return <span className="text-missing">No text available</span>;
     

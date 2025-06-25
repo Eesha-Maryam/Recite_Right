@@ -4,28 +4,20 @@ const createFeedback = async ({ type, text, rating, user }) => {
   return await Feedback.create({ type, text, rating, user });
 };
 
+// In feedback.service.js
 const getAllFeedbacks = async () => {
   const feedbacks = await Feedback.find()
     .populate('user', 'name email avatar')
     .sort({ createdAt: -1 });
 
-  if (!feedbacks) {
-    throw new Error('No feedbacks found');
-  }
-
-  if (!Array.isArray(feedbacks)) {
-    throw new Error('Feedbacks is not an array');
-  }
-
-  // Defensive: ensure user exists on each feedback (in case populate fails)
-  feedbacks.forEach(fb => {
-    if (!fb.user) {
-      // Assign a default user object to prevent errors on frontend
-      fb.user = { name: 'Anonymous', email: '' };
+  return feedbacks.map(fb => ({
+    ...fb.toObject(),
+    user: {
+      name: fb.user?.name || 'Anonymous',
+      email: fb.user?.email || '',
+      avatar: fb.user?.avatar || '/default-avatar.png' // Ensure default avatar
     }
-  });
-
-  return feedbacks;
+  }));
 };
 
 

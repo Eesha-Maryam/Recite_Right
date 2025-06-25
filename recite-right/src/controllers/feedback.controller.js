@@ -21,26 +21,20 @@ const createFeedback = async (req, res) => {
   }
 };
 
+// In feedback.controller.js
 const getFeedbacks = async (req, res) => {
   try {
     const feedbacks = await feedbackService.getAllFeedbacks();
-
-    const feedbacksJson = feedbacks.map(fb => {
-      return {
-        id: fb._id.toString(),
-        type: fb.type,
-        text: fb.text,
-        rating: fb.rating,
-        createdAt: fb.createdAt,
+    res.status(200).json({ 
+      success: true, 
+      data: feedbacks.map(fb => ({
+        ...fb,
         user: {
-          name: fb.user.name || 'Anonymous',
-          email: fb.user.email || '',
-          avatar: fb.user.avatar,
+          ...fb.user,
+          avatar: fb.user.avatar || `${req.protocol}://${req.get('host')}/default-avatar.png`
         }
-      };
+      }))
     });
-
-    res.status(200).json({ success: true, data: feedbacksJson });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
