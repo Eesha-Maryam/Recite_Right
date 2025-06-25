@@ -17,23 +17,23 @@ const FeedbackPage = () => {
 
   // Submit feedback to backend
   const submitFeedback = async (feedbackData) => {
-  try {
-    const response = 
-    await axios.post('http://localhost:5000/v1/feedback', feedbackData,
+    try {
+      const response =
+        await axios.post('http://localhost:5000/v1/feedback', feedbackData,
 
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    setMessage(response.data.message);
-  } catch (error) {
-    console.error('Error submitting feedback:', error?.response?.data?.error);
-    setMessage('Submission failed');
-  }
-};
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      setMessage(response.data.message);
+    } catch (error) {
+      console.error('Error submitting feedback:', error?.response?.data?.error);
+      setMessage('Submission failed');
+    }
+  };
 
 
   // Fetch all feedbacks from backend
@@ -85,9 +85,8 @@ const FeedbackPage = () => {
 
       <main className="main-content">
         <p className="intro-text">
-          Please select the type of feedback you'd like to share from the dropdown below, and then describe your feedback in the text box. Once done, click 'Submit Feedback' to send it to us.
+          Please select the type of feedback you'd like to share from the dropdown below, and then describe your feedback in the text box. Once done, click <span className="intro-text-bold">"Submit Feedback"</span> to send it to us.
         </p>
-
         <div className="feedback-blocks">
           {/* Feedback Form Block */}
           <section className="feedback-section block">
@@ -154,29 +153,29 @@ const FeedbackPage = () => {
                 <p>No feedback yet.</p>
               ) : (
                 feedbackList.map((item, index) => (
-  <article key={index} className="feedback-item">
-    <div className="feedback-item-header">
-      <div className="user-info">
-        <img
-          src={item.user?.avatar || '/default-avatar.png'}
-          alt="avatar"
-          className="avatar"
-        />
-        <span className="user-name">{item.user?.name || 'Anonymous'}</span>
-      </div>
-      <h3 className="feedback-type">{item.type}</h3>
-    </div>
-    <div className="stars-display">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <i
-          key={star}
-          className={`fa-star ${item.rating >= star ? 'fas' : 'far'}`}
-        ></i>
-      ))}
-      <span className="rating-score">{item.rating}/5</span>
-    </div>
-    <p className="">{item.text}</p>
-  </article>
+                  <article key={index} className="feedback-item">
+                    <div className="feedback-item-header">
+                      <div className="user-info">
+                        <img
+                          src={item.user?.avatar || '/default-avatar.png'}
+                          alt="avatar"
+                          className="avatar"
+                        />
+                        <span className="user-name">{item.user?.name || 'Anonymous'}</span>
+                      </div>
+                      <h3 className="feedback-type">{item.type}</h3>
+                    </div>
+                    <div className="stars-display">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <i
+                          key={star}
+                          className={`fa-star ${item.rating >= star ? 'fas' : 'far'}`}
+                        ></i>
+                      ))}
+                      <span className="rating-score">{item.rating}/5</span>
+                    </div>
+                    <p className="">{item.text}</p>
+                  </article>
 
                 ))
               )}
