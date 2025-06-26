@@ -62,7 +62,7 @@ const MistakeLog = () => {
         >
           arrow_back
         </span>
-        <h2>Mistake Log</h2>
+        <h2>Mistakes Log</h2>
       </header>
 
       <div className="mistake-log-content">

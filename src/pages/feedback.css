@@ -78,7 +78,7 @@
 
 .submit-button {
   padding: 10px 20px; /* match text input height */
-  height: 42px;        /* optional for perfect alignment */
+  height: 38px;        /* optional for perfect alignment */
   background-color: #97B465;
   color: white;
   border: none;
@@ -148,7 +148,7 @@
 }
 
 .feedback-user {
-  font-size: 14px;
+  font-size: 15px;
   color: #777;
 }
 
@@ -177,6 +177,10 @@
 }
 
 .dark-mode .intro-text {
+  color: #cccccc;
+}
+
+.dark-mode .intro-text-bold {
   color: #cccccc;
 }
 

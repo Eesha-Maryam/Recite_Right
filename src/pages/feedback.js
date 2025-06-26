@@ -174,7 +174,7 @@ const FeedbackPage = () => {
                       ))}
                       <span className="rating-score">{item.rating}/5</span>
                     </div>
-                    <p className="">{item.text}</p>
+                    <p className="feedback-user">{item.text}</p>
                   </article>
 
                 ))
