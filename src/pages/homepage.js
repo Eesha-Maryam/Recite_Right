@@ -196,7 +196,7 @@ const HomePage = () => {
           <div className="grid-container">
             {[
               { title: "Continue where you left off", content: "resume", align: "left" },
-              { title: "Correct Yours", content: "progress", align: "center" },
+              { title: "Correct Your", content: "progress", align: "center" },
               { title: "Progress Rate", content: "percentage", align: "center" },
               { title: "Streaks", content: "days", align: "center" }
             ].map((item, index) => (
