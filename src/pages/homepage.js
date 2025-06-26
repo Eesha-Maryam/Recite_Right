@@ -196,7 +196,7 @@ const HomePage = () => {
           <div className="grid-container">
             {[
               { title: "Continue where you left off", content: "resume", align: "left" },
-              { title: "Correct Your", content: "progress", align: "center" },
+              { title: "Review & Fix Your Recitation", content: "progress", align: "center" },
               { title: "Progress Rate", content: "percentage", align: "center" },
               { title: "Streaks", content: "days", align: "center" }
             ].map((item, index) => (
@@ -212,7 +212,7 @@ const HomePage = () => {
                   fontSize: isVerySmallMobile ? '13px' : isMobile ? '15px' : isTablet ? '16px' : '18px',
                   textAlign: item.align,
                   marginBottom: '12px',
-                  marginTop: '4px',
+                  marginTop: '5px',
                 }}>{item.title}</h3>
                 
                 <div className="feature-content" style={{ 
@@ -230,7 +230,7 @@ const HomePage = () => {
         borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
         padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
         fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
-        marginTop: '14px', // moves button a bit up
+        marginTop: '11px', // moves button a bit up
          alignSelf: 'flex-start',
       }}
       onClick={resumeSession}
@@ -246,7 +246,7 @@ const HomePage = () => {
         width: '100%', 
         textAlign: 'center', 
         cursor: 'pointer',
-        marginTop: '18px' // moves text slightly up
+        marginTop: '11px' // moves text slightly up
       }}
       onClick={() => navigate('/mistake-log')}
     >
