@@ -1,11 +1,11 @@
 .app-footer {
-    background-color: #555454;
-    padding: 20px;
+    background-color: var(--olive-green);
+    padding: 10px;
     color: white;
     text-align: center;
   }
   
   .footer-content {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
   }

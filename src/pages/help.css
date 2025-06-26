@@ -79,8 +79,8 @@
 }
 
 .sidebar-link:hover {
-  background-color: #e6f0ff;
-  color: #1a73e8;
+  background-color: #f0f1ed;
+  color: #7a9a4d;
 }
 
 .sidebar-separator {
@@ -107,16 +107,12 @@
 
 
 
-.help-content ul,
-.help-content li {
-  list-style-type: none;      /* Removes bullets */
-  padding-left: 0;        /* Removes default padding */
-  margin-left: 0;
+.help-content ul {
+  list-style-type: disc;      /* Ensures bullets show up */
+  padding-left: 40px;         /* Adds space before bullets */
+  margin: 10px 0;             /* Optional spacing */
 }
 
-.help-content li::marker {
-  content: none;          /* Ensures no list marker shows */
-}
 
 .help-content li {
   margin-bottom: 8px;
