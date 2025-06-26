@@ -834,7 +834,7 @@ const surahs = {
   },
   105: {
     arabic: 'الفيل',
-    latin: 'Al-fil',
+    latin: 'Al-Fil',
     english: 'The Elephant',
     location: 1,
     sajda: 0,
