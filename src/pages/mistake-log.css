@@ -27,6 +27,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
 }
 
 .no-mistake-text {
@@ -60,3 +61,93 @@ body.dark-mode .mistake-log-header {
 body.dark-mode .no-mistake-text {
   color: #cccccc;
 }
+
+
+.session-block {
+  background-color: #d1e7c8;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  width: 60%;           /* 🔄 Wider session block */
+  margin: 0 auto;        /* 🔄 Centered */
+  align-self: center;
+  text-align: center;
+}
+
+
+.mistake-log-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.back-arrow {
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.mistake-log-content {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.session-block {
+  background-color: #d1e7c8;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.session-header {
+  padding: 12px 20px;
+  background-color: #97B469;
+  border-bottom: 1px solid #b3d3a4;
+}
+
+.session-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.session-header p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.mistake-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;  /* 👈 CENTER align the rows */
+  gap: 12px;
+  padding: 16px;
+  background-color: #fff;
+}
+
+
+.mistake-word {
+  border: 2px solid red;
+  color: red;
+  background: none;
+  padding: 8px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.mistake-word.corrected {
+  /*  Keep red color even for corrected mistakes */
+  color: red;
+  border-color: red;
+}
+
+
+.mistake-word:hover {
+  background-color: #ffeaea;
+}
+
