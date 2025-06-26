@@ -196,7 +196,7 @@ const HomePage = () => {
           <div className="grid-container">
             {[
               { title: "Continue where you left off", content: "resume", align: "left" },
-              { title: "Correct Mistakes", content: "progress", align: "center" },
+              { title: "Correct Yours", content: "progress", align: "center" },
               { title: "Progress Rate", content: "percentage", align: "center" },
               { title: "Streaks", content: "days", align: "center" }
             ].map((item, index) => (
@@ -211,77 +211,80 @@ const HomePage = () => {
                 <h3 style={{
                   fontSize: isVerySmallMobile ? '13px' : isMobile ? '15px' : isTablet ? '16px' : '18px',
                   textAlign: item.align,
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  marginTop: '4px',
                 }}>{item.title}</h3>
                 
                 <div className="feature-content" style={{ 
-                  height: isTablet ? '60px' : 'auto',
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end'
-                }}>
-                  {item.content === "resume" && (
-                    <button 
-                      className="resume-button"
-                      style={{
-                        borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
-                        padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
-                        fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
-                        alignSelf: 'flex-start'
-                      }}
-                      onClick={resumeSession}
-                      disabled={isResuming}
-                    >
-                      {isResuming ? 'Loading...' : 'Resume'}
-                    </button>
-                  )}
-             {item.content === "progress" && (
-  <div 
-    className="mistakes-bar-container" 
-    style={{
-      width: '100%',
-      maxWidth: '200px',
-      position: 'relative',
-      paddingBottom: '16px',
-      cursor: 'pointer'
-    }}
-    onClick={() => navigate('/mistake-log')}
-  >
-    <div className="mistakes-bar">
-      <div className="mistakes-progress" style={{ width: '0%' }}></div>
+  height: isTablet ? '60px' : 'auto',
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-start', // changed from 'flex-end' to push content upward
+  alignItems: 'center'
+}}>
+  {item.content === "resume" && (
+    <button 
+      className="resume-button"
+      style={{
+        borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
+        padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
+        fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
+        marginTop: '14px', // moves button a bit up
+         alignSelf: 'flex-start',
+      }}
+      onClick={resumeSession}
+      disabled={isResuming}
+    >
+      {isResuming ? 'Loading...' : 'Resume'}
+    </button>
+  )}
+
+  {item.content === "progress" && (
+    <div 
+      style={{ 
+        width: '100%', 
+        textAlign: 'center', 
+        cursor: 'pointer',
+        marginTop: '18px' // moves text slightly up
+      }}
+      onClick={() => navigate('/mistake-log')}
+    >
+      <span 
+  style={{
+    fontWeight: 'bold',
+    color: '#97B469',
+    fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '30px',
+    transition: 'color 0.3s ease',
+  }}
+  onClick={() => navigate('/mistake-log')}
+  onMouseEnter={e => e.target.style.color = '#6B8E23'} // darker olive
+  onMouseLeave={e => e.target.style.color = '#97B469'} // original olive
+>
+  Mistakes
+</span>
+
     </div>
-    <div className="mistakes-count" style={{
-      position: 'absolute',
-      bottom: 0,
-      right: 0,
-      marginTop: '0.5px',
-      fontSize: isVerySmallMobile ? '10px' : isMobile ? '11px' : '12px',
-      color: '#333'
-    }}>
-      0/0
+  )}
+
+  {item.content === "percentage" && (
+    <p style={{
+      color: '#97B469',
+      fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
+      textAlign: 'center',
+      margin: '0 auto',
+      marginTop: '28px' // moves % a bit up
+    }}>%</p>
+  )}
+
+  {item.content === "days" && (
+    <div className="streak-wrapper">
+      <span className="streak-number">{user?.streak ?? 0}</span>
+      <span className="streak-label">Days</span>
     </div>
-  </div>
-)}
+  )}
+</div>
 
-
-                  {item.content === "percentage" && (
-                    <p style={{
-                      color: '#97B469',
-                      fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
-                      textAlign: 'center',
-                      margin: '0 auto'
-                    }}>%</p>
-                  )}
-                {item.content === "days" && (
-  <div className="streak-wrapper">
-    <span className="streak-number">{user?.streak ?? 0}</span>
-    <span className="streak-label">Days</span>
-  </div>
-  
-)}
-
-                </div>
               </div>
             ))}
           </div>

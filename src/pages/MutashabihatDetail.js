@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './MutashabihatDetail.css';
 import { FaArrowLeft } from 'react-icons/fa';
-import DOMPurify from 'dompurify'; // For HTML sanitization
+import DOMPurify from 'dompurify';
 
 const MutashabihatDetail = () => {
   const { id } = useParams();
@@ -81,47 +81,105 @@ const MutashabihatDetail = () => {
   };
 
   const highlightSimilarWords = (sourceText, matchText) => {
-  try {
-    const cleanSourceWords = sourceText
-      .replace(/[^\u0600-\u06FF\s]/g, '') // Arabic only
-      .split(/\s+/)
-      .filter(Boolean);
+    try {
+      const cleanSourceWords = sourceText
+        .replace(/[\u064B-\u065F\u0670]/g, '') // Remove Arabic diacritics
+        .replace(/[^\u0600-\u06FF\s]/g, '') // Keep only Arabic letters and whitespace
+        .split(/\s+/)
+        .filter(word => word.length > 0);
 
-    const cleanMatchWords = matchText
-      .replace(/[^\u0600-\u06FF\s]/g, '')
-      .split(/\s+/)
-      .filter(Boolean);
+      const cleanMatchWords = matchText
+        .replace(/[\u064B-\u065F\u0670]/g, '')
+        .replace(/[^\u0600-\u06FF\s]/g, '')
+        .split(/\s+/)
+        .filter(word => word.length > 0);
 
-    const commonWords = new Set(cleanSourceWords.filter(word => cleanMatchWords.includes(word)));
-
-    const highlightWords = (text) => {
-      return text.replace(
-        /[\u0600-\u06FF]+/g,
-        word => commonWords.has(word) ? `<span class="highlight-word">${word}</span>` : word
+      const commonWords = new Set(
+        cleanSourceWords.filter(word => cleanMatchWords.includes(word))
       );
-    };
 
-    return {
-      source: highlightWords(sourceText),
-      match: highlightWords(matchText),
-    };
-  } catch (err) {
-    console.error('Highlighting error:', err);
-    return {
-      source: sourceText,
-      match: matchText,
-    };
-  }
-};
+      const highlightWords = (text) => {
+        return text.replace(
+          /([\u0600-\u06FF]+)/g,
+          (word) => {
+            const cleanWord = word.replace(/[\u064B-\u065F\u0670]/g, '');
+            return commonWords.has(cleanWord) 
+              ? `<span class="golden-word">${word}</span>` 
+              : word;
+          }
+        );
+      };
 
-  const renderAyahText = (text) => {
-    if (!text) return <span className="text-missing">No text available</span>;
+      return {
+        source: highlightWords(sourceText),
+        match: highlightWords(matchText),
+      };
+    } catch (err) {
+      console.error('Highlighting error:', err);
+      return {
+        source: sourceText,
+        match: matchText,
+      };
+    }
+  };
+
+  const renderAyahGroup = (group, idx) => {
+    const sourceText = group.sourceAyah.text;
     
     return (
       <div 
-        className="arabic-text" 
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }} 
-      />
+        key={`group-${idx}`} 
+        className={`mutadetail-ayah-group ${expandedAyahs.includes(idx) ? 'expanded' : ''}`}
+      >
+        <div
+          className="mutadetail-ayah-source-title"
+          onClick={() => toggleExpand(idx)}
+          role="button"
+          tabIndex={0}
+          aria-expanded={expandedAyahs.includes(idx)}
+        >
+          <div className="mutadetail-ayah-number-circle">
+            {group.sourceAyah.ayahNumber}
+          </div>
+          <div 
+            className="mutadetail-ayah-text arabic-text" 
+            dangerouslySetInnerHTML={{ 
+              __html: sanitizeHtml(
+                expandedAyahs.includes(idx) 
+                  ? highlightSimilarWords(sourceText, group.matches[0]?.text || '').source
+                  : sourceText
+              ) 
+            }} 
+          />
+        </div>
+
+        {expandedAyahs.includes(idx) && (
+          <ul className="mutadetail-similar-ayahs">
+            {group.matches.map((match, i) => {
+              const highlightedTexts = highlightSimilarWords(sourceText, match.text);
+              return (
+                <li key={`match-${idx}-${i}`} className="similar-ayah-item">
+                  <div className="match-header">
+                    <span className="mutadetail-match-surah">
+                      {match.surahName}
+                    </span>
+                    <span className="ayah-separator"> - </span>
+                    <span className="mutadetail-match-ayah">
+                      Ayah {match.ayahNumber}:
+                    </span>
+                  </div>
+                  <div 
+                    className="mutadetail-match-text arabic-text"
+                    dangerouslySetInnerHTML={{ 
+                      __html: sanitizeHtml(highlightedTexts.match) 
+                    }}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     );
   };
 
@@ -158,48 +216,7 @@ const MutashabihatDetail = () => {
               {ayahGroups[0]?.sourceAyah?.surahName || 'Unknown Surah'}
             </h3>
             <div className="mutadetail-ayah-box">
-              {ayahGroups.map((group, idx) => (
-                <div 
-                  key={`group-${idx}`} 
-                  className={`mutadetail-ayah-group ${expandedAyahs.includes(idx) ? 'expanded' : ''}`}
-                >
-                  <div
-                    className="mutadetail-ayah-source-title"
-                    onClick={() => toggleExpand(idx)}
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={expandedAyahs.includes(idx)}
-                  >
-                    <div className="mutadetail-ayah-number-circle">
-                      {group.sourceAyah.ayahNumber}
-                    </div>
-                    <div className="mutadetail-ayah-text">
-                      {renderAyahText(group.sourceAyah.text)}
-                    </div>
-                  </div>
-
-                  {expandedAyahs.includes(idx) && (
-                    <ul className="mutadetail-similar-ayahs">
-                      {group.matches.map((match, i) => (
-                        <li key={`match-${idx}-${i}`} className="similar-ayah-item">
-                          <div className="match-header">
-                            <span className="mutadetail-match-surah">
-                              {match.surahName}
-                            </span>
-                            <span className="ayah-separator"> - </span>
-                            <span className="mutadetail-match-ayah">
-                              Ayah {match.ayahNumber}:
-                            </span>
-                          </div>
-                          <div className="mutadetail-match-text">
-                            {renderAyahText(match.text)}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
+              {ayahGroups.map((group, idx) => renderAyahGroup(group, idx))}
             </div>
           </div>
         )}

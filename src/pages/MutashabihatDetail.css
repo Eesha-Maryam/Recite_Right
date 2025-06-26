@@ -138,6 +138,7 @@
   font-weight: bold;
 }
 
+
 /* ✅ Dark Mode Overrides for MutashabihatDetail */
 
 .dark-mode .mutadetail-container {
@@ -152,6 +153,13 @@
 .dark-mode .mutadetail-title {
   color: #b5cc8e;
 }
+
+.golden-word {
+  color: gold;
+  font-weight: bold;
+}
+
+/* Rest of your existing CSS remains the same */
 
 .dark-mode .mutadetail-surah-title {
   color: #ddd;
