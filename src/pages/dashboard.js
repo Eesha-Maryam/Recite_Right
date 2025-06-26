@@ -65,12 +65,12 @@ const Dashboard = () => {
   const spacing = chartWidth / Math.max(barCount, 1); // spacing per bar
   const barWidth = Math.min(spacing * 0.6, maxBarWidth); // limit bar width to avoid being too fat
 
-  const bars = filteredQuizzes.map((quiz, index) => {
+  const reversedQuizzes = [...filteredQuizzes].reverse(); // ⬅️ newest first
+  const bars = reversedQuizzes.map((quiz, index) => {
   const attempt = quiz.attempts[0];
   const totalQuestions = quiz.questions.length || 1;
   const score = attempt.score || 0;
   const percentageScore = Math.round((score / totalQuestions) * 100);
-
   const barHeight = (percentageScore / 100) * chartHeight;
   const y = baseY - barHeight;
   const x = baseX + index * spacing + (spacing - barWidth) / 2;

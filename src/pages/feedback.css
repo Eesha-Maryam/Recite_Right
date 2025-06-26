@@ -173,15 +173,15 @@
 /* DARK MODE OVERRIDES */
 .dark-mode .feedback-container {
   background-color: #121212;
-  color: #f0f0f0;
+  color: #ffffff;
 }
 
 .dark-mode .intro-text {
-  color: #cccccc;
+  color: #ffffff;
 }
 
 .dark-mode .intro-text-bold {
-  color: #cccccc;
+  color: #ffffff;
 }
 
 .dark-mode .block {
@@ -236,17 +236,17 @@
 
 .dark-mode .feedback-item {
   background-color: #292929;
-  color: #eeeeee;
+  color: #ffffff;
   border-left: 5px solid #8aa05a;
   box-shadow: 0 2px 4px rgba(255, 255, 255, 0.08);
 }
 
 .dark-mode .feedback-user {
-  color: #aaaaaa;
+  color: #ffffff;
 }
 
 .dark-mode .rating-score {
-  color: #f0f0f0;
+  color: #ffffff;
 }
 
 .avatar {

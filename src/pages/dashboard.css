@@ -202,3 +202,18 @@
 .dark-mode .score-green {
   fill: #22c55e;
 }
+
+.score-label {
+  fill: var(--text-color, #000); /* fallback black if no variable */
+}
+
+/* Optional: Add color override for dark mode */
+.dark-mode .score-label {
+  fill: #fff;  /* White in dark mode */
+}
+
+@media (prefers-color-scheme: dark) {
+  .score-label {
+    fill: #fff;
+  }
+}
