@@ -681,31 +681,33 @@ const pauseRecording = () => {
   };
 
   // Render words with recitation tracking
-  const renderWords = (ayah, isBismillahAyah = false) => {
-    if (!ayah.words) return ayah.text;
+const renderWords = (ayah, isBismillahAyah = false) => {
+  if (!ayah.words) return ayah.text;
 
-    return ayah.words.map((word, wordIndex) => {
-      const isRecited = recitedWords[ayah.number]?.includes(wordIndex);
-      const isIncorrect = incorrectWords[ayah.number]?.includes(wordIndex);
-      const isCurrent = currentWordIndex === wordIndex && currentAyah === ayah.number;
+  return ayah.words.map((word, wordIndex) => {
+    const isRecited = recitedWords[ayah.number]?.includes(wordIndex);
+    const isIncorrect = incorrectWords[ayah.number]?.includes(wordIndex);
+    const isCurrent = currentWordIndex === wordIndex && currentAyah === ayah.number;
 
-      // Always show Bismillah words
-      const shouldShowWord = isRecited || !textHidden || isBismillahAyah;
+    // Determine visibility and color
+    const shouldShowWord = !textHidden || isRecited || isIncorrect || isBismillahAyah;
+    const displayColor = isIncorrect ? 'red' : 'inherit';
 
-      return (
-        <span
-          key={`${ayah.number}-${wordIndex}`}
-          className={`word ${isRecited ? 'recited' : ''} ${isIncorrect ? 'incorrect' : ''} ${isCurrent ? 'current-word' : ''}`}
-          style={{
-            visibility: shouldShowWord ? 'visible' : 'hidden',
-            color: isIncorrect ? 'red' : 'inherit'
-          }}
-        >
-          {word}{' '}
-        </span>
-      );
-    });
-  };
+    return (
+      <span
+        key={`${ayah.number}-${wordIndex}`}
+        className={`word ${isRecited ? 'recited' : ''} ${isIncorrect ? 'incorrect' : ''} ${isCurrent ? 'current-word' : ''}`}
+        style={{
+          visibility: shouldShowWord ? 'visible' : 'hidden',
+          color: shouldShowWord ? displayColor : 'inherit',
+        }}
+      >
+        {word}{' '}
+      </span>
+    );
+  });
+};
+
 
   return (
     <div className="quran-app no-scroll">

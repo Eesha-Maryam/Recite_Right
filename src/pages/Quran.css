@@ -960,4 +960,11 @@
 }
 
 
+.word.incorrect {
+  color: red;
+}
+
+.word.recited {
+  font-weight: bold;
+}
 
