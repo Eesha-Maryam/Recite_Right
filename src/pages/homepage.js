@@ -289,15 +289,10 @@ const HomePage = () => {
                   )}
 
                   {item.content === "percentage" && (
-                    <p style={{
-                      color: '#97B469',
-                      fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
-                      textAlign: 'center',
-                      margin: '0 auto',
-                      marginTop: '28px'
-                    }}>
-                      {avgProgressRate !== null ? `${avgProgressRate}%` : '...'}
-                    </p>
+                    <div>
+                      <span className="progress-number">{avgProgressRate !== null ? `${avgProgressRate}` : '...'}</span>
+                      <span className="progress-percent">%</span>
+                    </div>
                   )}
 
 

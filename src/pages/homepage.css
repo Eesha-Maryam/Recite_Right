@@ -1,7 +1,8 @@
 /* ================== Light Mode (Default) ================== */
 
 :root {
-  --icon-color: #333333; /* charcoal by default */
+  --icon-color: #333333;
+  /* charcoal by default */
 }
 
 body {
@@ -67,7 +68,8 @@ body.dark-mode .resume-button {
 
 .search-icon {
   position: absolute;
-  pointer-events: none; /* Makes the icon non-interactive */
+  pointer-events: none;
+  /* Makes the icon non-interactive */
 }
 
 body.dark-mode .tile:hover {
@@ -259,7 +261,8 @@ body.dark-mode .mistakes-progress {
 .sort-dropdown select {
   border: 2px solid #97B469 !important;
   border-radius: 4px;
-  padding: 4px 25px 4px 8px; /* right padding increased for custom arrow */
+  padding: 4px 25px 4px 8px;
+  /* right padding increased for custom arrow */
   background-color: transparent;
   background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
   background-repeat: no-repeat;
@@ -289,8 +292,8 @@ body.dark-mode .tile-section {
   border-color: #ffffff;
 }
 
-.tile-grid{
-   display: grid;
+.tile-grid {
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
@@ -323,23 +326,27 @@ body.dark-mode .tile-section {
   text-align: left;
   outline: none;
   margin: 0 8px;
-  color: #000000; /* black text for light mode */
+  color: #000000;
+  /* black text for light mode */
   caret-color: #000000;
 }
 
 .search-container input::placeholder {
-  color: #555555; /* visible placeholder for light mode */
+  color: #555555;
+  /* visible placeholder for light mode */
   opacity: 0.7;
 }
 
 /* Dark Mode Override */
 body.dark-mode .search-container input {
-  color: #ffffff; /* white text for dark mode */
+  color: #ffffff;
+  /* white text for dark mode */
   caret-color: #ffffff;
 }
 
 body.dark-mode .search-container input::placeholder {
-  color: #cccccc; /* lighter placeholder in dark mode */
+  color: #cccccc;
+  /* lighter placeholder in dark mode */
   opacity: 0.8;
 }
 
@@ -388,7 +395,8 @@ body.dark-mode .search-container input::placeholder {
 
 /* When dark mode or search bar is toggled */
 body.dark-mode .search-container .material-icons {
-  color: #ffffff; /* Turns icons white in dark mode */
+  color: #ffffff;
+  /* Turns icons white in dark mode */
 }
 
 
@@ -402,8 +410,10 @@ body.dark-mode .search-container .material-icons {
 .search-icon {
   position: absolute;
   pointer-events: none;
-  color: var(--icon-color); /* Now using your CSS variable */
-  transition: color 0.3s ease; /* Smooth transition between modes */
+  color: var(--icon-color);
+  /* Now using your CSS variable */
+  transition: color 0.3s ease;
+  /* Smooth transition between modes */
 }
 
 /* Dark mode override */
@@ -414,7 +424,8 @@ body.dark-mode .search-icon {
 /* Add to your homepage.css */
 .tile {
   /* Your existing tile styles */
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  transition: all 0.3s ease;
+  /* Smooth transition for hover effects */
 }
 
 .tile:hover {
@@ -443,19 +454,20 @@ body.dark-mode .sort-dropdown select {
 body.dark-mode .sort-dropdown select:hover {
   border-color: #97B469;
 }
+
 /* Reset any conflicting styles */
 .search-wrapper {
   position: relative;
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
- 
+
 }
 
 .search-container {
   position: relative;
   width: 100%;
-   border-radius: 20px;
+  border-radius: 20px;
 }
 
 /* Ensure the dropdown appears above all other content */
@@ -466,8 +478,9 @@ body.dark-mode .sort-dropdown select:hover {
   width: 100%;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  z-index: 1001; /* Higher than other elements */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  /* Higher than other elements */
   max-height: 300px;
   overflow-y: auto;
 }
@@ -490,13 +503,15 @@ body.dark-mode .sort-dropdown select:hover {
 /* Make sure content below doesn't overlap */
 .content-container {
   position: relative;
-  z-index: 1; /* Lower than search dropdown */
+  z-index: 1;
+  /* Lower than search dropdown */
 }
 
 /* Remove any conflicting styles from other elements */
 .banner-section {
   position: relative;
-  z-index: 8000; /* Higher than content but lower than dropdown */
+  z-index: 8000;
+  /* Higher than content but lower than dropdown */
 }
 
 .search-container {
@@ -510,7 +525,7 @@ body.dark-mode .sort-dropdown select:hover {
   left: 0;
   width: 100%;
   background-color: white;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   overflow-y: auto;
   max-height: 200px;
@@ -525,6 +540,7 @@ body.dark-mode .sort-dropdown select:hover {
   position: relative;
   z-index: 1;
 }
+
 body.homepage {
   overflow-x: hidden;
   overflow-y: auto;
@@ -534,7 +550,8 @@ body.homepage {
 .banner-section {
   position: relative;
   z-index: 20;
-  overflow: visible !important; /* crucial */
+  overflow: visible !important;
+  /* crucial */
 }
 
 .search-container {
@@ -545,7 +562,8 @@ body.homepage {
 
 .search-results-dropdown {
   position: absolute;
-  z-index: 9999 !important; /* very high */
+  z-index: 9999 !important;
+  /* very high */
   top: calc(100% + 4px);
   left: 0;
   width: 100%;
@@ -559,8 +577,10 @@ body.homepage {
 
 /* DARK MODE: Fix sort dropdown background */
 body.dark-mode .sort-dropdown select {
-  color: #2b2b2b !important; /* Dark charcoal background */
-  color: #ffffff !important;            /* White text */
+  color: #2b2b2b !important;
+  /* Dark charcoal background */
+  color: #ffffff !important;
+  /* White text */
 
 }
 
@@ -573,14 +593,18 @@ body.dark-mode .sort-dropdown select:focus {
 
 /* Dark mode styles for search dropdown */
 body.dark-mode .search-results-dropdown {
-  background-color: #2b2b2b; /* dark background */
-  border-color: #555; /* optional, adjust as needed */
+  background-color: #2b2b2b;
+  /* dark background */
+  border-color: #555;
+  /* optional, adjust as needed */
   box-shadow: 0 6px 16px rgba(255, 255, 255, 0.1);
 }
 
 body.dark-mode .search-result-item {
-  color: #ffffff; /* white text */
-  background-color: #2b2b2b; /* match dropdown */
+  color: #ffffff;
+  /* white text */
+  background-color: #2b2b2b;
+  /* match dropdown */
   border-bottom: 1px solid #444444;
 }
 
@@ -612,7 +636,7 @@ body.dark-mode .search-result-item:hover {
   padding: 25px;
   font-size: 25px;
   border: none;
-  border:2px solid #333;
+  border: 2px solid #333;
   border-radius: 20px;
   cursor: pointer;
 }
@@ -650,8 +674,24 @@ body.dark-mode .search-result-item:hover {
   position: absolute;
   top: 70%;
   transform: translateY(-50%);
-  left: 100%; /* right next to number */
+  left: 100%;
+  /* right next to number */
 }
 
+.progress-number {
+  font-size: 60px;
+  font-weight: bold;
+  color: #97B469;
+  position: relative;
+}
 
-
+.progress-percent {
+  font-size: 18px;
+  color: #97B469;
+  font-weight: 400;
+  position: absolute;
+  top: 70%;
+  transform: translateY(-50%);
+  left: 70%;
+  /* right next to number */
+}
