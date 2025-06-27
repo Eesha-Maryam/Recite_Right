@@ -1,27 +1,44 @@
-/* Core Layout */
 
 .help-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background-color: #ffffff;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden; /* Prevent overall page scroll */
+}
 
+.help-content section {
+  scroll-margin-top: 90px; /* push anchor target below fixed header */
 }
 
 
 
-/* Sidebar Styles */
+
+
+
 .help-sidebar {
   width: 260px;
   background-color: #fff;
   padding: 24px;
   border-right: 1px solid #ddd;
-  position: sticky;
+  position: fixed; /* <-- changed from sticky to fixed */
   top: 60px;
-  height: calc(100vh - 60px);
+  bottom: 0;
+  left: 0;
   overflow-y: auto;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
 }
+
+
+.help-content {
+  flex-grow: 1;
+  background-color: #ffffff;
+  margin-left: 330px; /* <-- reserve space for fixed sidebar */
+  margin-top: 60px;    /* keep header space */
+  overflow-y: auto;
+  height: calc(100vh - 60px); /* restrict to visible area */
+}
+
 
 
 .sidebar-title {

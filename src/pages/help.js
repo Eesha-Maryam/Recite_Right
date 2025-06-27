@@ -15,7 +15,7 @@ const sections = [
 const Help = () => {
   return (
     <>
-      <Header fixed backgroundColor="#ffffff"/>
+      <Header fixed backgroundColor="#ffffff" />
       <div className="help-container">
         <aside className="help-sidebar">
           <h2 className="sidebar-title">User Manual</h2>
