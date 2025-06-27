@@ -2,6 +2,11 @@ import React from 'react';
 import Header from '../components/header';
 import './help.css';
 
+/**
+ * Array of help section objects containing:
+ * - id: The HTML anchor ID for the section
+ * - title: The display title of the section
+ */
 const sections = [
   { id: 'login', title: 'Login / Signup' },
   { id: 'profile', title: 'User Profile' },
@@ -12,18 +17,28 @@ const sections = [
   { id: 'support', title: 'Support / Help' }
 ];
 
+/**
+ * Help Component - Displays the user manual/help documentation for the application
+ * Contains a sidebar navigation and detailed content sections
+ */
 const Help = () => {
   return (
     <>
+      {/* Fixed header with white background */}
       <Header fixed backgroundColor="#ffffff" />
+      
+      {/* Main container for help content */}
       <div className="help-container">
+        {/* Sidebar navigation */}
         <aside className="help-sidebar">
           <h2 className="sidebar-title">User Manual</h2>
           <ul className="sidebar-list">
+            {/* Map through sections to create navigation links */}
             {sections.map((section, index) => (
               <React.Fragment key={section.id}>
                 <li className="sidebar-item">
                   <a href={`#${section.id}`} className="sidebar-link">
+                    {/* Format section number (1.1, 1.2, etc.) */}
                     {`1.${index + 1}`} {section.title}
                   </a>
                 </li>
@@ -33,7 +48,9 @@ const Help = () => {
           </ul>
         </aside>
 
+        {/* Main content area with all help sections */}
         <main className="help-content">
+          {/* Login/Signup Section */}
           <section id="login">
             <h2>1.1 Login / Signup</h2>
             <ul>
@@ -41,15 +58,16 @@ const Help = () => {
               <li>Navigate to Sign Up page.</li>
               <li>Enter your name, email and password.</li>
               <li>Click "Sign Up".</li>
-              <li>You’ll be redirected to the login page after successful signup.</li>
+              <li>You'll be redirected to the login page after successful signup.</li>
               <li>To log in,</li>
               <li>Navigate to Login page.</li>
               <li>Enter your registered email and password.</li>
               <li>Click "Login".</li>
-              <li>You’ll be redirected to the home page after successful login.</li>
+              <li>You'll be redirected to the home page after successful login.</li>
             </ul>
           </section>
 
+          {/* User Profile Section */}
           <section id="profile">
             <h2>1.2 User Profile</h2>
             <ul>
@@ -64,6 +82,7 @@ const Help = () => {
             </ul>
           </section>
 
+          {/* Recitation Session Section */}
           <section id="recitation">
             <h2>1.3 Recitation Session</h2>
             <ul>
@@ -85,6 +104,7 @@ const Help = () => {
             </ul>
           </section>
 
+          {/* Memorization Test Section */}
           <section id="memorization">
             <h2>1.4 Quran Memorization Test</h2>
             <ul>
@@ -98,6 +118,7 @@ const Help = () => {
             </ul>
           </section>
 
+          {/* Mutashabihat Section */}
           <section id="mutashabihat">
             <h2>1.5 Mutashabihat</h2>
             <ul>
@@ -107,6 +128,7 @@ const Help = () => {
             </ul>
           </section>
 
+          {/* Feedback Section */}
           <section id="feedback">
             <h2>1.6 Feedback</h2>
             <ul>
@@ -118,6 +140,7 @@ const Help = () => {
             </ul>
           </section>
 
+          {/* Support/Help Section */}
           <section id="support">
             <h2>1.7 Support / Help</h2>
             <ul>

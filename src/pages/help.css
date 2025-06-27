@@ -1,199 +1,184 @@
-
+/* Main container for the help page layout */
 .help-container {
-  display: flex;
-  height: 100vh;
-  background-color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow: hidden; /* Prevent overall page scroll */
+  display: flex;                /* Use flexbox layout */
+  height: 100vh;               /* Full viewport height */
+  background-color: #ffffff;   /* White background */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font stack */
+  overflow: hidden;            /* Prevent overall page scroll */
 }
 
+/* Ensures section anchors account for fixed header */
 .help-content section {
-  scroll-margin-top: 90px; /* push anchor target below fixed header */
+  scroll-margin-top: 90px;     /* Push anchor target below fixed header */
 }
 
-
-
-
-
-
+/* ========== SIDEBAR STYLES ========== */
 .help-sidebar {
-  width: 260px;
-  background-color: #fff;
-  padding: 24px;
-  border-right: 1px solid #ddd;
-  position: fixed; /* <-- changed from sticky to fixed */
-  top: 60px;
-  bottom: 0;
-  left: 0;
-  overflow-y: auto;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+  width: 260px;                /* Fixed sidebar width */
+  background-color: #fff;      /* White background */
+  padding: 24px;               /* Internal spacing */
+  border-right: 1px solid #ddd; /* Right border */
+  position: fixed;             /* Fixed position (stays in place) */
+  top: 60px;                   /* Position below header */
+  bottom: 0;                   /* Extend to bottom of viewport */
+  left: 0;                     /* Align to left edge */
+  overflow-y: auto;            /* Enable vertical scrolling if needed */
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05); /* Subtle right shadow */
 }
 
-
+/* ========== MAIN CONTENT AREA ========== */
 .help-content {
-  flex-grow: 1;
-  background-color: #ffffff;
-  margin-left: 330px; /* <-- reserve space for fixed sidebar */
-  margin-top: 60px;    /* keep header space */
-  overflow-y: auto;
-  height: calc(100vh - 60px); /* restrict to visible area */
+  flex-grow: 1;                /* Take remaining horizontal space */
+  background-color: #ffffff;   /* White background */
+  margin-left: 330px;          /* Space for fixed sidebar + padding */
+  margin-top: 60px;            /* Space for fixed header */
+  overflow-y: auto;            /* Enable vertical scrolling */
+  height: calc(100vh - 60px);  /* Restrict to visible area below header */
+  padding: 40px 50px;          /* Content padding */
 }
 
-
-
+/* ========== SIDEBAR COMPONENTS ========== */
 .sidebar-title {
-  font-size: 20px;
-  margin-bottom: 20px;
-  font-weight: bold;
-  color: #333;
-  border-bottom: 2px solid #7a9a4d;
-  padding-bottom: 10px;
+  font-size: 20px;             /* Title font size */
+  margin-bottom: 20px;         /* Bottom spacing */
+  font-weight: bold;           /* Bold text */
+  color: #333;                 /* Dark gray text */
+  border-bottom: 2px solid #7a9a4d; /* Green accent underline */
+  padding-bottom: 10px;        /* Spacing between text and underline */
 }
 
 .sidebar-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+  list-style: none;            /* Remove default bullets */
+  padding-left: 0;             /* Remove default padding */
+  margin: 0;                   /* Remove default margin */
 }
 
 .sidebar-item {
-  margin-bottom: 12px;
+  margin-bottom: 12px;         /* Spacing between items */
 }
 
 .sidebar-link {
-  display: block;
-  padding: 10px 12px;
-  border-radius: 6px;
-  color: #333;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  display: block;              /* Make entire area clickable */
+  padding: 10px 12px;          /* Clickable area padding */
+  border-radius: 6px;          /* Rounded corners */
+  color: #333;                 /* Text color */
+  text-decoration: none;       /* Remove underline */
+  font-weight: 500;            /* Medium font weight */
+  transition: all 0.3s ease;   /* Smooth hover transitions */
 }
 
 .sidebar-link:hover {
-  background-color: #f1f4ec;
-  color: #7a9a4d;
+  background-color: #f1f4ec;   /* Light green hover background */
+  color: #7a9a4d;              /* Green hover text */
 }
 
 .sidebar-separator {
-  height: 1px;
-  background-color: #e0e0e0;
-  margin: 6px 0;
+  height: 1px;                 /* Thin separator line */
+  background-color: #e0e0e0;   /* Light gray color */
+  margin: 6px 0;               /* Spacing around separator */
 }
 
-.help-content {
-  flex-grow: 1;
-  padding: 40px 50px;
-  background-color: #ffffff;
-  margin-top: 60px; /* ✅ Pushes content below the header */
-}
-
-
+/* ========== HELP CONTENT SECTIONS ========== */
 .help-content section {
-  margin-bottom: 50px;
-  padding: 24px 30px;
-  background-color: #fefefe;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  margin-bottom: 50px;         /* Spacing between sections */
+  padding: 24px 30px;          /* Internal padding */
+  background-color: #fefefe;   /* Off-white background */
+  border: 1px solid #eee;      /* Light border */
+  border-radius: 10px;         /* Rounded corners */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04); /* Subtle shadow */
 }
 
 .help-content h2 {
-  font-size: 24px;
-  color: #212121;
-  margin-bottom: 16px;
-  border-left: 4px solid #97B469;
-  padding-left: 12px;
+  font-size: 24px;             /* Section title size */
+  color: #212121;              /* Dark text */
+  margin-bottom: 16px;         /* Bottom spacing */
+  border-left: 4px solid #97B469; /* Green accent border */
+  padding-left: 12px;          /* Spacing between border and text */
 }
 
-/* Bullet List */
+/* ========== LIST STYLES ========== */
 .help-content ul {
-  list-style-type: disc;
-  padding-left: 28px;
-  margin: 10px 0;
+  list-style-type: disc;       /* Default bullet style */
+  padding-left: 28px;          /* Proper indentation */
+  margin: 10px 0;              /* Vertical spacing */
 }
 
 .help-content li {
-  margin-bottom: 8px;
-  line-height: 1.7;
-  font-size: 15.5px;
+  margin-bottom: 8px;          /* Spacing between list items */
+  line-height: 1.7;            /* Comfortable line spacing */
+  font-size: 15.5px;           /* Readable font size */
 }
 
-/* Sub-lists */
+/* Nested list styling */
 .help-content ul ul {
-  list-style-type: circle;
-  margin-top: 8px;
-  padding-left: 24px;
+  list-style-type: circle;     /* Different bullet for nested lists */
+  margin-top: 8px;             /* Spacing from parent list */
+  padding-left: 24px;          /* Nested indentation */
 }
 
-/* Links */
+/* ========== LINK STYLES ========== */
 .help-content a {
-  color: #007acc;
-  text-decoration: underline;
+  color: #007acc;              /* Blue link color */
+  text-decoration: underline;  /* Underlined by default */
 }
+
 .help-content a:hover {
-  color: #005999;
-  text-decoration: none;
+  color: #005999;              /* Darker blue on hover */
+  text-decoration: none;       /* Remove underline on hover */
 }
 
-
-/* === DARK MODE STYLES === */
+/* ========== DARK MODE STYLES ========== */
 .dark-mode .help-container {
-  background-color: #1e1e1e;
+  background-color: #1e1e1e;   /* Dark background */
 }
 
 .dark-mode .help-sidebar {
-  background-color: #2a2a2a;
-  border-right: 1px solid #444;
-  box-shadow: 2px 0 6px rgba(255, 255, 255, 0.05);
+  background-color: #2a2a2a;   /* Dark sidebar */
+  border-right: 1px solid #444; /* Darker border */
+  box-shadow: 2px 0 6px rgba(255, 255, 255, 0.05); /* White shadow */
 }
 
 .dark-mode .sidebar-title {
-  color: #eee;
-  border-bottom: 2px solid #bed698;
+  color: #eee;                 /* Light text */
+  border-bottom: 2px solid #bed698; /* Light green accent */
 }
 
 .dark-mode .sidebar-link {
-  color: #ddd;
+  color: #ddd;                 /* Light gray text */
 }
 
 .dark-mode .sidebar-link:hover {
-  background-color: #3a3a3a;
-  color: #bed698;
+  background-color: #3a3a3a;   /* Dark hover background */
+  color: #bed698;              /* Light green hover text */
 }
 
 .dark-mode .sidebar-separator {
-  background-color: #444;
+  background-color: #444;      /* Dark separator */
 }
 
 .dark-mode .help-content {
-  background-color: #121212;
+  background-color: #121212;   /* Very dark background */
 }
 
 .dark-mode .help-content section {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  box-shadow: 0 2px 6px rgba(255,255,255,0.04);
+  background-color: #1e1e1e;   /* Dark section background */
+  border: 1px solid #333;      /* Dark border */
+  box-shadow: 0 2px 6px rgba(255,255,255,0.04); /* White shadow */
 }
 
 .dark-mode .help-content h2 {
-  color: #f5f5f5;
-  border-left-color: #97B469;
+  color: #f5f5f5;              /* Bright white text */
+  border-left-color: #97B469;  /* Same green accent */
 }
 
 .dark-mode .help-content li {
-  color: #ddd;
+  color: #ddd;                 /* Light gray text */
 }
 
 .dark-mode .help-content a {
-  color: #82b4ff;
+  color: #82b4ff;              /* Light blue links */
 }
 
 .dark-mode .help-content a:hover {
-  color: #a4d1ff;
+  color: #a4d1ff;              /* Lighter blue on hover */
 }
-
-
-
-
-

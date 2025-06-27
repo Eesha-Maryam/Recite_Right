@@ -39,10 +39,7 @@
 
 
 .ayah.highlighted {
-  background-color: #a1e8af;
   border-radius: 5px;
-  padding: 2px 4px;
-  box-shadow: 0 0 8px #a1e8af;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -115,20 +112,6 @@
   color: var(--white) !important; /* Ensures readability in dark mode */
 }
 
-.ayah.highlighted {
-  background-color: #a1e8af; /* Light green for highlight */
-  border-radius: 5px;
-  padding: 2px 4px;
-  transition: background-color 0.3s ease;
-}
-
-.ayah.highlighted {
-  background-color: #a1e8af;
-  border-radius: 5px;
-  padding: 2px 4px;
-  box-shadow: 0 0 8px #a1e8af;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
 
 
 
@@ -944,7 +927,7 @@
 
 
 .ayah.highlighted {
-    background-color: #a1e8af; /* soft yellow */
+    background-color: #d0e6ae; /* soft yellow */
   transition: background-color 0.3s ease;
 }
 

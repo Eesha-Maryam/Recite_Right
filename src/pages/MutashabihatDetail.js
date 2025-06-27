@@ -4,20 +4,36 @@ import './MutashabihatDetail.css';
 import { FaArrowLeft } from 'react-icons/fa';
 import DOMPurify from 'dompurify';
 
+/**
+ * MutashabihatDetail Component - Displays detailed view of similar Quranic verses (mutashabihat)
+ * for a specific Surah. Features include:
+ * - Expandable/collapsible verse groups
+ * - Word-by-word highlighting of similarities
+ * - Sanitized HTML rendering for security
+ * - Responsive design with loading/error states
+ */
 const MutashabihatDetail = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [ayahGroups, setAyahGroups] = useState([]);
-  const [expandedAyahs, setExpandedAyahs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Router hooks
+  const { id } = useParams(); // Get Surah ID from URL params
+  const navigate = useNavigate(); // Navigation function
 
+  // Component state
+  const [ayahGroups, setAyahGroups] = useState([]); // Stores grouped verse data
+  const [expandedAyahs, setExpandedAyahs] = useState([]); // Tracks expanded verses
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+
+  /**
+   * Toggles expansion state for a verse group
+   * @param {number} index - Index of the verse group to toggle
+   */
   const toggleExpand = (index) => {
     setExpandedAyahs(prev =>
       prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
     );
   };
 
+  // Fetch data on component mount or when Surah ID changes
   useEffect(() => {
     const fetchMutashabihat = async () => {
       try {
@@ -32,7 +48,9 @@ const MutashabihatDetail = () => {
         const json = await res.json();
         console.log('API Response:', json);
 
+        // Process API response
         if (json.success && Array.isArray(json.data)) {
+          // Filter data for current Surah only
           const matchedData = json.data.filter(entry => 
             entry?.source?.surah?.toString() === id
           );
@@ -41,6 +59,7 @@ const MutashabihatDetail = () => {
             console.warn('No matching data found for surah:', id);
           }
 
+          // Format data for display
           const formattedGroups = matchedData.map(entry => ({
             sourceAyah: {
               surahId: entry.source?.surah || 0,
@@ -71,6 +90,11 @@ const MutashabihatDetail = () => {
     fetchMutashabihat();
   }, [id]);
 
+  /**
+   * Sanitizes HTML content to prevent XSS attacks
+   * @param {string} html - Raw HTML content
+   * @returns {string} Sanitized HTML
+   */
   const sanitizeHtml = (html) => {
     try {
       return DOMPurify.sanitize(html);
@@ -80,8 +104,15 @@ const MutashabihatDetail = () => {
     }
   };
 
+  /**
+   * Highlights similar words between source and match verses
+   * @param {string} sourceText - Original verse text
+   * @param {string} matchText - Similar verse text
+   * @returns {Object} Contains highlighted source and match texts
+   */
   const highlightSimilarWords = (sourceText, matchText) => {
     try {
+      // Normalize Arabic text by removing diacritics and non-Arabic characters
       const cleanSourceWords = sourceText
         .replace(/[\u064B-\u065F\u0670]/g, '') // Remove Arabic diacritics
         .replace(/[^\u0600-\u06FF\s]/g, '') // Keep only Arabic letters and whitespace
@@ -94,10 +125,12 @@ const MutashabihatDetail = () => {
         .split(/\s+/)
         .filter(word => word.length > 0);
 
+      // Find common words between verses
       const commonWords = new Set(
         cleanSourceWords.filter(word => cleanMatchWords.includes(word))
       );
 
+      // Highlight matching words in text
       const highlightWords = (text) => {
         return text.replace(
           /([\u0600-\u06FF]+)/g,
@@ -123,6 +156,12 @@ const MutashabihatDetail = () => {
     }
   };
 
+  /**
+   * Renders a verse group with expandable matches
+   * @param {Object} group - Verse group data
+   * @param {number} idx - Group index
+   * @returns {JSX} Rendered verse group component
+   */
   const renderAyahGroup = (group, idx) => {
     const sourceText = group.sourceAyah.text;
     
@@ -131,6 +170,7 @@ const MutashabihatDetail = () => {
         key={`group-${idx}`} 
         className={`mutadetail-ayah-group ${expandedAyahs.includes(idx) ? 'expanded' : ''}`}
       >
+        {/* Clickable verse header */}
         <div
           className="mutadetail-ayah-source-title"
           onClick={() => toggleExpand(idx)}
@@ -153,6 +193,7 @@ const MutashabihatDetail = () => {
           />
         </div>
 
+        {/* Expanded content - similar verses */}
         {expandedAyahs.includes(idx) && (
           <ul className="mutadetail-similar-ayahs">
             {group.matches.map((match, i) => {
@@ -183,46 +224,47 @@ const MutashabihatDetail = () => {
     );
   };
 
-  return (
-    <div className="mutadetail-container">
-      <div className="mutadetail-header">
-        <button 
-          className="back-button" 
-          onClick={() => navigate('/mutashabihat')}
-          aria-label="Go back"
-        >
-          <FaArrowLeft className="back-icon" />
-        </button>
-        <h2 className="mutadetail-title">Mutashabihat</h2>
-      </div>
-
-      <main className="mutadetail-content detail-view">
-        {loading ? (
-          <div className="loading-indicator">
-            <p>Loading details...</p>
-          </div>
-        ) : error ? (
-          <div className="error-message">
-            <p>{error}</p>
-            <button onClick={() => window.location.reload()}>Retry</button>
-          </div>
-        ) : ayahGroups.length === 0 ? (
-          <div className="no-results">
-            <p>No similar ayahs found for this Surah.</p>
-          </div>
-        ) : (
-          <div className="mutadetail-ayah-group-list">
-            <h3 className="mutadetail-surah-title">
-              {ayahGroups[0]?.sourceAyah?.surahName || 'Unknown Surah'}
-            </h3>
-            <div className="mutadetail-ayah-box">
-              {ayahGroups.map((group, idx) => renderAyahGroup(group, idx))}
-            </div>
-          </div>
-        )}
-      </main>
+  // Main component render
+return (
+  <div className="mutadetail-container">
+    <div className="mutadetail-header">
+      <button 
+        className="back-button" 
+        onClick={() => navigate('/mutashabihat')}
+        aria-label="Go back"
+      >
+        <FaArrowLeft className="back-icon" />
+      </button>
+      <h2 className="mutadetail-title">Mutashabihat</h2>
     </div>
-  );
+
+    <main className="mutadetail-content detail-view">
+      {loading ? (
+        <div className="loading-indicator">
+          <p>Loading details...</p>
+        </div>
+      ) : error ? (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      ) : ayahGroups.length === 0 ? (
+        <div className="no-results">
+          <p>No similar ayahs found for this Surah.</p>
+        </div>
+      ) : (
+        <div className="mutadetail-ayah-group-list">
+          <h3 className="mutadetail-surah-title">
+            {ayahGroups[0]?.sourceAyah?.surahName || 'Unknown Surah'}
+          </h3>
+          <div className="mutadetail-ayah-box">
+            {ayahGroups.map((group, idx) => renderAyahGroup(group, idx))}
+          </div>
+        </div>
+      )}
+    </main>
+  </div>
+);
 };
 
 export default MutashabihatDetail;

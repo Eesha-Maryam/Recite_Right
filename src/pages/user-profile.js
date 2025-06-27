@@ -4,7 +4,17 @@ import axios from 'axios';
 import Header from '../components/header';
 import './profile.css';
 
+/**
+ * UserProfile Component - Displays and manages user profile information
+ * Features:
+ * - Displays user profile data (name, email, join date, streak)
+ * - Handles avatar uploads and removal
+ * - Provides logout functionality
+ * - Allows account deletion
+ * - Manages authentication tokens and session
+ */
 const UserProfile = ({ setAuthenticated }) => {
+  // State for user profile data
   const [userData, setUserData] = useState({
     firstName: '',
     lastName: '',
@@ -15,15 +25,22 @@ const UserProfile = ({ setAuthenticated }) => {
     role: ''
   });
 
-  const [loading, setLoading] = useState(true);
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const [apiError, setApiError] = useState('');
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  // Component state management
+  const [loading, setLoading] = useState(true);              // Loading state
+  const [avatarFile, setAvatarFile] = useState(null);        // Selected avatar file
+  const [avatarPreview, setAvatarPreview] = useState('');    // Avatar preview URL
+  const [apiError, setApiError] = useState('');             // API error messages
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false); // Success dialog
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);   // Logout confirmation
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);   // Delete confirmation
+  
   const navigate = useNavigate();
 
+  /**
+   * Checks if JWT token is valid
+   * @param {string} token - JWT token to validate
+   * @returns {boolean} True if token is valid
+   */
   const isTokenValid = (token) => {
     if (!token) return false;
     try {
@@ -34,6 +51,10 @@ const UserProfile = ({ setAuthenticated }) => {
     }
   };
 
+  /**
+   * Refreshes authentication tokens using refresh token
+   * @returns {Promise<boolean>} True if refresh was successful
+   */
   const refreshToken = async () => {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) throw new Error('No refresh token available');
@@ -51,6 +72,10 @@ const UserProfile = ({ setAuthenticated }) => {
     }
   };
 
+  /**
+   * Handles API errors including token expiration
+   * @param {Error} err - The error object
+   */
   const handleApiError = async (err) => {
     console.error('API Error:', err);
     if (err.response?.status === 401) {
@@ -70,6 +95,9 @@ const UserProfile = ({ setAuthenticated }) => {
     }
   };
 
+  /**
+   * Fetches user profile data from API
+   */
   const fetchUser = async () => {
     try {
       setLoading(true);
@@ -80,6 +108,7 @@ const UserProfile = ({ setAuthenticated }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      // Split full name into first and last names
       const [firstName, ...lastNameParts] = response.data.name.split(' ');
       setUserData({
         ...response.data,
@@ -94,6 +123,7 @@ const UserProfile = ({ setAuthenticated }) => {
     }
   };
 
+  // Fetch user data on component mount
   useEffect(() => {
     const initializeProfile = async () => {
       try {
@@ -111,11 +141,19 @@ const UserProfile = ({ setAuthenticated }) => {
     initializeProfile();
   }, [navigate]);
 
+  /**
+   * Handles form input changes
+   * @param {Object} e - Event object
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData(prev => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Handles avatar file selection
+   * @param {Object} e - Event object
+   */
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -124,53 +162,63 @@ const UserProfile = ({ setAuthenticated }) => {
     }
   };
 
- const handleUploadAvatar = async (file) => {
-  if (!file) return setApiError('Please select an image file');
+  /**
+   * Uploads avatar image to server
+   * @param {File} file - The image file to upload
+   */
+  const handleUploadAvatar = async (file) => {
+    if (!file) return setApiError('Please select an image file');
 
-  try {
-    const token = localStorage.getItem('accessToken');
-    const formData = new FormData();
-    formData.append('avatar', file);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const formData = new FormData();
+      formData.append('avatar', file);
 
-    const response = await axios.post(
-      'http://localhost:5000/v1/users/me/avatar',
-      formData,
-      {
+      const response = await axios.post(
+        'http://localhost:5000/v1/users/me/avatar',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      setUserData(prev => ({
+        ...prev,
+        avatar: response.data.avatarUrl || response.data.avatar
+      }));
+      setShowSuccessDialog(true);
+      setApiError('');
+    } catch (err) {
+      setApiError(err.response?.data?.message || 'Failed to upload avatar');
+    }
+  };
+
+  /**
+   * Removes user's avatar
+   */
+  const handleRemoveAvatar = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      await axios.delete('http://localhost:5000/v1/users/me/avatar', {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
         }
-      }
-    );
+      });
 
-    setUserData(prev => ({
-      ...prev,
-      avatar: response.data.avatarUrl || response.data.avatar
-    }));
-    setShowSuccessDialog(true);
-    setApiError('');
-  } catch (err) {
-    setApiError(err.response?.data?.message || 'Failed to upload avatar');
-  }
-};
+      setUserData(prev => ({ ...prev, avatar: '' }));
+      setAvatarFile(null);
+      setAvatarPreview('');
+    } catch (err) {
+      setApiError('Failed to remove avatar');
+    }
+  };
 
-const handleRemoveAvatar = async () => {
-  try {
-    const token = localStorage.getItem('accessToken');
-    await axios.delete('http://localhost:5000/v1/users/me/avatar', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      }
-    });
-
-    setUserData(prev => ({ ...prev, avatar: '' }));
-    setAvatarFile(null);
-    setAvatarPreview('');
-  } catch (err) {
-    setApiError('Failed to remove avatar');
-  }
-};
-
+  /**
+   * Handles user logout
+   */
   const handleLogout = async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
@@ -194,6 +242,9 @@ const handleRemoveAvatar = async () => {
     }
   };
 
+  /**
+   * Deletes user account
+   */
   const handleDeleteAccount = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -209,6 +260,7 @@ const handleRemoveAvatar = async () => {
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="user-profile-page">
@@ -222,6 +274,7 @@ const handleRemoveAvatar = async () => {
     <div className="user-profile-page">
       <Header />
       <main className="user-profile-container">
+        {/* Error message display */}
         {apiError && (
           <div className="alert alert-error">
             {apiError}
@@ -229,12 +282,14 @@ const handleRemoveAvatar = async () => {
           </div>
         )}
 
+        {/* Profile card */}
         <div className="profile-card">
           <div className="profile-header">
             <h2>Profile Information</h2>
           </div>
 
           <div className="profile-content">
+            {/* Avatar section */}
             <div className="avatar-section">
               <div className="avatar-wrapper">
                 <img
@@ -242,38 +297,29 @@ const handleRemoveAvatar = async () => {
                   className="user-avatar"
                 />
               </div>
-           <div className="avatar-controls">
-<input
-  type="file"
-  id="avatar-upload"
-  accept="image/*"
-  onChange={async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-      await new Promise((res) => setTimeout(res, 100)); // wait for state to update
-      await handleUploadAvatar(file); // pass file directly
-    }
-  }}
-  style={{ display: 'none' }}
-/>
-
-  <label htmlFor="avatar-upload" className="btn btn-primary">
-    Upload
-  </label>
-{/*
-<button
-  onClick={handleRemoveAvatar}
-  className="btn btn-outline"
->
-  Remove
-</button>
-*/}
-</div>
-
+              <div className="avatar-controls">
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setAvatarFile(file);
+                      setAvatarPreview(URL.createObjectURL(file));
+                      await new Promise((res) => setTimeout(res, 100)); // wait for state to update
+                      await handleUploadAvatar(file); // pass file directly
+                    }
+                  }}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="avatar-upload" className="btn btn-primary">
+                  Upload
+                </label>
+              </div>
             </div>
 
+            {/* User information section */}
             <div className="info-section">
               <div className="form-group">
                 <div className="form-row">
@@ -338,13 +384,14 @@ const handleRemoveAvatar = async () => {
           </div>
         </div>
 
+        {/* Action buttons */}
         <div className="action-btn">
           <button onClick={handleLogout} className="btn btn-warning">Logout</button>
           <button onClick={handleDeleteAccount} className="btn btn-danger">Delete Account</button>
         </div>
       </main>
 
-      {/* Success Dialog */}
+      {/* Success dialog */}
       {showSuccessDialog && (
         <div className="dialog-overlay">
           <div className="dialog-box">

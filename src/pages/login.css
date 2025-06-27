@@ -1,136 +1,144 @@
-/* Main container - only for background */
+/* ========== MAIN PAGE LAYOUT ========== */
+/* Background container with gradient */
 .login-page {
-  min-height: 100vh;
-  background: linear-gradient(115deg, #97B469, #b5cc85, #d2e6ab);
+  min-height: 100vh; /* Full viewport height */
+  background: linear-gradient(115deg, #97B469, #b5cc85, #d2e6ab); /* Olive green gradient */
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  padding: 20px; /* Responsive padding */
+  box-sizing: border-box; /* Include padding in height calculation */
 }
 
-
-
-/* Form container - FORCEFULLY reduced height */
+/* ========== FORM CONTAINER ========== */
+/* Main form container with forced height */
 .login-form-container {
-  display: flex ;
-  flex-direction: column ;
-  width: 100% ;
-  max-width: 1000px;
-  background: white ;
-  border-radius: 12px ;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) ;
-  overflow: hidden ;
-  height: 420px !important; /* FORCED height */
-  max-height: 420px !important; /* FORCED max-height */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically on mobile */
+  width: 100%;
+  max-width: 1000px; /* Maximum width constraint */
+  background: white; /* White background for form */
+  border-radius: 12px; /* Rounded corners */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  overflow: hidden; /* Contain child elements */
+  height: 420px !important; /* Fixed height */
+  max-height: 420px !important; /* Prevent height expansion */
 }
 
+/* Desktop layout adjustment */
 @media (min-width: 1024px) {
   .login-form-container {
-    flex-direction: row;
-    height: 420px !important; /* Same forced height for desktop */
+    flex-direction: row; /* Side-by-side layout on desktop */
+    height: 420px !important; /* Maintain fixed height */
   }
 }
 
-/* Left banner - FORCEFULLY constrained */
+/* ========== LEFT BANNER SECTION ========== */
+/* Banner area with forced dimensions */
 .login-form-banner {
-  width: 100% ;
-  max-width: 500px ;
-  padding: 20px ; /* Reduced padding */
-  display: flex ;
-  flex-direction: column ;
-  align-items: center ;
+  width: 100%;
+  max-width: 500px; /* Maximum width constraint */
+  padding: 20px; /* Reduced padding for space efficiency */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  background-color: #97B469 ;
-  background-image: url('../assets/LoginBanner.jpg');
+  background-color: #97B469; /* Fallback color */
+  background-image: url('../assets/LoginBanner.jpg'); /* Banner image */
   color: white;
-  box-sizing: border-box ;
-  height: 100% !important;
-  max-height: 420px !important; /* Matches container */
+  box-sizing: border-box;
+  height: 100% !important; /* Fill container height */
+  max-height: 420px !important; /* Match container height */
 }
 
-/* Right form content - FORCEFULLY constrained */
+/* ========== RIGHT FORM CONTENT ========== */
+/* Form content area with scrollable content */
 .login-form-content {
-  width: 100% ;
-  padding: 20px 40px !important;
-  box-sizing: border-box ;
-  height: 100% !important;
-  max-height: 420px !important; /* Matches container */
-  overflow-y: auto !important;
+  width: 100%;
+  padding: 20px 40px !important; /* Horizontal padding */
+  box-sizing: border-box;
+  height: 100% !important; /* Fill container height */
+  max-height: 420px !important; /* Match container height */
+  overflow-y: auto !important; /* Enable vertical scrolling if needed */
 }
 
+/* Desktop layout adjustment */
 @media (min-width: 1024px) {
   .login-form-content {
-    width: 50% !important;
+    width: 50% !important; /* Take half width on desktop */
     padding: 20px 40px !important;
   }
 }
 
-/* Content adjustments to fit reduced height */
+/* ========== FORM ELEMENTS ========== */
+/* Adjusted typography for constrained space */
 .login-form-content h2 {
-  font-size: 22px !important; /* Slightly smaller */
-  margin-bottom: 8px !important;
+  font-size: 22px !important; /* Slightly reduced heading size */
+  margin-bottom: 8px !important; /* Reduced spacing */
 }
 
 .login-form-content p {
-  margin-bottom: 15px !important; /* Reduced */
-  font-size: 13px !important; /* Slightly smaller */
+  margin-bottom: 15px !important; /* Reduced paragraph spacing */
+  font-size: 13px !important; /* Slightly smaller text */
 }
 
+/* Input group styling */
 .login-input-group {
-  margin-bottom: 25px !important; /* Reduced */
+  margin-bottom: 25px !important; /* Reduced spacing between inputs */
 }
 
+/* Remember me & forgot password row */
 .remember-forgot-row {
-  margin: 12px 0 !important; /* Reduced */
+  margin: 12px 0 !important; /* Reduced vertical spacing */
 }
 
-/* Sign up link */
+/* ========== SIGN UP LINK ========== */
 .signup-link {
   text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
-  color: #666;
+  margin-top: 20px; /* Spacing from form elements */
+  font-size: 14px; /* Smaller text size */
+  color: #666; /* Subdued text color */
 }
 
 .signup-link a {
-  color: #97B469;
-  font-weight: 500;
-  text-decoration: none;
+  color: #97B469; /* Brand color for links */
+  font-weight: 500; /* Medium weight */
+  text-decoration: none; /* Remove underline */
 }
 
 .signup-link a:hover {
-  text-decoration: underline;
+  text-decoration: underline; /* Underline on hover */
 }
 
-/* Remember me & forgot password */
+/* ========== REMEMBER ME SECTION ========== */
 .remember-forgot-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Space out elements */
   align-items: center;
-  margin: 15px 0;
-  font-size: 14px;
+  margin: 15px 0; /* Vertical spacing */
+  font-size: 14px; /* Smaller text size */
 }
 
 .remember-me {
   display: flex;
-  align-items: center;
+  align-items: center; /* Align checkbox with label */
 }
 
 .remember-me input {
-  margin-right: 8px;
+  margin-right: 8px; /* Space between checkbox and label */
 }
 
 .forgot-password {
-  color: #97B469;
-  text-decoration: none;
+  color: #97B469; /* Brand color */
+  text-decoration: none; /* Remove underline */
 }
 
 .forgot-password:hover {
-  text-decoration: underline;
+  text-decoration: underline; /* Underline on hover */
 }
 
-/* Completely disable native password reveal buttons */
+/* ========== PASSWORD INPUT SECURITY ========== */
+/* Disable native password reveal buttons across browsers */
 input[type="password"]::-webkit-reveal,
 input[type="password"]::-webkit-caps-lock-indicator,
 input[type="password"]::-webkit-credentials-auto-fill-button {
@@ -140,7 +148,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   pointer-events: none !important;
 }
 
-/* For Firefox */
+/* Firefox specific */
 input[type="password"]::-moz-reveal {
   display: none !important;
   visibility: hidden !important;
@@ -148,7 +156,7 @@ input[type="password"]::-moz-reveal {
   pointer-events: none !important;
 }
 
-/* For Edge */
+/* Edge specific */
 input[type="password"]::-ms-reveal {
   display: none !important;
   visibility: hidden !important;
@@ -156,26 +164,25 @@ input[type="password"]::-ms-reveal {
   pointer-events: none !important;
 }
 
-
+/* ========== PASSWORD TOGGLE STYLING ========== */
 .login-input-group {
-  margin-bottom: 25px !important;
+  margin-bottom: 25px !important; /* Consistent spacing */
 }
 
 .input-with-toggle {
-  position: relative;
+  position: relative; /* Positioning context for toggle */
 }
 
 .password-toggle {
   position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 10px; /* Position from right edge */
+  top: 50%; /* Vertical center */
+  transform: translateY(-50%); /* Precise vertical alignment */
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  height: 100%;
+  height: 100%; /* Full input height */
   display: flex;
-  align-items: center;
+  align-items: center; /* Center icon vertically */
 }
-

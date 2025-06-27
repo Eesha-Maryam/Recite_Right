@@ -1,115 +1,117 @@
+/* ========== CSS VARIABLES ========== */
 :root {
-  --olive-green: #97B469;
-  --charcoal: #333333;
-  --white: #ffffff;
+  --olive-green: #97B469;    /* Primary brand color */
+  --charcoal: #333333;       /* Dark text color */
+  --white: #ffffff;          /* Background/text color */
+  --hover-green: #e6eddc;    /* Tile hover state */
+  --dark-bg: #121212;        /* Dark mode background */
+  --dark-tile: #1e1e1e;      /* Dark mode tile background */
+  --dark-accent: #b5cc8e;    /* Dark mode accent color */
 }
 
+/* ========== BASE STYLES ========== */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%; /* Ensure full viewport height */
+}
+
+/* ========== LIGHT MODE STYLES ========== */
 .muta-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--white);
+  min-height: 100vh; /* Full viewport height */
 }
 
+/* Main content area */
 .muta-content {
-  padding: 4rem 5rem 5rem 5rem; /* Push content below fixed header + add horizontal padding */
+  padding: 4rem 5rem 5rem 5rem; /* Top, right, bottom, left padding */
 }
 
+/* Page heading */
 .muta-heading {
   color: var(--olive-green);
   font-size: 2rem;
   margin-bottom: 0.5rem;
 }
 
+/* Description text */
 .muta-description {
   font-size: 1rem;
   margin-bottom: 2rem;
   color: var(--charcoal);
 }
 
+/* Grid layout for Surah tiles */
 .muta-tiles-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.2rem;
+  grid-template-columns: repeat(3, 1fr); /* 3-column grid */
+  gap: 1.2rem; /* Spacing between tiles */
 }
 
+/* Individual Surah tile */
 .muta-tile {
   background-color: var(--white);
   border: 2px solid var(--olive-green);
   padding: 1.2rem;
   text-align: center;
   border-radius: 10px;
-  transition: all 0.25s ease;
+  transition: all 0.25s ease; /* Smooth hover animation */
   cursor: pointer;
 }
 
+/* Tile hover effects */
 .muta-tile:hover {
-  background-color: #e6eddc;
-  transform: translateY(-4px);
+  background-color: var(--hover-green);
+  transform: translateY(-4px); /* Lift effect */
   box-shadow: 0 4px 10px rgba(151, 180, 105, 0.3);
 }
 
+/* Tile heading (Surah name) */
 .muta-tile h3 {
   margin: 0;
   font-size: 1.15rem;
   color: var(--charcoal);
 }
 
+/* Tile subtext (count) */
 .muta-tile p {
   margin: 0.2rem 0 0 0;
   font-size: 0.95rem;
   color: var(--charcoal);
 }
 
-
-/* Dark Mode for Mutashabihat Page */
+/* ========== DARK MODE OVERRIDES ========== */
 .dark-mode .muta-container {
-  background-color: #121212;
+  background-color: var(--dark-bg);
 }
 
 .dark-mode .muta-heading {
-  color: #b5cc8e; /* A softer olive or accent for headings */
+  color: var(--dark-accent); /* Softer green for dark mode */
 }
 
 .dark-mode .muta-description {
-  color: #ddd;
+  color: #ddd; /* Light gray for better readability */
 }
 
 .dark-mode .muta-tile {
-  background-color: #1e1e1e;
-  border: 2px solid #b5cc8e;
+  background-color: var(--dark-tile);
+  border-color: var(--dark-accent);
 }
 
 .dark-mode .muta-tile:hover {
-  background-color: #2a2a2a;
+  background-color: #2a2a2a; /* Slightly lighter than tile bg */
   box-shadow: 0 4px 10px rgba(181, 204, 142, 0.2);
 }
 
 .dark-mode .muta-tile h3,
 .dark-mode .muta-tile p {
-  color: #ddd;
+  color: #ddd; /* Light text for dark mode */
 }
 
-/* Add this for both light and dark mode */
-body,
-html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
-
-/* Light Mode */
-.muta-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--white);
-  min-height: 100vh; /* Ensures full vertical fill */
-}
-
-/* Dark Mode */
+/* Ensure dark mode applies to root elements */
 .dark-mode body,
 .dark-mode html {
-  background-color: #121212;
-}
-
-.dark-mode .muta-container {
-  background-color: #121212;
-  min-height: 100vh;
+  background-color: var(--dark-bg);
 }
