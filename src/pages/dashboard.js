@@ -6,6 +6,8 @@ const Dashboard = () => {
   const currentMonth = new Date().toLocaleString('default', { month: 'long' });
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [quizList, setQuizList] = useState([]);
+  const [reciteSessions, setReciteSessions] = useState([]);
+
 
   const months = [
     'January', 'February', 'March', 'April',
@@ -45,7 +47,36 @@ const Dashboard = () => {
     fetchQuizList();
   }, []);
 
-    // Bar chart configuration
+  useEffect(() => {
+    const fetchRecitationSessions = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.error('No access token found');
+          return;
+        }
+
+        const response = await fetch('http://localhost:5000/v1/recitation', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch sessions');
+
+        const data = await response.json();
+        console.log('Sessions from backend:', data);
+        setReciteSessions(data);
+      } catch (error) {
+        console.error('Error loading recitation sessions:', error);
+      }
+    };
+
+    fetchRecitationSessions();
+  }, []);
+
+
+  // Bar chart configuration
   const baseX = 80;
   const baseY = 220;
   const chartHeight = 200;
@@ -67,37 +98,69 @@ const Dashboard = () => {
 
   const reversedQuizzes = [...filteredQuizzes].reverse(); // ⬅️ newest first
   const bars = reversedQuizzes.map((quiz, index) => {
-  const attempt = quiz.attempts[0];
-  const totalQuestions = quiz.questions.length || 1;
-  const score = attempt.score || 0;
-  const percentageScore = Math.round((score / totalQuestions) * 100);
-  const barHeight = (percentageScore / 100) * chartHeight;
-  const y = baseY - barHeight;
-  const x = baseX + index * spacing + (spacing - barWidth) / 2;
+    const attempt = quiz.attempts[0];
+    const totalQuestions = quiz.questions.length || 1;
+    const score = attempt.score || 0;
+    const percentageScore = Math.round((score / totalQuestions) * 100);
+    const barHeight = (percentageScore / 100) * chartHeight;
+    const y = baseY - barHeight;
+    const x = baseX + index * spacing + (spacing - barWidth) / 2;
 
-  const completedDate = new Date(attempt.completedAt);
-  const day = completedDate.getDate();
-  const year = completedDate.getFullYear().toString().slice(-2); // get last 2 digits
-  const formattedDate = `${day}/${year}`; // e.g. 25/25
+    const completedDate = new Date(attempt.completedAt);
+    const day = completedDate.getDate();
+    const year = completedDate.getFullYear().toString().slice(-2); // get last 2 digits
+    const formattedDate = `${day}/${year}`; // e.g. 25/25
 
-  return (
-    <g key={quiz._id}>
-      {/* Bar */}
-      <rect x={x} y={y} width={barWidth} height={barHeight} className="bar" />
+    return (
+      <g key={quiz._id}>
+        {/* Bar */}
+        <rect x={x} y={y} width={barWidth} height={barHeight} className="bar" />
 
-      {/* Percentage on top */}
-      <text x={x + barWidth / 2} y={y - 8} textAnchor="middle" className="score-label">
-        {percentageScore}%
-      </text>
+        {/* Percentage on top */}
+        <text x={x + barWidth / 2} y={y - 8} textAnchor="middle" className="score-label">
+          {percentageScore}%
+        </text>
 
-      {/* Date below */}
-      <text x={x + barWidth / 2} y={240} textAnchor="middle" className="label">
-        {formattedDate}
-      </text>
-    </g>
+        {/* Date below */}
+        <text x={x + barWidth / 2} y={240} textAnchor="middle" className="label">
+          {formattedDate}
+        </text>
+      </g>
+    );
+  });
+
+  // Filter recitations by selected month
+  const filteredSessions = reciteSessions.filter(
+    (session) =>
+      new Date(session.sessionDate).toLocaleString('default', { month: 'long' }) === selectedMonth
   );
-});
 
+  const sessionSpacing = chartWidth / Math.max(filteredSessions.length, 1);
+  const sessionBarWidth = Math.min(sessionSpacing * 0.6, maxBarWidth);
+
+  const sessionBars = filteredSessions.map((session, index) => {
+    const progress = session.progressRate || 0;
+    const barHeight = (progress / 100) * chartHeight;
+    const y = baseY - barHeight;
+    const x = baseX + index * sessionSpacing + (sessionSpacing - sessionBarWidth) / 2;
+
+    const dateObj = new Date(session.sessionDate);
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear().toString().slice(-2);
+    const formattedDate = `${day}/${year}`;
+
+    return (
+      <g key={session._id}>
+        <rect x={x} y={y} width={sessionBarWidth} height={barHeight} className="bar" />
+        <text x={x + sessionBarWidth / 2} y={y - 8} textAnchor="middle" className="score-label">
+          {progress}%
+        </text>
+        <text x={x + sessionBarWidth / 2} y={240} textAnchor="middle" className="label">
+          {formattedDate}
+        </text>
+      </g>
+    );
+  });
 
 
   return (
@@ -116,7 +179,7 @@ const Dashboard = () => {
             <div className="card-header">
               <h2 className="card-title">Progress Rate</h2>
               <div className="dropdown-container">
-                <select 
+                <select
                   className="month-dropdown"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
@@ -127,7 +190,7 @@ const Dashboard = () => {
                 </select>
               </div>
             </div>
-            
+
             <div className="chart-container">
               <svg
                 role="img"
@@ -149,23 +212,10 @@ const Dashboard = () => {
                 <text x="20" y="75" className="label">75%</text>
                 <text x="20" y="25" className="label">100%</text>
 
-                {/* Bars with increased spacing */}
-                <rect x="100" y="70" width="40" height="150" className="bar" />
-                <rect x="200" y="60" width="40" height="160" className="bar" />
-                <rect x="300" y="130" width="40" height="90" className="bar" />
-                <rect x="400" y="100" width="40" height="120" className="bar" />
-                <rect x="500" y="20" width="40" height="200" className="bar" />
-                <rect x="600" y="100" width="40" height="120" className="bar" />
-                <rect x="700" y="100" width="40" height="120" className="bar" />
 
-                {/* X-axis labels */}
-                <text x="90" y="240" className="label">Session 1</text>
-                <text x="190" y="240" className="label">Session 2</text>
-                <text x="290" y="240" className="label">Session 3</text>
-                <text x="390" y="240" className="label">Session 4</text>
-                <text x="490" y="240" className="label">Session 5</text>
-                <text x="590" y="240" className="label">Session 6</text>
-                <text x="690" y="240" className="label">Session 7</text>
+                {/* Dynamic progress session bars */}
+                {sessionBars}
+
               </svg>
             </div>
           </div>
@@ -202,11 +252,11 @@ const Dashboard = () => {
                 <line x1="80" y1="20" x2="760" y2="20" className="axis" />
 
                 {/* Y-axis labels */}
-                <text x="20" y="225" className="label">0</text>
-                <text x="20" y="175" className="label">25</text>
-                <text x="20" y="125" className="label">50</text>
-                <text x="20" y="75" className="label">75</text>
-                <text x="20" y="25" className="label">100</text>
+                <text x="20" y="225" className="label">0%</text>
+                <text x="20" y="175" className="label">25%</text>
+                <text x="20" y="125" className="label">50%</text>
+                <text x="20" y="75" className="label">75%</text>
+                <text x="20" y="25" className="label">100%</text>
 
                 {/* Dynamic bars */}
                 {bars}

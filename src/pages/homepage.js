@@ -7,6 +7,7 @@ import './homepage.css';
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [avgProgressRate, setAvgProgressRate] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [, setHoveredTiles] = useState(new Set());
   const [windowSize, setWindowSize] = useState({
@@ -30,41 +31,61 @@ const HomePage = () => {
     });
   };
 
- const resumeSession = async () => {
-  setIsResuming(true);
-  try {
-    let session = null;
-    
-    // Check both backend and localStorage
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/v1/recitation`);
+        const sessions = await res.json();
+
+        console.log('Sessions from backend:', sessions); // 👈 ADD THIS HERE
+
+        const valid = sessions?.filter(s => typeof s.progressRate === 'number');
+        const total = valid.reduce((sum, s) => sum + s.progressRate, 0);
+        const avg = valid.length ? total / valid.length : 0;
+        setAvgProgressRate(Math.round(avg));
+      } catch (err) {
+        console.error('Failed to fetch progress sessions:', err);
+      }
+    };
+
+    fetchProgress();
+  }, [baseUrl]);
+
+  const resumeSession = async () => {
+    setIsResuming(true);
     try {
-      const res = await fetch(`${baseUrl}/api/recitation/last`);
-      if (res.ok) session = await res.json();
-    } catch (err) {
-      console.log('Using localStorage fallback');
-    }
+      let session = null;
 
-    if (!session) {
-      const local = localStorage.getItem('lastRecitation');
-      if (local) session = JSON.parse(local);
-    }
+      // Check both backend and localStorage
+      try {
+        const res = await fetch(`${baseUrl}/api/recitation/last`);
+        if (res.ok) session = await res.json();
+      } catch (err) {
+        console.log('Using localStorage fallback');
+      }
 
-    if (session?.surahId) {
-      // DEBUG: Check what's being loaded
-      console.log('Resuming session:', session);
-      
-      // Use currentAyah if available, otherwise startAyah
-      const ayahToResume = session.currentAyah || session.startAyah || 1;
-      navigate(`/quran?surahId=${session.surahId}&startAyah=${ayahToResume}`);
-    } else {
-      alert('No session found. Please start a new recitation.');
+      if (!session) {
+        const local = localStorage.getItem('lastRecitation');
+        if (local) session = JSON.parse(local);
+      }
+
+      if (session?.surahId) {
+        // DEBUG: Check what's being loaded
+        console.log('Resuming session:', session);
+
+        // Use currentAyah if available, otherwise startAyah
+        const ayahToResume = session.currentAyah || session.startAyah || 1;
+        navigate(`/quran?surahId=${session.surahId}&startAyah=${ayahToResume}`);
+      } else {
+        alert('No session found. Please start a new recitation.');
+      }
+    } catch (error) {
+      console.error('Resume failed:', error);
+      alert('Failed to resume. Please try again.');
+    } finally {
+      setIsResuming(false);
     }
-  } catch (error) {
-    console.error('Resume failed:', error);
-    alert('Failed to resume. Please try again.');
-  } finally {
-    setIsResuming(false);
-  }
-};
+  };
 
   // Fetch API on mount
   useEffect(() => {
@@ -124,18 +145,18 @@ const HomePage = () => {
   return (
     <div className="home-page">
       <Header transparent />
-      
-      <div 
-        className="banner-section" 
-        style={{ 
+
+      <div
+        className="banner-section"
+        style={{
           height: isVerySmallMobile ? '30vh' : isMobile ? '32vh' : '35vh',
           padding: isVerySmallMobile ? '12px' : isMobile ? '16px' : '20px'
         }}
       >
         <div className="search-wrapper">
           <div className="search-container">
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search the Surah..."
               value={searchTerm}
               onChange={(e) => {
@@ -152,16 +173,16 @@ const HomePage = () => {
                 padding: isVerySmallMobile ? '8px 12px 8px 36px' : '12px 12px 12px 42px'
               }}
             />
-            <span 
-              className="material-icons search-icon" 
-              style={{ 
+            <span
+              className="material-icons search-icon"
+              style={{
                 fontSize: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
                 left: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px'
               }}
             >
               search
             </span>
-            
+
             {searchTerm && searchResults.length > 0 && (
               <div className="search-results-dropdown">
                 {searchResults.map(item => (
@@ -200,7 +221,7 @@ const HomePage = () => {
               { title: "Progress Rate", content: "percentage", align: "center" },
               { title: "Streaks", content: "days", align: "center" }
             ].map((item, index) => (
-              <div 
+              <div
                 key={index}
                 className="feature-box"
                 style={{
@@ -214,83 +235,86 @@ const HomePage = () => {
                   marginBottom: '12px',
                   marginTop: '5px',
                 }}>{item.title}</h3>
-                
-                <div className="feature-content" style={{ 
-  height: isTablet ? '60px' : 'auto',
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start', // changed from 'flex-end' to push content upward
-  alignItems: 'center'
-}}>
-  {item.content === "resume" && (
-    <button 
-      className="resume-button"
-      style={{
-        borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
-        padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
-        fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
-        marginTop: '11px', // moves button a bit up
-         alignSelf: 'flex-start',
-      }}
-      onClick={resumeSession}
-      disabled={isResuming}
-    >
-      {isResuming ? 'Loading...' : 'Resume'}
-    </button>
-  )}
 
-  {item.content === "progress" && (
-    <div 
-      style={{ 
-        width: '100%', 
-        textAlign: 'center', 
-        cursor: 'pointer',
-        marginTop: '11px' // moves text slightly up
-      }}
-      onClick={() => navigate('/mistake-log')}
-    >
-      <span 
-  style={{
-    fontWeight: 'bold',
-    color: '#97B469',
-    fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '30px',
-    transition: 'color 0.3s ease',
-  }}
-  onClick={() => navigate('/mistake-log')}
-  onMouseEnter={e => e.target.style.color = '#6B8E23'} // darker olive
-  onMouseLeave={e => e.target.style.color = '#97B469'} // original olive
->
-  Mistakes
-</span>
+                <div className="feature-content" style={{
+                  height: isTablet ? '60px' : 'auto',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-start', // changed from 'flex-end' to push content upward
+                  alignItems: 'center'
+                }}>
+                  {item.content === "resume" && (
+                    <button
+                      className="resume-button"
+                      style={{
+                        borderRadius: isVerySmallMobile ? '18px' : isMobile ? '20px' : '22px',
+                        padding: isVerySmallMobile ? '4px 10px' : isMobile ? '6px 12px' : '8px 16px',
+                        fontSize: isVerySmallMobile ? '10px' : isMobile ? '12px' : '14px',
+                        marginTop: '11px', // moves button a bit up
+                        alignSelf: 'flex-start',
+                      }}
+                      onClick={resumeSession}
+                      disabled={isResuming}
+                    >
+                      {isResuming ? 'Loading...' : 'Resume'}
+                    </button>
+                  )}
 
-    </div>
-  )}
+                  {item.content === "progress" && (
+                    <div
+                      style={{
+                        width: '100%',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        marginTop: '11px' // moves text slightly up
+                      }}
+                      onClick={() => navigate('/mistake-log')}
+                    >
+                      <span
+                        style={{
+                          fontWeight: 'bold',
+                          color: '#97B469',
+                          fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '30px',
+                          transition: 'color 0.3s ease',
+                        }}
+                        onClick={() => navigate('/mistake-log')}
+                        onMouseEnter={e => e.target.style.color = '#6B8E23'} // darker olive
+                        onMouseLeave={e => e.target.style.color = '#97B469'} // original olive
+                      >
+                        Mistakes
+                      </span>
 
-  {item.content === "percentage" && (
-    <p style={{
-      color: '#97B469',
-      fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
-      textAlign: 'center',
-      margin: '0 auto',
-      marginTop: '28px' // moves % a bit up
-    }}>%</p>
-  )}
+                    </div>
+                  )}
 
-  {item.content === "days" && (
-    <div className="streak-wrapper">
-      <span className="streak-number">{user?.streak ?? 0}</span>
-      <span className="streak-label">Days</span>
-    </div>
-  )}
-</div>
+                  {item.content === "percentage" && (
+                    <p style={{
+                      color: '#97B469',
+                      fontSize: isVerySmallMobile ? '20px' : isMobile ? '22px' : '24px',
+                      textAlign: 'center',
+                      margin: '0 auto',
+                      marginTop: '28px'
+                    }}>
+                      {avgProgressRate !== null ? `${avgProgressRate}%` : '...'}
+                    </p>
+                  )}
+
+
+                  {item.content === "days" && (
+                    <div className="streak-wrapper">
+                      <span className="streak-number">{user?.streak ?? 0}</span>
+                      <span className="streak-label">Days</span>
+                    </div>
+                  )}
+                </div>
 
               </div>
             ))}
           </div>
         </div>
 
-        <div 
+        <div
           className="filter-section"
           style={{
             width: isVerySmallMobile ? '95%' : isMobile ? '92%' : '88%',
@@ -301,10 +325,10 @@ const HomePage = () => {
           <div className="tab-container"></div>
           <div className="sort-dropdown">
             <span style={{ fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px' }}>Sort by: </span>
-            <select 
+            <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              style={{ 
+              style={{
                 fontSize: isVerySmallMobile ? '12px' : isMobile ? '14px' : '16px',
                 border: '1px solid #97B469',
                 borderRadius: '4px',
@@ -319,7 +343,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        <div 
+        <div
           className="tile-section"
           style={{
             padding: isVerySmallMobile ? '8px' : isMobile ? '10px' : '12px',
@@ -331,7 +355,7 @@ const HomePage = () => {
           }}
         >
           <div className="tile-grid">
-              {(getSortedTiles().length > 0 ? getSortedTiles() : []).map((tile, index) => (
+            {(getSortedTiles().length > 0 ? getSortedTiles() : []).map((tile, index) => (
               <div
                 key={index}
                 className="tile"
@@ -351,7 +375,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
