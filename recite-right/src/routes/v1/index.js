@@ -8,11 +8,17 @@ const searchRoute = require('./search.route');
 const quizRoute = require('./quiz.route');
 const feedbackRoute = require('./feedback.route');
 const router = express.Router();
+const recitationRoute = require('./recitation.route');
+
 
 const defaultRoutes = [
   {
     path: '/auth',
     route: authRoute,
+  },
+  {
+    path: '/recitation',
+    route: recitationRoute,
   },
   {
     path: '/users',
@@ -31,9 +37,9 @@ const defaultRoutes = [
     route: quizRoute,
   },
   {
-      path: '/feedback',
-      route: feedbackRoute,
-    },
+    path: '/feedback',
+    route: feedbackRoute,
+  },
 ];
 
 const devRoutes = [
