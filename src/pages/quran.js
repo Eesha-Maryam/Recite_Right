@@ -94,9 +94,11 @@ const Quran = () => {
   const [showRecitationControls, setShowRecitationControls] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recitedWords, setRecitedWords] = useState({}); // Track recited words by ayah
+  const [incorrectWords, setIncorrectWords] = useState({}); // Track incorrect words by ayah
   const [currentWordIndex, setCurrentWordIndex] = useState(0); // Track current word being recited
   const [showHideToggle, setShowHideToggle] = useState(true);
   const recordingIntervalRef = useRef(null);
+  const wsRef = useRef(null);
   const sourceRef = useRef(null);
   const processorRef = useRef(null);
   const [finalSummary, setFinalSummary] = useState(null);
@@ -108,65 +110,50 @@ const Quran = () => {
   const dropdownRef = useRef(null);
   const quranBlockRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const audioContextRef = useRef(null);
   const beepSoundRef = useRef(null);
 
-  const [words] = useState(["بِسْمِ", "اللَّهِ", "الرَّحْمَٰنِ", "الرَّحِيمِ"]);
-  const [visibleIndices, setVisibleIndices] = useState([]);
-  const [incorrectWords, setIncorrectWords] = useState({});
-  const [currentMode, setCurrentMode] = useState('reciting'); // 'reciting' | 'correcting'
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  
-  // REFS
-  const audioContextRef = useRef(null);
-  const wsRef = useRef(null);
-  const beepTimeoutRef = useRef(null);
-
-  // 1. AUDIO SETUP
   useEffect(() => {
-    const initAudio = () => {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      } catch (error) {
-        console.error("Audio init failed:", error);
-      }
-    };
-
-    // Initialize on user interaction
-    const handleFirstInteraction = () => {
-      initAudio();
-      window.removeEventListener('click', handleFirstInteraction);
-    };
-    window.addEventListener('click', handleFirstInteraction);
-
-    return () => {
-      if (audioContextRef.current?.state !== 'closed') {
-        audioContextRef.current?.close();
-      }
-      clearTimeout(beepTimeoutRef.current);
-    };
-  }, []);
-
-  // 2. WEBSOCKET SETUP
-  useEffect(() => {
-    wsRef.current = new WebSocket('ws://localhost:8000/ws/1/1');
-
-    wsRef.current.onmessage = (e) => {
-      const data = JSON.parse(e.data);
+  // Initialize audio context on user interaction
+  const initAudio = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = ctx;
       
-      if (data.type === 'mistake') {
-        handleMistake(data.position, data.expectedWord);
-      } else if (data.type === 'progress') {
-        handleProgress(data.newPosition);
-      }
-    };
+      // Create beep generator
+      beepSoundRef.current = () => {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 800;
+        gainNode.gain.value = 0.3;
+        
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.3);
+      };
+    } catch (error) {
+      console.error('Audio initialization failed:', error);
+    }
+  };
 
-    return () => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
+  // Start on first user interaction
+  const handleFirstClick = () => {
+    initAudio();
+    document.removeEventListener('click', handleFirstClick);
+  };
+  
+  document.addEventListener('click', handleFirstClick);
 
+  return () => {
+    if (audioContextRef.current?.state !== 'closed') {
+      audioContextRef.current?.close();
+    }
+  };
+}, []);
 
 
   // Dummy Quran Data (expanded for Juz 30)
@@ -704,83 +691,23 @@ useEffect(() => {
 
     simulateRecitation();
   };
-  const handleDataAvailable = (event) => {3
-
+  const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
       setAudioChunks(prev => [...prev, event.data]);
     }
   };
 
-
-  const cleanupRef = useRef(false);
-
-  // Audio initialization
-  useEffect(() => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      } catch (error) {
-        console.error("AudioContext failed:", error);
-      }
-    }
-
-    return () => {
-      if (audioContextRef.current?.state !== 'closed') {
-        audioContextRef.current?.close?.();
-      }
-    };
-  }, []);
-
-  // WebSocket connection
-  useEffect(() => {
-    if (!wsRef.current) {
-      wsRef.current = new WebSocket('ws://localhost:8000/ws/1/1');
-      
-      wsRef.current.onmessage = (e) => {
-        if (cleanupRef.current) return;
-        const data = JSON.parse(e.data);
-        
-        if (data.type === 'progress') {
-          setVisibleIndices(prev => [...prev, data.visible_word]);
-          setCorrectionMode(null);
-        }
-        else if (data.type === 'mistake') {
-          playBeep();
-          setCorrectionMode({
-            position: data.position,
-            expected: data.expected,
-            attempts: 0
-          });
-          setIncorrectIndices(prev => ({
-            ...prev,
-            [data.position]: 'incorrect'
-          }));
-        }
-      };
-    }
-
-    return () => {
-      cleanupRef.current = true;
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
-
-  const playBeep = () => {
-    if (!audioContextRef.current) return;
-    
-    try {
-      const osc = audioContextRef.current.createOscillator();
-      osc.connect(audioContextRef.current.destination);
-      osc.type = 'sine';
-      osc.frequency.value = 800;
-      osc.start();
-      osc.stop(audioContextRef.current.currentTime + 0.2);
-    } catch (error) {
-      console.error("Beep failed:", error);
-    }
-  };
+const playBeep = () => {
+  if (!beepSoundRef.current) {
+    console.warn('Beep sound not initialized');
+    return;
+  }
+  if (audioContextRef.current?.state === 'closed') {
+    console.warn('Audio context closed');
+    return;
+  }
+  beepSoundRef.current();
+};
 
   const simulateRecitation = () => {
     if (!selectedSurah || !dummyQuranData[selectedSurah.number]) return;
@@ -861,33 +788,6 @@ useEffect(() => {
     return ayah.text;
   };
 
-    const handleRecitation = (text) => {
-    if (correctionMode) {
-      const corrected = text.includes(correctionMode.expected);
-      
-      if (corrected) {
-        setIncorrectIndices(prev => ({
-          ...prev,
-          [correctionMode.position]: 'corrected'
-        }));
-        setCorrectionMode(null);
-      }
-      else if (correctionMode.attempts >= 1) {
-        setIncorrectIndices(prev => ({
-          ...prev,
-          [correctionMode.position]: 'permanent_error'
-        }));
-        setCorrectionMode(null);
-      }
-      else {
-        setCorrectionMode(prev => ({...prev, attempts: prev.attempts + 1}));
-      }
-    }
-    
-    wsRef.current.send(text);
-  };
-
-  
   // Add to Quran component
 const useFeedbackQueue = () => {
   const queueRef = useRef([]);
@@ -955,8 +855,6 @@ const recitationReducer = (state, action) => {
       return state;
   }
 };
-
-
 
 // Usage
 const [recitationState, dispatch] = useReducer(recitationReducer, {});
@@ -1217,11 +1115,6 @@ const [recitationState, dispatch] = useReducer(recitationReducer, {});
       </div>
     </div>
   );
-
-  
 };
-
-
-
 
 export default Quran;
