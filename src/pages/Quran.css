@@ -54,6 +54,20 @@
   color: var(--white) !important; /* Ensures readability in dark mode */
 }
 
+.word {
+  transition: all 0.3s ease;
+  margin-right: 2px;
+}
+
+.word.recited {
+  color: #28a745;
+}
+
+.word.incorrect {
+  color: #dc3545;
+  text-decoration: underline;
+}
+
 
 
 
@@ -951,3 +965,13 @@
   font-weight: bold;
 }
 
+/* Add these styles to your existing CSS */
+.word.temporary {
+  background-color: #ffeb3b; /* Yellow */
+  transition: background-color 0.3s;
+}
+
+.word.incorrect {
+  color: #f44336; /* Red */
+  text-decoration: underline;
+}

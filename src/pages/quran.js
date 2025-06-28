@@ -1,5 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { 
+  useState, 
+  useRef, 
+  useEffect,
+  useCallback,
+  useReducer 
+} from 'react';
+import { useLocation } from 'react-router-dom';
 import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes, FaStop, FaPause, FaPlay } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
@@ -24,6 +30,8 @@ const SettingsItem = ({ icon, text }) => {
     </div>
   );
 };
+
+
 
 const ToggleWithDescription = ({ description, isOn, onToggle, option1, option2 }) => {
   return (
@@ -105,6 +113,48 @@ const Quran = () => {
   const audioContextRef = useRef(null);
   const beepSoundRef = useRef(null);
 
+  useEffect(() => {
+  // Initialize audio context on user interaction
+  const initAudio = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = ctx;
+      
+      // Create beep generator
+      beepSoundRef.current = () => {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 800;
+        gainNode.gain.value = 0.3;
+        
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.3);
+      };
+    } catch (error) {
+      console.error('Audio initialization failed:', error);
+    }
+  };
+
+  // Start on first user interaction
+  const handleFirstClick = () => {
+    initAudio();
+    document.removeEventListener('click', handleFirstClick);
+  };
+  
+  document.addEventListener('click', handleFirstClick);
+
+  return () => {
+    if (audioContextRef.current?.state !== 'closed') {
+      audioContextRef.current?.close();
+    }
+  };
+}, []);
+
 
   // Dummy Quran Data (expanded for Juz 30)
   const dummyQuranData = {
@@ -182,16 +232,31 @@ const Quran = () => {
 
 
   // Initialize audio context and beep sound
-  useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    beepSoundRef.current = createBeepSound(audioContextRef.current, 800, 0.3);
+// Modify your audio initialization
+useEffect(() => {
+  const initAudio = async () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      await ctx.resume(); // Required for mobile browsers
+      audioContextRef.current = ctx;
+      
+      // Create beep only after user interaction
+      document.addEventListener('click', () => {
+        beepSoundRef.current = createBeepSound(ctx, 800, 0.3);
+      }, { once: true });
+    } catch (err) {
+      console.error("Audio init failed:", err);
+    }
+  };
 
-    return () => {
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close();
-      }
-    };
-  }, []);
+  initAudio();
+  
+  return () => {
+    if (audioContextRef.current?.state !== 'closed') {
+      audioContextRef.current?.close();
+    }
+  };
+}, []);
 
   const location = useLocation();
   // Replace your current initialization useEffect with this:
@@ -304,6 +369,9 @@ const Quran = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Add this with your other utility functions
+
+
   const startRecitation = () => {
     // Add validation for ayah number
     const ayahNum = parseInt(startAyah);
@@ -338,6 +406,7 @@ const Quran = () => {
     startRecording();
     startWebSocketConnection();
   };
+  
   const startWebSocketConnection = () => {
     if (!selectedSurah || !startAyah) {
       alert("Please select both surah and ayah");
@@ -563,6 +632,9 @@ const Quran = () => {
     simulateRecitation();
   };
 
+  
+
+  
   const speakWord = (word) => {
     if ('speechSynthesis' in window) {
       const utter = new SpeechSynthesisUtterance(word);
@@ -623,6 +695,48 @@ const Quran = () => {
     if (event.data.size > 0) {
       setAudioChunks(prev => [...prev, event.data]);
     }
+  };
+
+ useEffect(() => {
+    wsRef.current = new WebSocket('ws://localhost:8000/ws/1/1');
+    
+    wsRef.current.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      
+      if (data.type === 'progress') {
+        setVisibleIndices(prev => [...prev, data.visible_word]);
+        setCorrectionMode(null);
+      }
+      else if (data.type === 'mistake') {
+        // Immediate beep
+        playBeep();
+        
+        // Enter correction mode
+        setCorrectionMode({
+          position: data.position,
+          expected: data.expected,
+          attempts: 0
+        });
+        
+        // Highlight word
+        setIncorrectIndices(prev => ({
+          ...prev,
+          [data.position]: 'incorrect'
+        }));
+      }
+    };
+
+    return () => wsRef.current.close();
+  }, []);
+
+  const playBeep = () => {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 800;
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
   };
 
   const simulateRecitation = () => {
@@ -704,6 +818,105 @@ const Quran = () => {
     return ayah.text;
   };
 
+    const handleRecitation = (text) => {
+    if (correctionMode) {
+      const corrected = text.includes(correctionMode.expected);
+      
+      if (corrected) {
+        setIncorrectIndices(prev => ({
+          ...prev,
+          [correctionMode.position]: 'corrected'
+        }));
+        setCorrectionMode(null);
+      }
+      else if (correctionMode.attempts >= 1) {
+        setIncorrectIndices(prev => ({
+          ...prev,
+          [correctionMode.position]: 'permanent_error'
+        }));
+        setCorrectionMode(null);
+      }
+      else {
+        setCorrectionMode(prev => ({...prev, attempts: prev.attempts + 1}));
+      }
+    }
+    
+    wsRef.current.send(text);
+  };
+
+  
+  // Add to Quran component
+const useFeedbackQueue = () => {
+  const queueRef = useRef([]);
+  const isProcessingRef = useRef(false);
+
+  const processQueue = useCallback(async () => {
+    if (isProcessingRef.current || queueRef.current.length === 0) return;
+    
+    isProcessingRef.current = true;
+    const { type, data } = queueRef.current.shift();
+    
+    switch (type) {
+      case 'BEEP':
+        await playBeep(); // Your existing beep function
+        break;
+      case 'HIGHLIGHT':
+        setIncorrectWords(prev => ({ ...prev, [data.ayah]: data.wordIndex }));
+        break;
+      case 'PRONOUNCE':
+        await speakWord(data.word); // Your TTS function
+        break;
+    }
+
+    isProcessingRef.current = false;
+    processQueue();
+  }, []);
+
+  const addToQueue = (type, data) => {
+    queueRef.current.push({ type, data });
+    processQueue();
+  };
+
+  return { addToQueue };
+};// Add this custom hook INSIDE your Quran component (before the render)
+
+
+
+// Then use it in your component
+const { addToQueue } = useFeedbackQueue();
+
+// Replace useState with this reducer
+const recitationReducer = (state, action) => {
+  switch (action.type) {
+    case 'WORD_RECITED':
+      return {
+        ...state,
+        [action.ayah]: {
+          ...state[action.ayah],
+          [action.wordIndex]: 'CORRECT'
+        }
+      };
+    case 'WORD_MISTAKE':
+      addToQueue('BEEP'); // From our queue system
+      addToQueue('HIGHLIGHT', { ayah: action.ayah, wordIndex: action.wordIndex });
+      addToQueue('PRONOUNCE', { word: action.correctWord });
+      
+      return {
+        ...state,
+        [action.ayah]: {
+          ...state[action.ayah],
+          [action.wordIndex]: 'INCORRECT'
+        }
+      };
+    default:
+      return state;
+  }
+};
+
+
+
+// Usage
+const [recitationState, dispatch] = useReducer(recitationReducer, {});
   // Render words with recitation tracking
   const renderWords = (ayah, isBismillahAyah = false) => {
     if (!ayah.words) return ayah.text;
@@ -961,6 +1174,11 @@ const Quran = () => {
       </div>
     </div>
   );
+
+  
 };
+
+
+
 
 export default Quran;
