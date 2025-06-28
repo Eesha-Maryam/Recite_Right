@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const getSurahById = {
   params: Joi.object().keys({
-    surahId: Joi.string().required().min(1).max(3),
+    surahId: Joi.string().required().min(78).max(114),
   }),
 };
 

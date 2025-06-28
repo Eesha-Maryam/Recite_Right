@@ -4,6 +4,8 @@ const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const Quiz = require('../models/quiz.model');
+const { EASY_QUIZ_PROMPT_TEMPLATE } = require('../resources/easy_question_prompt');
+const { MEDIUM_HARD_QUIZ_PROMPT_TEMPLATE } = require('../resources/medium_hard_question_prompt');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -16,27 +18,8 @@ if (!process.env.GEMINI_API_KEY) {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL_NAME = 'gemini-2.0-flash-001';
 
-const QUIZ_PROMPT_TEMPLATE = `Generate a quiz about {topic} with {numQuestions} multiple choice questions only related to memorization.
-Each question text and options must be written in English, except for any Quranic words, phrases, or verses, which should be in Arabic script (no romanization).
-Do not translate numbers or generic English text into Arabic. Only Quranic text should appear in Arabic script.
-Each question should be formatted exactly as follows:
-
-1. [Question text]
-A) [Option 1]
-B) [Option 2]
-C) [Option 3]
-D) [Option 4]
-Answer: [Correct option letter A, B, C, or D]
-
-Requirements:
-- Each question must have exactly 4 options
-- The correct answer must be one of A, B, C, or D
-- Questions should be clear and well-formatted
-- Include a blank line between questions
-- Make sure each question is numbered sequentially`;
-
 // Function to parse the quiz text into structured data
-function parseQuiz(text) {
+function parseQuiz(text, testMode = 'easy') {
   if (!text?.trim()) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid quiz text format');
   }
@@ -51,42 +34,96 @@ function parseQuiz(text) {
 
     if (/^\d+\./.test(trimmedLine)) {
       if (currentQuestion) questions.push(currentQuestion);
+
+      // Extract surah number from question text
+      const surahMatch = trimmedLine.match(/\(Surah:\s*(\d+)\)/i);
+      const surahNumber = surahMatch ? parseInt(surahMatch[1], 10) : 0;
+
+      // Remove surah number from question text
+      const questionText = trimmedLine.replace(/\s*\(Surah:\s*\d+\)/i, '').replace(/^\d+\.\s*/, '');
+
       currentQuestion = {
         _id: new mongoose.Types.ObjectId(),
-        question: trimmedLine.replace(/^\d+\.\s*/, ''),
+        question: questionText,
         options: [],
-        correctAnswer: 0,
+        correctAnswer: null,
+        surahNumber: surahNumber
       };
-    } else if (/^[A-D][).]\s/.test(trimmedLine)) {
-      currentQuestion?.options.push(trimmedLine.replace(/^[A-D][).]\s*/, ''));
-    } else if (trimmedLine.toLowerCase().includes('answer:')) {
-      const answer = trimmedLine.split(':')[1].trim().toUpperCase();
-      if (currentQuestion) {
-        currentQuestion.correctAnswer = answer.charCodeAt(0) - 65;
+    }
+    // Detect MCQ options
+    else if (/^[A-D][).]\s/.test(trimmedLine)) {
+      currentQuestion.options.push(trimmedLine.replace(/^[A-D][).]\s*/, ''));
+    }
+    // Detect answer
+    else if (trimmedLine.toLowerCase().includes('answer:')) {
+      const answerText = trimmedLine.split(':')[1].trim();
+
+      // Determine if this is MCQ or recitation based on options
+      if (currentQuestion.options.length > 0) {
+        // MCQ - store option index
+        currentQuestion.correctAnswer = answerText.charCodeAt(0) - 65; // A->0, B->1
+      } else {
+        // Recitation - store full text
+        currentQuestion.correctAnswer = answerText;
+      }
+    }
+    // For recitation questions, accumulate the question text
+    else if (currentQuestion?.options.length === 0 && !trimmedLine.toLowerCase().includes('answer:')) {
+      // Check if this line contains a surah number for recitation questions
+      const surahMatch = trimmedLine.match(/\(Surah:\s*(\d+)\)/i);
+      if (surahMatch) {
+        currentQuestion.surahNumber = parseInt(surahMatch[1], 10);
+        currentQuestion.question += '\n' + trimmedLine.replace(/\s*\(Surah:\s*\d+\)/i, '');
+      } else {
+        currentQuestion.question += '\n' + trimmedLine;
       }
     }
   }
 
   if (currentQuestion) questions.push(currentQuestion);
 
-  const validQuestions = questions.filter(
-    (q) =>
-      q.question?.trim() &&
-      q.options?.length === 4 &&
-      Number.isInteger(q.correctAnswer) &&
-      q.correctAnswer >= 0 &&
-      q.correctAnswer <= 3,
-  );
+  const validQuestions = questions.filter(q => {
+    // Validate surah number
+    if (q.surahNumber === undefined || q.surahNumber < 1 || q.surahNumber > 114) {
+      return false;
+    }
+
+    if (q.options.length > 0) {
+      // MCQ validation
+      return q.options.length === 4 &&
+             Number.isInteger(q.correctAnswer) &&
+             q.correctAnswer >= 0 &&
+             q.correctAnswer <= 3;
+    } else {
+      // Recitation validation
+      return typeof q.correctAnswer === 'string' &&
+             q.correctAnswer.trim().length > 0;
+    }
+  });
 
   if (!validQuestions.length) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No valid questions could be parsed from the response');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No valid questions found');
   }
 
   return validQuestions;
 }
 
-const generateQuiz = async (topic, numQuestions = 5, userId) => {
-  const prompt = QUIZ_PROMPT_TEMPLATE.replace('{topic}', topic).replace('{numQuestions}', numQuestions);
+const generateQuiz = async (topic, numQuestions = 5, testMode = 'easy', userId) => {
+  let prompt;
+
+  console.log(testMode);
+
+  if (testMode === 'easy') {
+    prompt = EASY_QUIZ_PROMPT_TEMPLATE
+      .replace('{topic}', topic)
+      .replace('{numQuestions}', numQuestions);
+  } else {
+    console.log("using hard template");
+    prompt = MEDIUM_HARD_QUIZ_PROMPT_TEMPLATE
+      .replace('{topic}', topic)
+      .replace('{numQuestions}', numQuestions)
+      .replace('{difficulty}', testMode);
+  }
 
   const result = await ai.models.generateContent({
     model: MODEL_NAME,
@@ -98,13 +135,15 @@ const generateQuiz = async (topic, numQuestions = 5, userId) => {
     (() => {
       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to generate quiz content');
     })();
+  console.log(text)
 
-  const quizData = parseQuiz(text);
+  const quizData = parseQuiz(text, testMode);
 
   return Quiz.create({
-    title: `${topic} Quiz`,
-    description: `A quiz about ${topic} with ${numQuestions} questions`,
+    title: `${topic} Quiz (${testMode})`,
+    description: `A ${testMode} difficulty quiz about ${topic} with ${numQuestions} questions`,
     questions: quizData,
+    difficulty: testMode,
     createdBy: userId,
     status: 'active',
   });
@@ -119,11 +158,22 @@ const submitQuiz = async (quizId, answers, userId) => {
   const questionMap = new Map(quiz.questions.map((q) => [q._id.toString(), q]));
   const attemptAnswers = answers.map((answer) => {
     const question = questionMap.get(answer.questionId);
-    const isCorrect = question?.correctAnswer === answer.selectedOption;
+    if (!question) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `Question ${answer.questionId} not found in quiz`);
+    }
+
+    // For recitation questions (no options)
+    if (!question.options || question.options.length === 0) {
+      return {
+        questionId: answer.questionId,
+        isCorrect: answer.isCorrect,
+      };
+    }
+
     return {
       questionId: answer.questionId,
       selectedOption: answer.selectedOption,
-      isCorrect,
+      isCorrect: answer.isCorrect,
     };
   });
 

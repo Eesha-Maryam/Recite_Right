@@ -302,7 +302,7 @@ name: transliteratedSurahs[parseInt(number)],
                     </span>
                   </div>
 
-                  {!fullQuranChecked && expandedSurah === surah.id && (
+                 {!fullQuranChecked && selectedSurahs.some(s => s.id === surah.id) && (
                     <div className="range-selection">
                       <h4>Select Surah Range</h4>
                       <div className="range-controls">

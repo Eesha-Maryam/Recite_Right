@@ -9,6 +9,11 @@ const QuizPage = () => {
     return location.state || JSON.parse(localStorage.getItem('quizData')) || null;
   });
 
+  const wsRef = useRef(null);
+  const [recitationErrors, setRecitationErrors] = useState([]);
+  const [currentRecitationErrors, setCurrentRecitationErrors] = useState([]);
+  const [isRecording, setIsRecording] = useState(false);
+
   const { selectedSurahs, testMode } = location.state || {};
 
   const firstRender = useRef(true);
@@ -55,6 +60,15 @@ const QuizPage = () => {
   }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
+      return () => {
+        if (wsRef.current) {
+          wsRef.current.close();
+          wsRef.current = null;
+        }
+      };
+    }, []);
+
+  useEffect(() => {
     if (testMode === 'easy') setTimeLimit(300);
     else if (testMode === 'medium') setTimeLimit(600);
     else if (testMode === 'hard') setTimeLimit(900);
@@ -89,10 +103,14 @@ const QuizPage = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('accessToken');
-        const surahNames = selectedSurahs.map(s => s.name).join(',');
+        const topic = selectedSurahs
+              .map(s => `${s.name}(ayah ${s.startAyah}-${s.endAyah})`)
+              .join(',');
+        console.log(topic);
+
         const numQuestions = 10;
 
-        const response = await fetch(`${baseUrl}/v1/quiz?topic=${encodeURIComponent(surahNames)}&numQuestions=${numQuestions}`, {
+        const response = await fetch(`${baseUrl}/v1/quiz?topic=${encodeURIComponent(topic)}&numQuestions=${numQuestions}&testMode=${testMode}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -103,6 +121,7 @@ const QuizPage = () => {
         if (!response.ok) throw new Error('Failed to fetch questions');
 
         const { data } = await response.json();
+        console.log(data);
         if (!data?.questions) throw new Error('Invalid question data');
 
         setQuestions(data.questions);
@@ -141,10 +160,18 @@ const QuizPage = () => {
 
       const answersPayload = userAnswers
         .filter(ans => ans.question._id)
-        .map(ans => ({
-          questionId: ans.question._id,
-          selectedOption: ans.question.options.findIndex(opt => opt === ans.userAnswer)
-        }));
+        .map(ans => {
+          const payload = {
+            questionId: ans.question._id,
+            isCorrect: ans.isCorrect  // Always include whether the answer was correct
+          };
+
+          if (ans.question.options && ans.question.options.length > 0) {
+            payload.selectedOption = ans.question.options.findIndex(opt => opt === ans.userAnswer);
+          }
+
+          return payload;
+        });
 
       const response = await fetch(`${baseUrl}/v1/quiz/submit`, {
         method: 'POST',
@@ -165,7 +192,7 @@ const QuizPage = () => {
     }
   };
 
-  const handleAnswerSubmit = (answer) => {
+  const handleAnswerSubmit = (answer, recitationErrorsOverride = []) => {
     if (quizCompleted || !questions[currentQuestionIndex]) return;
     if (answer === undefined || answer === null || (Array.isArray(answer) && answer.length === 0)) {
       console.warn('Blocked accidental or empty auto-submit.');
@@ -175,7 +202,7 @@ const QuizPage = () => {
     const currentQuestion = questions[currentQuestionIndex];
     let isCorrect = false;
 
-    switch (currentQuestion.type) {
+    switch (questionType(currentQuestion)) {
       case 'multiple_choice':
         isCorrect = answer === currentQuestion.options[currentQuestion.correctAnswer];
         break;
@@ -184,7 +211,7 @@ const QuizPage = () => {
         break;
       case 'recitation':
       case 'recitation_from_point':
-        isCorrect = answer.trim().toLowerCase() === currentQuestion.correctAnswers[0].trim().toLowerCase();
+        isCorrect = recitationErrorsOverride.length === 0;
         break;
       case 'identification':
         isCorrect = answer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
@@ -193,8 +220,18 @@ const QuizPage = () => {
         isCorrect = answer === currentQuestion.options[currentQuestion.correctAnswer];
     }
 
-    setUserAnswers(prev => [...prev, { question: currentQuestion, userAnswer: answer, isCorrect }]);
+    setUserAnswers(prev => [
+      ...prev,
+      {
+        question: currentQuestion,
+        userAnswer: answer,
+        isCorrect,
+        recitationErrors: questionType(currentQuestion).includes('recitation') ? recitationErrorsOverride : []
+      }
+    ]);
+
     if (isCorrect) setScore(prev => prev + 1);
+    setRecitationErrors([]); // Reset for next recitation
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -202,6 +239,65 @@ const QuizPage = () => {
       setQuizCompleted(true);
     }
   };
+
+
+  const startRecitation = () => {
+      const currentQuestion = questions[currentQuestionIndex];
+      if (!currentQuestion || currentQuestion.options.length > 0) return;
+
+      const surahNumber = currentQuestion.surahNumber;
+      const startAyah = currentQuestion.correctAnswer; // Assuming correctAnswer is the ayah number
+
+      if (!surahNumber || !startAyah) {
+        alert("Missing surah or ayah information");
+        return;
+      }
+
+      const WS_URL = `ws://${window.location.hostname}:8000/ws/transcribe/${surahNumber}/${startAyah}`;
+      wsRef.current = new WebSocket(WS_URL);
+      wsRef.current.binaryType = 'arraybuffer';
+
+      wsRef.current.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        console.log('Received data from model API:', data);
+
+        if (data.incorrect_words) {
+          data.incorrect_words.forEach(([expectedWord, recitedWord]) => {
+            setRecitationErrors(prev => [...prev, { expected: expectedWord, recited: recitedWord }]);
+          });
+        } else if (data.incorrect_word) {
+          setRecitationErrors(prev => [...prev, { expected: data.incorrect_word, recited: data.recited_word }]);
+        }
+
+        if (data.error) {
+          console.error("Error from server:", data.error);
+        }
+      };
+
+      wsRef.current.onopen = () => {
+        console.log("WebSocket connection established");
+        setIsRecording(true);
+      };
+
+      wsRef.current.onclose = () => {
+        console.log("WebSocket connection closed");
+        setIsRecording(false);
+      };
+
+      wsRef.current.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        setIsRecording(false);
+      };
+    };
+
+    const stopRecitation = () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      setIsRecording(false);
+    };
+
 
   const renderMultipleChoice = (question) => (
     <div className="question-container">
@@ -216,6 +312,16 @@ const QuizPage = () => {
       </div>
     </div>
   );
+
+  const questionType = (question) => {
+    if (question.options && question.options.length === 4) {
+      return 'multiple_choice';
+    } else if (!question.options || question.options.length === 0) {
+      return 'recitation_from_point';
+    }
+
+    return 'multiple_choice';
+  };
 
   const renderWordArrangement = (question) => {
     const selectWord = (word, index) => {
@@ -257,21 +363,47 @@ const QuizPage = () => {
   };
 
   const renderRecitation = (question) => (
-    <div className="question-container">
-      <h3 className="question-text">{question.question}</h3>
-      <p className="reference-text">{question.reference}</p>
-      <textarea
-        className="recitation-input"
-        value={userRecitation}
-        onChange={(e) => setUserRecitation(e.target.value)}
-        placeholder="Type the ayahs here..."
-        rows={5}
-      />
-      <button className="submit-btn" onClick={() => handleAnswerSubmit(userRecitation)} disabled={!userRecitation.trim()}>
-        Submit
-      </button>
-    </div>
-  );
+      <div className="question-container">
+        <h3 className="question-text">{question.question}</h3>
+        <p className="reference-text">Surah {question.surahNumber}, Ayah {question.correctAnswer}</p>
+
+        <div className="recitation-controls">
+          {!isRecording ? (
+            <button className="record-btn" onClick={startRecitation}>
+              Start Recording
+            </button>
+          ) : (
+            <button className="stop-btn" onClick={stopRecitation}>
+              Stop Recording
+            </button>
+          )}
+        </div>
+
+        {recitationErrors.length > 0 && (
+          <div className="recitation-errors">
+            <h4>Incorrect Words:</h4>
+            <ul>
+              {recitationErrors.map((error, index) => (
+                <li key={index}>
+                  Expected: <strong>{error.expected}</strong>,
+                  Recited: <strong>{error.recited}</strong>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <button
+          className="submit-btn"
+          onClick={() =>
+            handleAnswerSubmit("Audio Recitation", [...recitationErrors])
+          }
+          disabled={isRecording}
+        >
+          Submit
+        </button>
+      </div>
+    );
 
   const renderIdentification = (question) => (
     <div className="question-container">
@@ -298,22 +430,34 @@ const QuizPage = () => {
         Your score: {score} out of {questions.length} ({Math.round((score / questions.length) * 100)}%)
       </p>
       <div className="answers-review">
-        {userAnswers.map((answer, index) => (
-          <div key={index} className={`answer-item ${answer.isCorrect ? 'correct' : 'incorrect'}`}>
-            <h4>Question {index + 1}</h4>
-            <p><strong>Question:</strong> {answer.question.question}</p>
-            {answer.question.reference && <p><strong>Reference:</strong> {answer.question.reference}</p>}
-            <p><strong>Your answer:</strong> {Array.isArray(answer.userAnswer) ? answer.userAnswer.join(' ') : answer.userAnswer}</p>
-            {!answer.isCorrect && (
-              <p><strong>Correct answer:</strong> {
-                Array.isArray(answer.question.correctAnswer)
-                  ? answer.question.correctAnswer.join(' ')
-                  : answer.question.options[answer.question.correctAnswer]
-              }</p>
-            )}
-          </div>
-        ))}
-      </div>
+      {userAnswers.map((answer, index) => (
+        <div key={index} className={`answer-item ${answer.isCorrect ? 'correct' : 'incorrect'}`}>
+          <h4>Question {index + 1}</h4>
+          <p><strong>Question:</strong> {answer.question.question}</p>
+          {answer.question.reference && (
+            <p><strong>Reference:</strong> {answer.question.reference}</p>
+          )}
+
+          <p><strong>Your answer:</strong></p>
+          {questionType(answer.question).includes("recitation") ? (
+            answer.recitationErrors.length > 0 ? (
+              <ul>
+                {answer.recitationErrors.map((error, i) => (
+                  <li key={i}>
+                    Expected: <strong>{error.expected}</strong>, Recited: <strong>{error.recited}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p><em>Correct recitation</em></p>
+            )
+          ) : (
+            <p>{Array.isArray(answer.userAnswer) ? answer.userAnswer.join(' ') : answer.userAnswer}</p>
+          )}
+        </div>
+      ))}
+
+    </div>
       <button className="restart-btn" onClick={() => navigate('/memorization-test')}>Start New Quiz</button>
     </div>
   );
@@ -327,7 +471,7 @@ const QuizPage = () => {
     const question = questions[currentQuestionIndex];
     if (!question) return <div className="error">Question not available</div>;
 
-    switch (question.type) {
+    switch (questionType(question)) {
       case 'multiple_choice': return renderMultipleChoice(question);
       case 'word_arrangement': return renderWordArrangement(question);
       case 'recitation':

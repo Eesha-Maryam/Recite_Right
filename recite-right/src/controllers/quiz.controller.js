@@ -6,7 +6,7 @@ const httpStatus = require('http-status');
 const Quiz = require('../models/quiz.model');
 
 const getQuiz = catchAsync(async (req, res) => {
-  const { topic, numQuestions } = req.query;
+  const { topic, numQuestions, testMode } = req.query;
 
   // First, try to find existing active quiz
   const existingQuiz = await Quiz.findOne({
@@ -20,7 +20,7 @@ const getQuiz = catchAsync(async (req, res) => {
   }
 
   // Otherwise, generate new one
-  const result = await generateQuiz(topic, numQuestions, req.user.id);
+  const result = await generateQuiz(topic, numQuestions, testMode, req.user.id);
   return ApiResponse.success(res, result, 'Quiz generated successfully');
 });
 
@@ -32,18 +32,32 @@ const submitQuizAnswers = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'quizId and non-empty answers array are required');
   }
 
-  const invalidAnswer = answers.find(
-    (answer) =>
-      !answer.questionId ||
-      typeof answer.selectedOption !== 'number' ||
-      answer.selectedOption < 0 ||
-      answer.selectedOption > 3,
-  );
+  // Validate each answer based on question type
+  const invalidAnswer = answers.find((answer) => {
+    // All answers must have questionId and isCorrect
+    if (!answer.questionId || typeof answer.isCorrect !== 'boolean') {
+      return true;
+    }
+
+    // For multiple choice questions, validate selectedOption
+    if (answer.hasOwnProperty('selectedOption')) {
+      return (
+        typeof answer.selectedOption !== 'number' ||
+        answer.selectedOption < 0 ||
+        answer.selectedOption > 3
+      );
+    }
+
+    return false;
+  });
 
   if (invalidAnswer) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      'Each answer must have a questionId and a valid selectedOption (0, 1, 2, or 3)',
+      'Each answer must have: ' +
+      '1. questionId (string) ' +
+      '2. isCorrect (boolean) ' +
+      '3. For multiple choice: selectedOption (0-3)',
     );
   }
 

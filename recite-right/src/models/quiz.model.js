@@ -39,7 +39,12 @@ const quizSchema = mongoose.Schema(
           type: Number,
           required: true,
           min: 0,
-          max: 3,
+        },
+        surahNumber: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 114,
         },
       },
     ],
@@ -133,14 +138,14 @@ quizSchema.pre('save', function (next) {
   next();
 });
 
-// Add validation for options array
-quizSchema.pre('save', function (next) {
-  const invalidQuestion = this.questions.find((q) => q.options.length !== 4);
-  if (invalidQuestion) {
-    next(new Error('Each question must have exactly 4 options'));
-  }
-  next();
-});
+//// Add validation for options array
+//quizSchema.pre('save', function (next) {
+//  const invalidQuestion = this.questions.find((q) => q.options.length !== 4);
+//  if (invalidQuestion) {
+//    next(new Error('Each question must have exactly 4 options'));
+//  }
+//  next();
+//});
 
 // Add caching for frequently accessed data
 quizSchema.statics.findActiveQuizzes = async function (userId) {
