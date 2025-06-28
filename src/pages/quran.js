@@ -1,11 +1,5 @@
-import React, { 
-  useState, 
-  useRef, 
-  useEffect,
-  useCallback,
-  useReducer 
-} from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FaMicrophone, FaChevronDown, FaEye, FaEyeSlash, FaBars, FaTimes, FaStop, FaPause, FaPlay } from 'react-icons/fa';
 import Header from '../components/header';
 import './Quran.css';
@@ -30,8 +24,6 @@ const SettingsItem = ({ icon, text }) => {
     </div>
   );
 };
-
-
 
 const ToggleWithDescription = ({ description, isOn, onToggle, option1, option2 }) => {
   return (
@@ -72,8 +64,6 @@ function useQuery() {
 const Quran = () => {
   // State management
   const { quranFontSize, updateQuranFontSize } = useQuranFont();
-  const [summary, setSummary] = useState(null);
-
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState(null);
   const [startAyah, setStartAyah] = useState('');
@@ -101,7 +91,7 @@ const Quran = () => {
   const wsRef = useRef(null);
   const sourceRef = useRef(null);
   const processorRef = useRef(null);
-  const [finalSummary, setFinalSummary] = useState(null);
+
   const isReciteDisabled = !selectedSurah || !startAyah;
   const baseUrl = process.env.REACT_APP_BASE_URL;
 
@@ -112,48 +102,6 @@ const Quran = () => {
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
   const beepSoundRef = useRef(null);
-
-  useEffect(() => {
-  // Initialize audio context on user interaction
-  const initAudio = () => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      audioContextRef.current = ctx;
-      
-      // Create beep generator
-      beepSoundRef.current = () => {
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 800;
-        gainNode.gain.value = 0.3;
-        
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.3);
-      };
-    } catch (error) {
-      console.error('Audio initialization failed:', error);
-    }
-  };
-
-  // Start on first user interaction
-  const handleFirstClick = () => {
-    initAudio();
-    document.removeEventListener('click', handleFirstClick);
-  };
-  
-  document.addEventListener('click', handleFirstClick);
-
-  return () => {
-    if (audioContextRef.current?.state !== 'closed') {
-      audioContextRef.current?.close();
-    }
-  };
-}, []);
 
 
   // Dummy Quran Data (expanded for Juz 30)
@@ -232,31 +180,16 @@ const Quran = () => {
 
 
   // Initialize audio context and beep sound
-// Modify your audio initialization
-useEffect(() => {
-  const initAudio = async () => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      await ctx.resume(); // Required for mobile browsers
-      audioContextRef.current = ctx;
-      
-      // Create beep only after user interaction
-      document.addEventListener('click', () => {
-        beepSoundRef.current = createBeepSound(ctx, 800, 0.3);
-      }, { once: true });
-    } catch (err) {
-      console.error("Audio init failed:", err);
-    }
-  };
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    beepSoundRef.current = createBeepSound(audioContextRef.current, 800, 0.3);
 
-  initAudio();
-  
-  return () => {
-    if (audioContextRef.current?.state !== 'closed') {
-      audioContextRef.current?.close();
-    }
-  };
-}, []);
+    return () => {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
 
   const location = useLocation();
   // Replace your current initialization useEffect with this:
@@ -369,9 +302,6 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Add this with your other utility functions
-
-
   const startRecitation = () => {
     // Add validation for ayah number
     const ayahNum = parseInt(startAyah);
@@ -406,7 +336,6 @@ useEffect(() => {
     startRecording();
     startWebSocketConnection();
   };
-  
   const startWebSocketConnection = () => {
     if (!selectedSurah || !startAyah) {
       alert("Please select both surah and ayah");
@@ -419,28 +348,14 @@ useEffect(() => {
 
     wsRef.current.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      console.log('Received data from model API:', data);
-
-      if (data.incorrect_words) {
-        // Handle array of incorrect words
-        data.incorrect_words.forEach(([expectedWord, recitedWord]) => {
-          handleIncorrectWord(expectedWord);
-        });
-      } else if (data.incorrect_word) {
-        // Handle single incorrect word (backward compatibility)
+      console.log('Received data from model API:', data); // Debug log
+      if (data.incorrect_word) {
         handleIncorrectWord(data.incorrect_word);
+        setTranscript(prev => prev + ` [Incorrect: ${data.incorrect_word}]`);
       }
-
-      if (data.type === "summary") {
-        console.log("Final summary received:", data);
-        setFinalSummary(data);
-        // Update mistakes list from summary
-        if (data.mistakes) {
-          setMistakes(data.mistakes);
-        }
+      if (data.correct_word) {
+        handleCorrectWord(data.correct_word);
       }
-
-
       if (data.error) {
         console.error("Error from server:", data.error);
       }
@@ -452,14 +367,12 @@ useEffect(() => {
 
     wsRef.current.onclose = () => {
       console.log("WebSocket connection closed");
-      wsRef.current = null; // Moved here instead of closing manually in stopRecitation
     };
 
     wsRef.current.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
   };
-
 
   const handleCorrectWord = (word) => {
     // Find the current ayah and word index
@@ -530,7 +443,7 @@ useEffect(() => {
 
     // Cleanup WebSocket
     if (wsRef.current) {
-      // Let server close WebSocket after sending summary
+      wsRef.current.close();
       wsRef.current = null;
     }
 
@@ -632,9 +545,6 @@ useEffect(() => {
     simulateRecitation();
   };
 
-  
-
-  
   const speakWord = (word) => {
     if ('speechSynthesis' in window) {
       const utter = new SpeechSynthesisUtterance(word);
@@ -696,18 +606,6 @@ useEffect(() => {
       setAudioChunks(prev => [...prev, event.data]);
     }
   };
-
-const playBeep = () => {
-  if (!beepSoundRef.current) {
-    console.warn('Beep sound not initialized');
-    return;
-  }
-  if (audioContextRef.current?.state === 'closed') {
-    console.warn('Audio context closed');
-    return;
-  }
-  beepSoundRef.current();
-};
 
   const simulateRecitation = () => {
     if (!selectedSurah || !dummyQuranData[selectedSurah.number]) return;
@@ -788,76 +686,6 @@ const playBeep = () => {
     return ayah.text;
   };
 
-  // Add to Quran component
-const useFeedbackQueue = () => {
-  const queueRef = useRef([]);
-  const isProcessingRef = useRef(false);
-
-  const processQueue = useCallback(async () => {
-    if (isProcessingRef.current || queueRef.current.length === 0) return;
-    
-    isProcessingRef.current = true;
-    const { type, data } = queueRef.current.shift();
-    
-    switch (type) {
-      case 'BEEP':
-        await playBeep(); // Your existing beep function
-        break;
-      case 'HIGHLIGHT':
-        setIncorrectWords(prev => ({ ...prev, [data.ayah]: data.wordIndex }));
-        break;
-      case 'PRONOUNCE':
-        await speakWord(data.word); // Your TTS function
-        break;
-    }
-
-    isProcessingRef.current = false;
-    processQueue();
-  }, []);
-
-  const addToQueue = (type, data) => {
-    queueRef.current.push({ type, data });
-    processQueue();
-  };
-
-  return { addToQueue };
-};// Add this custom hook INSIDE your Quran component (before the render)
-
-
-
-// Then use it in your component
-const { addToQueue } = useFeedbackQueue();
-
-// Replace useState with this reducer
-const recitationReducer = (state, action) => {
-  switch (action.type) {
-    case 'WORD_RECITED':
-      return {
-        ...state,
-        [action.ayah]: {
-          ...state[action.ayah],
-          [action.wordIndex]: 'CORRECT'
-        }
-      };
-    case 'WORD_MISTAKE':
-      addToQueue('BEEP'); // From our queue system
-      addToQueue('HIGHLIGHT', { ayah: action.ayah, wordIndex: action.wordIndex });
-      addToQueue('PRONOUNCE', { word: action.correctWord });
-      
-      return {
-        ...state,
-        [action.ayah]: {
-          ...state[action.ayah],
-          [action.wordIndex]: 'INCORRECT'
-        }
-      };
-    default:
-      return state;
-  }
-};
-
-// Usage
-const [recitationState, dispatch] = useReducer(recitationReducer, {});
   // Render words with recitation tracking
   const renderWords = (ayah, isBismillahAyah = false) => {
     if (!ayah.words) return ayah.text;
@@ -956,29 +784,30 @@ const [recitationState, dispatch] = useReducer(recitationReducer, {});
               </button>
             </div>
 
-            {finalSummary && (
-              <div className="recitation-summary">
-                <h4>Recitation Summary</h4>
-                <div className="progress-percentage">{finalSummary.progress_rate}</div>
+            <div className="recitation-summary">
+              <h4>Recitation Progress</h4>
+              <div className="progress-percentage">{progress}%</div>
 
-                {finalSummary?.incorrect_words?.length > 0 && (
-                  <div className="mistakes-container">
-                    <h5>Areas to Improve</h5>
-                    <div className="mistakes-list-wrapper">
-                      <ul className="mistakes-list">
-                        {finalSummary.incorrect_words.map(([expectedWord], index) => (
-                          <li key={`mistake-${index}`} className="mistake-item">
-                            <span className="incorrect-word">
-                              {expectedWord}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+              {mistakes.length > 0 || Object.keys(incorrectWords).length > 0 ? (
+                <div className="mistakes-container">
+                  <h5>Areas to Improve</h5>
+                  <ul>
+                    {Object.entries(incorrectWords).map(([ayahNumber, wordIndices]) => {
+                      const ayah = ayahs.find(a => a.number === parseInt(ayahNumber));
+                      if (!ayah) return null;
+
+                      return wordIndices.map((wordIndex, i) => (
+                        <li key={`${ayahNumber}-${wordIndex}-${i}`} className="mistake-item">
+                          <span className="incorrect-word">
+                            {ayah.words[wordIndex]} (Ayah {ayahNumber})
+                          </span>
+                        </li>
+                      ));
+                    })}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
           </div>
         </aside>
 
