@@ -1,153 +1,129 @@
+/* === Base Layout === */
 .mistake-log-page {
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #f9faf8;
   display: flex;
   flex-direction: column;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 0 20px;
 }
 
+/* === Header === */
 .mistake-log-header {
   display: flex;
   align-items: center;
-  padding-left: 16px;
-  padding-right:16px;
-  border-bottom: 3px solid #97B469;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 2px solid #97B469;
   background-color: #ffffff;
   color: #97B469;
-  gap: 8px;
 }
 
 .back-arrow {
+  font-size: 26px;
   cursor: pointer;
-  font-size: 24px;
   color: #97B469;
+  transition: color 0.3s ease;
+}
+
+.back-arrow:hover {
+  color: #7e9c58;
 }
 
 .mistake-log-content {
-  flex-grow: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1200px; /* ⬅️ Increased from 1000px to 1200px */
+  margin: 0 auto;
+  margin-top: 40px;  /* ⬅️ Add vertical space below header */
 }
 
-.no-mistake-text {
-  font-size: 20px;
-  font-weight: 500;
+
+/* === Session Card === */
+.session-block {
+  align-content: center;
+  width: 900px;
+  background-color: #ffffff;
+  border: 1px solid #e0e8dc;
+  border-left: 6px solid #97B469;
+  border-radius: 12px;
+  padding: 20px 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.session-block:hover {
+  transform: translateY(-2px);
+}
+
+/* === Session Header Text === */
+.session-header h4 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.session-header p {
+  font-size: 16px;
   color: #666;
+  margin-top: 10px;
 }
 
+.mistake-buttons {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-start;
+}
+
+.mistake-word {
+  padding: 8px 18px;
+  font-size: 20px;
+  border-radius: 6px;
+  background-color: #ffefef;
+  color: #c0392b;
+  border: 1.5px solid #c0392b;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mistake-word:hover {
+  background-color: #ffe8e8;
+}
+
+.mistake-word.corrected {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* === Dark Mode Support === */
 body.dark-mode .mistake-log-page {
   background-color: #1e1e1e;
 }
 
-
-
 body.dark-mode .mistake-log-header {
   background-color: #2b2b2b;
   color: #97B469;
+}
+
+body.dark-mode .session-block {
+  background-color: #2d2d2d;
   border-color: #97B469;
 }
 
-.back-arrow {
-  cursor: pointer;
-  font-size: 24px;
-  color: #97B469;
-  margin-left: 8px; /* <-- add this line */
+body.dark-mode .session-header h4 {
+  color: #ffffff;
 }
 
-
-
-
-body.dark-mode .no-mistake-text {
+body.dark-mode .session-header p {
   color: #cccccc;
 }
 
-
-.session-block {
-  background-color: #d1e7c8;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  width: 60%;           /* 🔄 Wider session block */
-  margin: 0 auto;        /* 🔄 Centered */
-  align-self: center;
-  text-align: center;
+body.dark-mode .mistake-word {
+  background-color: #402020;
+  border-color: #ff7676;
+  color: #ff9999;
 }
-
-
-.mistake-log-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 30px;
-}
-
-.back-arrow {
-  cursor: pointer;
-  font-size: 24px;
-}
-
-.mistake-log-content {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.session-block {
-  background-color: #d1e7c8;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.session-header {
-  padding: 12px 20px;
-  background-color: #97B469;
-  border-bottom: 1px solid #b3d3a4;
-}
-
-.session-header h4 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.session-header p {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.6;
-}
-
-.mistake-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;  /* 👈 CENTER align the rows */
-  gap: 12px;
-  padding: 16px;
-  background-color: #fff;
-}
-
-
-.mistake-word {
-  border: 2px solid red;
-  color: red;
-  background: none;
-  padding: 8px 16px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s ease-in-out;
-}
-
-.mistake-word.corrected {
-  /*  Keep red color even for corrected mistakes */
-  color: red;
-  border-color: red;
-}
-
-
-.mistake-word:hover {
-  background-color: #ffeaea;
-}
-
