@@ -94,11 +94,9 @@ const Quran = () => {
   const [showRecitationControls, setShowRecitationControls] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recitedWords, setRecitedWords] = useState({}); // Track recited words by ayah
-  const [incorrectWords, setIncorrectWords] = useState({}); // Track incorrect words by ayah
   const [currentWordIndex, setCurrentWordIndex] = useState(0); // Track current word being recited
   const [showHideToggle, setShowHideToggle] = useState(true);
   const recordingIntervalRef = useRef(null);
-  const wsRef = useRef(null);
   const sourceRef = useRef(null);
   const processorRef = useRef(null);
   const [finalSummary, setFinalSummary] = useState(null);
@@ -110,50 +108,65 @@ const Quran = () => {
   const dropdownRef = useRef(null);
   const quranBlockRef = useRef(null);
   const mediaRecorderRef = useRef(null);
-  const audioContextRef = useRef(null);
   const beepSoundRef = useRef(null);
 
-  useEffect(() => {
-  // Initialize audio context on user interaction
-  const initAudio = () => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      audioContextRef.current = ctx;
-      
-      // Create beep generator
-      beepSoundRef.current = () => {
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 800;
-        gainNode.gain.value = 0.3;
-        
-        oscillator.start();
-        oscillator.stop(ctx.currentTime + 0.3);
-      };
-    } catch (error) {
-      console.error('Audio initialization failed:', error);
-    }
-  };
-
-  // Start on first user interaction
-  const handleFirstClick = () => {
-    initAudio();
-    document.removeEventListener('click', handleFirstClick);
-  };
+  const [words] = useState(["بِسْمِ", "اللَّهِ", "الرَّحْمَٰنِ", "الرَّحِيمِ"]);
+  const [visibleIndices, setVisibleIndices] = useState([]);
+  const [incorrectWords, setIncorrectWords] = useState({});
+  const [currentMode, setCurrentMode] = useState('reciting'); // 'reciting' | 'correcting'
+  const [feedbackMessage, setFeedbackMessage] = useState('');
   
-  document.addEventListener('click', handleFirstClick);
+  // REFS
+  const audioContextRef = useRef(null);
+  const wsRef = useRef(null);
+  const beepTimeoutRef = useRef(null);
 
-  return () => {
-    if (audioContextRef.current?.state !== 'closed') {
-      audioContextRef.current?.close();
-    }
-  };
-}, []);
+  // 1. AUDIO SETUP
+  useEffect(() => {
+    const initAudio = () => {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (error) {
+        console.error("Audio init failed:", error);
+      }
+    };
+
+    // Initialize on user interaction
+    const handleFirstInteraction = () => {
+      initAudio();
+      window.removeEventListener('click', handleFirstInteraction);
+    };
+    window.addEventListener('click', handleFirstInteraction);
+
+    return () => {
+      if (audioContextRef.current?.state !== 'closed') {
+        audioContextRef.current?.close();
+      }
+      clearTimeout(beepTimeoutRef.current);
+    };
+  }, []);
+
+  // 2. WEBSOCKET SETUP
+  useEffect(() => {
+    wsRef.current = new WebSocket('ws://localhost:8000/ws/1/1');
+
+    wsRef.current.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      
+      if (data.type === 'mistake') {
+        handleMistake(data.position, data.expectedWord);
+      } else if (data.type === 'progress') {
+        handleProgress(data.newPosition);
+      }
+    };
+
+    return () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
 
 
   // Dummy Quran Data (expanded for Juz 30)
@@ -691,52 +704,82 @@ useEffect(() => {
 
     simulateRecitation();
   };
-  const handleDataAvailable = (event) => {
+  const handleDataAvailable = (event) => {3
+
     if (event.data.size > 0) {
       setAudioChunks(prev => [...prev, event.data]);
     }
   };
 
- useEffect(() => {
-    wsRef.current = new WebSocket('ws://localhost:8000/ws/1/1');
-    
-    wsRef.current.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      
-      if (data.type === 'progress') {
-        setVisibleIndices(prev => [...prev, data.visible_word]);
-        setCorrectionMode(null);
+
+  const cleanupRef = useRef(false);
+
+  // Audio initialization
+  useEffect(() => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (error) {
+        console.error("AudioContext failed:", error);
       }
-      else if (data.type === 'mistake') {
-        // Immediate beep
-        playBeep();
-        
-        // Enter correction mode
-        setCorrectionMode({
-          position: data.position,
-          expected: data.expected,
-          attempts: 0
-        });
-        
-        // Highlight word
-        setIncorrectIndices(prev => ({
-          ...prev,
-          [data.position]: 'incorrect'
-        }));
+    }
+
+    return () => {
+      if (audioContextRef.current?.state !== 'closed') {
+        audioContextRef.current?.close?.();
       }
     };
+  }, []);
 
-    return () => wsRef.current.close();
+  // WebSocket connection
+  useEffect(() => {
+    if (!wsRef.current) {
+      wsRef.current = new WebSocket('ws://localhost:8000/ws/1/1');
+      
+      wsRef.current.onmessage = (e) => {
+        if (cleanupRef.current) return;
+        const data = JSON.parse(e.data);
+        
+        if (data.type === 'progress') {
+          setVisibleIndices(prev => [...prev, data.visible_word]);
+          setCorrectionMode(null);
+        }
+        else if (data.type === 'mistake') {
+          playBeep();
+          setCorrectionMode({
+            position: data.position,
+            expected: data.expected,
+            attempts: 0
+          });
+          setIncorrectIndices(prev => ({
+            ...prev,
+            [data.position]: 'incorrect'
+          }));
+        }
+      };
+    }
+
+    return () => {
+      cleanupRef.current = true;
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+    };
   }, []);
 
   const playBeep = () => {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    osc.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = 800;
-    osc.start();
-    osc.stop(ctx.currentTime + 0.2);
+    if (!audioContextRef.current) return;
+    
+    try {
+      const osc = audioContextRef.current.createOscillator();
+      osc.connect(audioContextRef.current.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 800;
+      osc.start();
+      osc.stop(audioContextRef.current.currentTime + 0.2);
+    } catch (error) {
+      console.error("Beep failed:", error);
+    }
   };
 
   const simulateRecitation = () => {
